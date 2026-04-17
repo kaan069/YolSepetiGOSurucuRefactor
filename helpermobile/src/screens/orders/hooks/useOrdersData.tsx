@@ -1,9 +1,11 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { requestsAPI, CraneRequest, TowTruckRequestDetail } from '../../../api';
+import type { MovingRequest, RoadAssistanceRequest, TransferRequest } from '../../../api/types';
 import * as Location from 'expo-location';
 import { OrderStatus } from '../../../lib/types';
 import { useActiveJobStore } from '../../../store/useActiveJobStore';
 import { useJobCountsStore } from '../../../store/useJobCountsStore';
+import { OrdersJob } from '../types';
 
 // Service filter types - artık yol yardım ve nakliye de destekleniyor
 // nakliye = evden eve + şehirler arası (birleşik olarak gösterilir)
@@ -17,17 +19,17 @@ interface UseOrdersDataProps {
 export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
   const [craneRequests, setCraneRequests] = useState<CraneRequest[]>([]);
   const [towTruckRequests, setTowTruckRequests] = useState<TowTruckRequestDetail[]>([]);
-  const [nakliyeRequests, setNakliyeRequests] = useState<any[]>([]); // Evden eve + şehirler arası birleşik
-  const [roadAssistanceRequests, setRoadAssistanceRequests] = useState<any[]>([]); // Yol yardım
-  const [transferRequests, setTransferRequests] = useState<any[]>([]);
+  const [nakliyeRequests, setNakliyeRequests] = useState<MovingRequest[]>([]); // Evden eve + şehirler arası birleşik
+  const [roadAssistanceRequests, setRoadAssistanceRequests] = useState<RoadAssistanceRequest[]>([]); // Yol yardım
+  const [transferRequests, setTransferRequests] = useState<TransferRequest[]>([]);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [requestsWithAddresses, setRequestsWithAddresses] = useState<{
     crane: CraneRequest[];
     tow: TowTruckRequestDetail[];
-    nakliye: any[];
-    roadAssistance: any[];
-    transfer: any[];
+    nakliye: MovingRequest[];
+    roadAssistance: RoadAssistanceRequest[];
+    transfer: TransferRequest[];
   }>({ crane: [], tow: [], nakliye: [], roadAssistance: [], transfer: [] });
   // Sayıları global store'dan oku (all-counts endpoint ile doldurulur, WebSocket ile güncellenir)
   const jobCounts = useJobCountsStore(state => state.serviceCounts[serviceFilter]) || { pending: 0, awaiting_approval: 0, awaiting_payment: 0, in_progress: 0 };
@@ -129,8 +131,8 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
     try {
       setLoading(true);
-      let homeMovingRequests: any[] = [];
-      let cityMovingRequests: any[] = [];
+      let homeMovingRequests: MovingRequest[] = [];
+      let cityMovingRequests: MovingRequest[] = [];
 
       switch (filter) {
         case 'pending':
@@ -167,11 +169,11 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
       }
 
       // Her isteğe tip ekle (iş detayında hangisi olduğu belli olsun)
-      const homeWithType = homeMovingRequests.map((r: any) => ({ ...r, movingType: 'homeMoving' }));
-      const cityWithType = cityMovingRequests.map((r: any) => ({ ...r, movingType: 'cityMoving' }));
+      const homeWithType: MovingRequest[] = homeMovingRequests.map((r) => ({ ...r, movingType: 'homeMoving' as const }));
+      const cityWithType: MovingRequest[] = cityMovingRequests.map((r) => ({ ...r, movingType: 'cityMoving' as const }));
 
       // Birleştir
-      const combined = [...homeWithType, ...cityWithType];
+      const combined: MovingRequest[] = [...homeWithType, ...cityWithType];
       setNakliyeRequests(combined);
     } catch (error) {
       console.error('❌ NAKLİYE TALEPLERİ HATA:', error);
@@ -186,7 +188,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
     try {
       setLoading(true);
-      let requests: any[] = [];
+      let requests: RoadAssistanceRequest[] = [];
 
       switch (filter) {
         case 'pending':
@@ -221,7 +223,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
     try {
       setLoading(true);
-      let requests: any[] = [];
+      let requests: TransferRequest[] = [];
 
       switch (filter) {
         case 'pending':
@@ -452,12 +454,12 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
     return requests
       .filter((request) => request && request.latitude && request.longitude)
-      .map((request) => {
+      .map((request): OrdersJob => {
         const price = request.final_price || 0;
 
         return {
           id: request.id.toString(),
-          serviceType: 'crane' as const,
+          serviceType: 'crane',
           vehicleType: `Vinç - ${request.load_type || '?'}`,
           from: {
             lat: parseFloat(request.latitude || '0'),
@@ -484,12 +486,12 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
     return requests
       .filter((request) => request && request.pickup_latitude && request.pickup_longitude)
-      .map((request) => {
+      .map((request): OrdersJob => {
         const price = request.final_price || 0;
 
         return {
           id: request.id.toString(),
-          serviceType: 'tow' as const,
+          serviceType: 'tow',
           vehicleType: `Çekici - ${request.vehicle_type}`,
           from: {
             lat: parseFloat(request.pickup_latitude || '0'),
@@ -514,7 +516,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
   const nakliyeRequestsAsJobs = useMemo(() => {
     const requests = requestsWithAddresses.nakliye.length > 0 ? requestsWithAddresses.nakliye : nakliyeRequests;
 
-    return requests.map((request) => {
+    return requests.map((request): OrdersJob => {
       const price = request.final_price || request.estimated_price || 0;
       const fromLat = parseFloat(request.from_latitude || request.pickup_latitude || '0');
       const fromLng = parseFloat(request.from_longitude || request.pickup_longitude || '0');
@@ -535,9 +537,9 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
       return {
         id: request.id.toString(),
-        serviceType: 'transport' as const, // OrderDto tipine uygun - App.tsx'te otomatik konum paylaşımı hariç tutuluyor
+        serviceType: 'transport', // OrdersJob tipine uygun - App.tsx'te otomatik konum paylaşımı hariç tutuluyor
         vehicleType: typeLabel,
-        movingType: request.movingType, // homeMoving veya cityMoving - teklif ekranına yönlendirme için
+        movingType: request.movingType as OrdersJob['movingType'], // homeMoving veya cityMoving - teklif ekranına yönlendirme için
         from: {
           lat: fromLat,
           lng: fromLng,
@@ -563,7 +565,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
   const roadAssistanceRequestsAsJobs = useMemo(() => {
     const requests = requestsWithAddresses.roadAssistance.length > 0 ? requestsWithAddresses.roadAssistance : roadAssistanceRequests;
 
-    return requests.map((request) => {
+    return requests.map((request): OrdersJob => {
       const price = request.final_price || request.estimated_price || 0;
       const lat = parseFloat(request.latitude || request.location_latitude || '0');
       const lng = parseFloat(request.longitude || request.location_longitude || '0');
@@ -573,7 +575,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
       return {
         id: request.id.toString(),
-        serviceType: 'roadAssistance' as const,
+        serviceType: 'roadAssistance',
         vehicleType: `Yol Yardım - ${serviceTypeLabel}`,
         from: {
           lat,
@@ -599,7 +601,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
   const transferRequestsAsJobs = useMemo(() => {
     const requests = requestsWithAddresses.transfer.length > 0 ? requestsWithAddresses.transfer : transferRequests;
 
-    return requests.map((request) => {
+    return requests.map((request): OrdersJob => {
       const price = request.final_price || request.estimated_price || 0;
       const lat = parseFloat(request.pickup_latitude || request.latitude || '0');
       const lng = parseFloat(request.pickup_longitude || request.longitude || '0');
@@ -614,7 +616,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
       return {
         id: request.id.toString(),
-        serviceType: 'transfer' as const,
+        serviceType: 'transfer',
         vehicleType: `Transfer - ${transferTypeLabel}`,
         from: {
           lat,
@@ -662,7 +664,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
     const inProgressJob = filteredJobs.find((job) => job.status === 'in_progress');
 
     if (inProgressJob) {
-      let trackingToken: string | undefined = (inProgressJob as any).trackingToken;
+      let trackingToken: string | undefined = inProgressJob.trackingToken;
 
       // trackingToken yoksa backend verilerinden bul
       if (!trackingToken) {

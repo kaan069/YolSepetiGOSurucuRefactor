@@ -4,10 +4,7 @@ import axios, {
     AxiosResponse,
 } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-// API Base URL
-const API_BASE_URL = 'https://api.yolsepetigo.com';
-//const API_BASE_URL = "http://192.168.1.100:8000";
+import { API_BASE_URL } from "../constants/network";
 
 // Logout durumunu takip et - logout sırasında 401 bildirimleri gösterme
 let isLoggingOut = false;
@@ -112,4 +109,3 @@ axiosInstance.interceptors.response.use(
 );
 
 export default axiosInstance;
-export { API_BASE_URL };

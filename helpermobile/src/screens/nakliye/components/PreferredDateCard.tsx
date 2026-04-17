@@ -2,7 +2,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Card } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppTheme } from '../../../hooks/useAppTheme';
 
 interface PreferredDateCardProps {

@@ -6,14 +6,22 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../store/authStore';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { CompositeScreenProps, CommonActions } from '@react-navigation/native';
+import { RootStackParamList, RootTabParamList, EmployeeTabParamList } from '../../navigation';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { documentsAPI } from '../../api';
 import { ProfileCompletenessResponse, ProviderType } from '../../api/types';
 import { useFocusEffect } from '@react-navigation/native';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ProfileTab'>;
+// ProfileMenuScreen hem normal kullanıcı hem Employee tab navigator'ında kullanılıyor.
+// ProfileMenuScreen is used in both regular user and Employee tab navigators.
+type Props = CompositeScreenProps<
+  | BottomTabScreenProps<RootTabParamList, 'ProfileTab'>
+  | BottomTabScreenProps<EmployeeTabParamList, 'EmployeeProfileTab'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 interface MenuItemProps {
   title: string;
@@ -61,10 +69,14 @@ export default function ProfileMenuScreen({ navigation }: Props) {
   const handleLogout = async () => {
     await logout();
     // Navigation stack'i tamamen temizle ve Login ekranına yönlendir
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'Login' }],
-    });
+    // logout() isAuthenticated=false yapar ve RootNavigator AuthStack'e geçer; reset
+    // action cross-navigator olduğu için CommonActions ile dispatch edilir.
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: 'Login' }],
+      })
+    );
   };
 
   // MenuItem component - responsive styles ile

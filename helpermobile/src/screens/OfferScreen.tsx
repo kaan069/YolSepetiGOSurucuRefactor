@@ -338,15 +338,15 @@ export default function OfferScreen({ route, navigation }: Props) {
 
               <Text style={styles.label}>Araç Durumu:</Text>
               <VehicleStatusGrid
-                isRunning={towTruckRequest.is_running}
+                isRunning={towTruckRequest.is_running ?? false}
                 runningNote={towTruckRequest.running_note}
-                isGearStuck={towTruckRequest.is_gear_stuck}
+                isGearStuck={towTruckRequest.is_gear_stuck ?? false}
                 gearNote={towTruckRequest.gear_note}
-                isTireLocked={towTruckRequest.is_tire_locked}
+                isTireLocked={towTruckRequest.is_tire_locked ?? false}
                 tireNote={towTruckRequest.tire_note}
-                isStuck={towTruckRequest.is_stuck}
+                isStuck={towTruckRequest.is_stuck ?? false}
                 stuckNote={towTruckRequest.stuck_note}
-                isCrashed={towTruckRequest.is_crashed}
+                isCrashed={towTruckRequest.is_crashed ?? false}
                 crashedNote={towTruckRequest.crashed_note}
               />
 

@@ -183,7 +183,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
         {/* Tow Trucks Card - Only show if user registered for tow service */}
         {/* Çekici Araçları Kartı - Sadece çekici servisi için kayıt olmuş kullanıcılara göster */}
-        {hasServiceType('tow') && (
+        {hasServiceType('towTruck') && (
           <Card style={styles.card}>
             <Card.Title
               title={`🚛 Çekici Araçlarım (${towTrucks.length})`}
@@ -200,7 +200,7 @@ export default function ProfileScreen({ navigation }: Props) {
                           {truck.plate}
                         </Text>
                         <Text variant="bodyMedium" style={styles.vehicleDetails}>
-                          {truck.brand} {truck.model} • {truck.capacity} ton
+                          {truck.brand} {truck.model}
                         </Text>
                         <Text variant="bodySmall" style={styles.vehicleSpecs}>
                           {truck.year && `${truck.year} • `}
@@ -214,7 +214,7 @@ export default function ProfileScreen({ navigation }: Props) {
                         <IconButton
                           icon="pencil"
                           size={20}
-                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: truck.id })}
+                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: truck.id, vehicleType: 'tow' })}
                         />
                         <IconButton
                           icon="delete"
@@ -224,26 +224,6 @@ export default function ProfileScreen({ navigation }: Props) {
                         />
                       </View>
                     </View>
-                    
-                    {truck.equipment.length > 0 && (
-                      <View style={styles.equipmentSection}>
-                        <Text variant="bodySmall" style={styles.equipmentLabel}>
-                          Donanımlar:
-                        </Text>
-                        <View style={styles.equipmentTags}>
-                          {truck.equipment.slice(0, 3).map((eq, index) => (
-                            <Chip key={index} compact style={styles.equipmentChip}>
-                              {eq}
-                            </Chip>
-                          ))}
-                          {truck.equipment.length > 3 && (
-                            <Text variant="bodySmall" style={styles.moreText}>
-                              +{truck.equipment.length - 3} daha
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    )}
                   </Card.Content>
                 </Card>
               ))
@@ -273,23 +253,19 @@ export default function ProfileScreen({ navigation }: Props) {
                           {crane.plate}
                         </Text>
                         <Text variant="bodyMedium" style={styles.vehicleDetails}>
-                          {crane.brand} {crane.model} • {crane.capacity} ton
+                          {crane.brand} {crane.model}
                         </Text>
                         <Text variant="bodySmall" style={styles.vehicleSpecs}>
+                          {crane.year && `${crane.year} • `}
+                          {crane.color && `${crane.color} • `}
                           Max: {crane.maxHeight}m yükseklik
-                          {crane.craneType === 'mobile' && ' • Mobil Vinç'}
-                          {crane.craneType === 'tower' && ' • Kule Vinç'}
-                          {crane.craneType === 'truck-mounted' && ' • Kamyon Üstü'}
-                        </Text>
-                        <Text variant="bodySmall" style={styles.priceText}>
-                          {crane.hourlyRate} TL/saat {crane.operatorIncluded ? '(Operatör Dahil)' : ''}
                         </Text>
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         <IconButton
                           icon="pencil"
                           size={20}
-                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: crane.id })}
+                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: crane.id, vehicleType: 'crane' })}
                         />
                         <IconButton
                           icon="delete"
@@ -299,26 +275,6 @@ export default function ProfileScreen({ navigation }: Props) {
                         />
                       </View>
                     </View>
-                    
-                    {crane.equipment.length > 0 && (
-                      <View style={styles.equipmentSection}>
-                        <Text variant="bodySmall" style={styles.equipmentLabel}>
-                          Donanımlar:
-                        </Text>
-                        <View style={styles.equipmentTags}>
-                          {crane.equipment.slice(0, 3).map((eq, index) => (
-                            <Chip key={index} compact style={styles.equipmentChip}>
-                              {eq}
-                            </Chip>
-                          ))}
-                          {crane.equipment.length > 3 && (
-                            <Text variant="bodySmall" style={styles.moreText}>
-                              +{crane.equipment.length - 3} daha
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    )}
                   </Card.Content>
                 </Card>
               ))
@@ -331,7 +287,7 @@ export default function ProfileScreen({ navigation }: Props) {
 
         {/* Transport Vehicles Card - Only show if user registered for transport service */}
         {/* Nakliye Araçları Kartı - Sadece nakliye servisi için kayıt olmuş kullanıcılara göster */}
-        {hasServiceType('transport') && (
+        {(hasServiceType('homeToHomeMoving') || hasServiceType('cityToCity')) && (
           <Card style={styles.card}>
             <Card.Title
               title={`🚚 Nakliye Araçlarım (${transports.length})`}
@@ -362,7 +318,7 @@ export default function ProfileScreen({ navigation }: Props) {
                         <IconButton
                           icon="pencil"
                           size={20}
-                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: transport.id })}
+                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: transport.id, vehicleType: 'transport' })}
                         />
                         <IconButton
                           icon="delete"

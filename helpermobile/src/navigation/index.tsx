@@ -40,7 +40,6 @@ import LoginScreen from '../screens/auth/LoginScreen';
 import PhoneAuthScreen from '../screens/auth/PhoneAuthScreen';
 import PhoneNumberScreen from '../screens/auth/PhoneNumberScreen';
 import OTPVerificationScreen from '../screens/auth/OTPVerificationScreen';
-// import ServiceTypeSelectionScreen from '../screens/auth/ServiceTypeSelectionScreen'; // Kaldırıldı
 import PersonalInfoNewScreen from '../screens/auth/PersonalInfoNewScreen';
 import VehicleTypeSelectionScreen from '../screens/auth/VehicleTypeSelectionScreen';
 import { TowTruckDetailsScreen } from '../screens/towTruck';
@@ -66,7 +65,6 @@ export type RootStackParamList = {
   PhoneAuth: undefined;
   PhoneNumber: undefined;
   OTPVerification: undefined;
-  // ServiceTypeSelection: undefined; // Kaldırıldı
   PersonalInfoNew: { verificationToken?: string } | undefined;
   VehicleTypeSelection: undefined;
   TowTruckDetails: { fromRegistration?: boolean } | undefined;
@@ -122,9 +120,23 @@ export type RootStackParamList = {
   Onboarding: { isModal?: boolean } | undefined;
 };
 
+// Bottom tab navigator için parametre listeleri
+// Parameter lists for bottom tab navigators
+export type RootTabParamList = {
+  HomeTab: undefined;
+  OrdersTab: { serviceFilter?: 'tow' | 'crane' | 'transport' | 'home_moving' | 'city_moving' | 'road_assistance'; filter?: 'pending' | 'in_progress' | 'completed' | 'awaiting_approval' | 'awaiting_payment'; timestamp?: number } | undefined;
+  EarningsTab: undefined;
+  ProfileTab: undefined;
+};
+
+export type EmployeeTabParamList = {
+  EmployeeJobsTab: undefined;
+  EmployeeProfileTab: undefined;
+};
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator();
-const EmployeeTab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<RootTabParamList>();
+const EmployeeTab = createBottomTabNavigator<EmployeeTabParamList>();
 
 // Yanıp sönen tab ikonu komponenti
 // Blinking tab icon component for active jobs - uses global synced animation
@@ -388,7 +400,6 @@ function AuthStack() {
       <Stack.Screen name="PhoneAuth" component={PhoneAuthScreen} />
       <Stack.Screen name="PhoneNumber" component={PhoneNumberScreen} />
       <Stack.Screen name="OTPVerification" component={OTPVerificationScreen} />
-      {/* <Stack.Screen name="ServiceTypeSelection" component={ServiceTypeSelectionScreen} /> */}
       <Stack.Screen name="PersonalInfoNew" component={PersonalInfoNewScreen} />
       <Stack.Screen name="VehicleTypeSelection" component={VehicleTypeSelectionScreen} />
       <Stack.Screen name="VehiclesScreen" component={VehiclesScreen} />

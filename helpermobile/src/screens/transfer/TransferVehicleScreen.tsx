@@ -26,7 +26,7 @@ import { AppBar, SelectDropdown } from '../../components/common';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { TRANSPORT_VEHICLE_BRANDS, getVehicleYears, getModelsByBrand } from '../../data/vehicleData';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'TransportDetails'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'TransferVehicleDetails'>;
 
 type TransferType = 'organization' | 'vip';
 

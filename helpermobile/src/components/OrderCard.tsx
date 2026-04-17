@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, Text, Button, useTheme } from 'react-native-paper';
-import { OrderDto } from '../lib/types';
+import { OrdersJob } from '../screens/orders/types';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppTheme } from '../hooks/useAppTheme';
@@ -49,7 +49,7 @@ const formatPreferredDate = (dateString: string | undefined): { formatted: strin
 // Component props interface.
 // Component prop'ları için arayüz.
 interface Props {
-  item: OrderDto; // The job data to display. // Görüntülenecek iş verisi.
+  item: OrdersJob; // The job data to display. // Görüntülenecek iş verisi.
   onPress: () => void; // Function to call when the card is pressed. // Kart tıklandığında çağrılacak fonksiyon.
   onDismiss?: () => void; // Optional function to dismiss the job. // İşi gizlemek için opsiyonel fonksiyon.
 }
@@ -60,13 +60,11 @@ export default function OrderCard({ item, onPress, onDismiss }: Props) {
   const theme = useTheme();
   const { isDarkMode, appColors, cardBg } = useAppTheme();
 
-  // Support both old (pickupLocation/dropoffLocation/vehicle) and new (from/to/vehicleType) formats
-  // Hem eski (pickupLocation/dropoffLocation/vehicle) hem de yeni (from/to/vehicleType) formatları destekle
-  const fromAddress = (item as any).from?.address || item.pickupLocation?.address || 'Adres belirtilmemiş';
-  const toAddress = (item as any).to?.address || item.dropoffLocation?.address || 'Adres belirtilmemiş';
-  const vehicleInfo = (item as any).vehicleType || item.vehicle?.type || 'Belirtilmemiş';
-  const distance = (item as any).distance;
-  const preferredDateInfo = formatPreferredDate((item as any).preferredDate);
+  // OrdersJob zaten normalize edilmiş shape sunar (from/to/vehicleType).
+  const fromAddress = item.from.address || 'Adres belirtilmemiş';
+  const toAddress = item.to.address || 'Adres belirtilmemiş';
+  const vehicleInfo = item.vehicleType || 'Belirtilmemiş';
+  const preferredDateInfo = formatPreferredDate(item.preferredDate);
 
   // Durum için renk ve ikon belirleme
   const getStatusInfo = () => {
@@ -192,11 +190,11 @@ export default function OrderCard({ item, onPress, onDismiss }: Props) {
         )}
 
         {/* Açıklama */}
-        {(item as any).description && (
+        {item.description && (
           <View style={[styles.descriptionContainer, { backgroundColor: isDarkMode ? '#2C2C2C' : '#F9F9F9' }]}>
             <MaterialCommunityIcons name={"information-outline" as any} size={16} color={appColors.text.secondary} />
             <Text variant="bodySmall" style={[styles.descriptionText, { marginLeft: 6, color: appColors.text.secondary }]} numberOfLines={2}>
-              {(item as any).description}
+              {item.description}
             </Text>
           </View>
         )}

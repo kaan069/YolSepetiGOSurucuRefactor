@@ -22,12 +22,15 @@ const HOME_TYPE_LABELS: Record<string, string> = {
   'office': 'Ofis',
 };
 
+// Backend sayısal alanları (floor_from, load_weight, width vb.) string olarak
+// da dönebildiği için prop tipleri `number | string` ile gevşetildi. <Text>
+// içinde her iki tip de güvenle render edilir.
 interface MovingDetailsJobCardProps {
   isHomeMoving: boolean;
   // Evden Eve alanları
   homeType?: string;
-  floorFrom?: number;
-  floorTo?: number;
+  floorFrom?: number | string;
+  floorTo?: number | string;
   hasElevatorFrom?: boolean;
   hasElevatorTo?: boolean;
   hasLargeItems?: boolean;
@@ -37,10 +40,10 @@ interface MovingDetailsJobCardProps {
   needsDisassembly?: boolean;
   // Şehirler Arası alanları
   loadType?: string;
-  loadWeight?: number;
-  width?: number;
-  length?: number;
-  height?: number;
+  loadWeight?: number | string;
+  width?: number | string;
+  length?: number | string;
+  height?: number | string;
   // Ortak alanlar
   preferredDate?: string;
   preferredTimeSlot?: string;

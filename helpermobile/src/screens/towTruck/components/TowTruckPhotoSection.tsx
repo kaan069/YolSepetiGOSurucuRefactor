@@ -4,6 +4,7 @@ import { Text, Button } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
+import { isPdfFile } from '../../../utils/fileHelpers';
 
 interface TowTruckPhotoSectionProps {
   vehiclePhoto: string | null;
@@ -11,12 +12,6 @@ interface TowTruckPhotoSectionProps {
   title?: string;
   helperText?: string;
 }
-
-const isPdfFile = (uri: string | null): boolean => {
-  if (!uri) return false;
-  const cleanUri = uri.split('?')[0].split('#')[0].toLowerCase();
-  return cleanUri.endsWith('.pdf');
-};
 
 export default function TowTruckPhotoSection({
   vehiclePhoto,

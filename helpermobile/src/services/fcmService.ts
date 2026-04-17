@@ -1,7 +1,22 @@
 import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
 import authAPI from '../api/auth';
-import deviceService from './deviceService';
+import { deviceService } from './deviceService';
+
+/**
+ * Firebase Messaging `RemoteMessage.data` tipi artık
+ * `{ [key: string]: string | object }` şeklindedir (nested JSON desteği).
+ * Handler'larımız sadece string alanları tüketiyor — bu tip, SDK ile uyumlu
+ * olmak için union'ı genişletilmiş olarak tutar.
+ */
+type FCMDataRecord = { [key: string]: string | object };
+
+/**
+ * FCM data payload'ından string bir alanı güvenli şekilde okur.
+ * Alan yoksa veya nested bir object ise `undefined` döner.
+ */
+const readString = (value: string | object | undefined): string | undefined =>
+    typeof value === 'string' ? value : undefined;
 
 /**
  * FCM (Firebase Cloud Messaging) Servisi
@@ -192,12 +207,17 @@ class FCMService {
 
     /**
      * Notification data'sını işle
+     *
+     * NOT: Firebase SDK `RemoteMessage.data` tipini
+     * `{ [key: string]: string | object }` olarak verir (nested JSON desteği için).
+     * Biz sadece string alanları okuduğumuzdan union'ı genişletilmiş olarak kabul
+     * ediyoruz ve her okunan alan için `readString` ile narrow ediyoruz.
      */
-    private handleNotificationData(data: { [key: string]: string }): void {
+    private handleNotificationData(data: FCMDataRecord): void {
         console.log('📦 Notification data işleniyor:', data);
 
         // Notification tipine göre işlem yap
-        const type = data.type;
+        const type = readString(data.type);
 
         switch (type) {
             case 'new_request':
@@ -231,13 +251,17 @@ class FCMService {
 
     /**
      * Bildirime tıklanma işle (navigation)
+     *
+     * Şu an sadece log atılıyor; navigation tetikleme ileride eklendiğinde
+     * alanlar `readString(data.request_details_id)` gibi güvenli okuma ile
+     * alınmalıdır.
      */
-    private handleNotificationClick(data: { [key: string]: string }): void {
+    private handleNotificationClick(data: FCMDataRecord): void {
         console.log('👆 Notification tıklandı, navigation başlatılıyor...');
         console.log('   Data:', data);
 
         // Navigation logic buraya eklenecek
-        // Örn: NavigationService.navigate('JobDetail', { requestId: data.request_id })
+        // Örn: NavigationService.navigate('JobDetail', { requestId: readString(data.request_id) })
     }
 
     /**

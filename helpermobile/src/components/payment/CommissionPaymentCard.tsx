@@ -18,7 +18,7 @@ import { Card, Text, Button } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PaymentLogos from './PaymentLogos';
 
-export type CommissionServiceType = 'crane' | 'nakliye' | 'roadAssistance';
+export type CommissionServiceType = 'crane' | 'nakliye' | 'roadAssistance' | 'transfer';
 
 export interface CommissionJobDetails {
   finalPrice?: number | string;
@@ -43,12 +43,14 @@ const serviceLabels: Record<CommissionServiceType, string> = {
   crane: 'Vinç Hizmeti',
   nakliye: 'Nakliye Hizmeti',
   roadAssistance: 'Yol Yardım Hizmeti',
+  transfer: 'Transfer Hizmeti',
 };
 
 const serviceIcons: Record<CommissionServiceType, string> = {
   crane: 'crane',
   nakliye: 'truck-cargo-container',
   roadAssistance: 'car-wrench',
+  transfer: 'car-estate',
 };
 
 const formatCurrency = (amount: number | string): string => {

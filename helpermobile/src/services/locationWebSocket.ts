@@ -3,7 +3,7 @@
  *
  * Sürücü konumunu gerçek zamanlı olarak backend'e göndermek için kullanılır
  *
- * WebSocket URL: wss://api.yolsepetigo.com/ws/location/{tracking_token}/
+ * WebSocket URL: {WS_BASE_URL}/ws/location/{tracking_token}/
  * Authentication: JWT Token (Query Parameter)
  *
  * ⚠️ TRACKING TOKEN BAZLI - requestId yerine trackingToken kullanılıyor
@@ -20,6 +20,7 @@
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import { WS_BASE_URL } from '../constants/network';
 
 export interface LocationUpdate {
   latitude: number;
@@ -141,7 +142,7 @@ class LocationWebSocketService {
 
     try {
       // Backend URL'den WebSocket URL'ini oluştur - TRACKING TOKEN BAZLI
-      const wsUrl = `wss://api.yolsepetigo.com/ws/location/${this.trackingToken}/`;
+      const wsUrl = `${WS_BASE_URL}/ws/location/${this.trackingToken}/`;
 
       // JWT Token'ı al (Authentication için gerekli)
       const token = await AsyncStorage.getItem('access_token');

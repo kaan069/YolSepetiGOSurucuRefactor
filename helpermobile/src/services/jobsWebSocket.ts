@@ -3,15 +3,16 @@
  *
  * Real-time job notifications for all service types
  *
- * WebSocket Endpoints:
- * - wss://api.yolsepetigo.com/ws/jobs/tow_truck/?auth={jwt}
- * - wss://api.yolsepetigo.com/ws/jobs/crane/?auth={jwt}
- * - wss://api.yolsepetigo.com/ws/jobs/home_moving/?auth={jwt}
- * - wss://api.yolsepetigo.com/ws/jobs/city_moving/?auth={jwt}
- * - wss://api.yolsepetigo.com/ws/jobs/road_assistance/?auth={jwt}
+ * WebSocket Endpoints (base URL `WS_BASE_URL` üzerinden türetilir):
+ * - {WS_BASE_URL}/ws/jobs/tow_truck/?auth={jwt}
+ * - {WS_BASE_URL}/ws/jobs/crane/?auth={jwt}
+ * - {WS_BASE_URL}/ws/jobs/home_moving/?auth={jwt}
+ * - {WS_BASE_URL}/ws/jobs/city_moving/?auth={jwt}
+ * - {WS_BASE_URL}/ws/jobs/road_assistance/?auth={jwt}
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import { WS_BASE_URL } from '../constants/network';
 
 export type ServiceType = 'tow_truck' | 'crane' | 'home_moving' | 'city_moving' | 'road_assistance' | 'transfer';
 
@@ -134,7 +135,7 @@ class JobsWebSocketService {
         return;
       }
 
-      const wsUrl = `wss://api.yolsepetigo.com/ws/jobs/${serviceType}/?auth=${token}`;
+      const wsUrl = `${WS_BASE_URL}/ws/jobs/${serviceType}/?auth=${token}`;
       const ws = new WebSocket(wsUrl);
 
       const connection: WebSocketConnection = {

@@ -18,7 +18,7 @@ import CancelJobModal from '../../components/cancellation/CancelJobModal';
 import { useCancellationEventStore } from '../../store/useCancellationEventStore';
 import { useJobUpdateEventStore } from '../../store/useJobUpdateEventStore';
 import { useAppTheme } from '../../hooks/useAppTheme';
-import type { CancelServiceType } from '../../api/types';
+import type { CancelServiceType, MovingRequestDetail } from '../../api/types';
 import {
   StatusBanner,
   EarningsCard,
@@ -45,7 +45,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
 
   // State
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [request, setRequest] = useState<any | null>(null);
+  const [request, setRequest] = useState<MovingRequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [distanceToPickup, setDistanceToPickup] = useState<number | null>(null);
   const [totalDistance, setTotalDistance] = useState<number | null>(null);
@@ -60,7 +60,11 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
   const isCompleted = status === 'completed';
   const isHomeMoving = movingType === 'home' || request?.moving_type === 'home';
 
-  const requestId = request?.request_id?.id || request?.request_id || request?.id || null;
+  // request_id backend'den RequestIdInfo objesi ya da raw number olarak gelebiliyor
+  const requestId =
+    (typeof request?.request_id === 'object' && request?.request_id !== null
+      ? request.request_id.id
+      : request?.request_id) ?? request?.id ?? null;
   const trackingToken = request?.tracking_token || request?.trackingToken || null;
 
   // Bu iş için konum paylaşımı aktif mi kontrol et
@@ -397,7 +401,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
 
         {isInProgress && (
           <DriverPhotoUpload
-            requestId={requestId}
+            requestId={requestId || 0}
             existingPhotos={request.photos}
             onPhotosUploaded={fetchRequest}
           />

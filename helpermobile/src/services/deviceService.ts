@@ -24,11 +24,24 @@ class DeviceService {
 
       if (!deviceId) {
         // Expo Application ID kullan (her yüklemede benzersiz)
-        deviceId = Application.androidId || Application.getIosIdForVendorAsync?.toString() || `device_${Date.now()}`;
+        // Android: sync getAndroidId(), iOS: async getIosIdForVendorAsync()
+        let nativeId: string | null = null;
+        try {
+          if (Platform.OS === 'android') {
+            nativeId = Application.getAndroidId();
+          } else if (Platform.OS === 'ios') {
+            nativeId = await Application.getIosIdForVendorAsync();
+          }
+        } catch (nativeErr) {
+          console.warn('⚠️ Native device ID alınamadı, fallback kullanılacak:', nativeErr);
+          nativeId = null;
+        }
 
         // Fallback: Timestamp-based unique ID
-        if (!deviceId || deviceId === 'unknown') {
+        if (!nativeId || nativeId === 'unknown') {
           deviceId = `${Platform.OS}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        } else {
+          deviceId = nativeId;
         }
 
         // Kaydet

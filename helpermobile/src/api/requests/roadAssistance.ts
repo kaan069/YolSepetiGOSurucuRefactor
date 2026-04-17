@@ -3,12 +3,18 @@
  * Yol yardım talepleri için API metodları
  */
 import { axiosInstance, PaginatedResponse } from './base';
+import type {
+  RoadAssistanceRequest,
+  RoadAssistanceRequestDetail,
+  RoadAssistanceOfferPayload,
+  RoadAssistanceActionResponse,
+} from '../types';
 
 class RoadAssistanceAPI {
   // Bekleyen yol yardım taleplerini getir
-  async getPendingRequests(): Promise<any[]> {
+  async getPendingRequests(): Promise<RoadAssistanceRequest[]> {
     try {
-      const response = await axiosInstance.get<PaginatedResponse<any>>(
+      const response = await axiosInstance.get<PaginatedResponse<RoadAssistanceRequest>>(
         '/requests/road-assistance/pending/?page_size=15'
       );
       return response.data.results;
@@ -19,23 +25,23 @@ class RoadAssistanceAPI {
   }
 
   // Müsait yol yardım taleplerini getir (pending + awaiting_approval - kendi tekliflerim)
-  async getAvailableRequests(): Promise<any[]> {
+  async getAvailableRequests(): Promise<RoadAssistanceRequest[]> {
     try {
       const [allDetailsResponse, myAwaitingResponse] = await Promise.all([
-        axiosInstance.get<any[]>('/requests/road-assistance/details/').catch(() => ({ data: [] })),
-        axiosInstance.get<PaginatedResponse<any>>(
+        axiosInstance.get<RoadAssistanceRequest[]>('/requests/road-assistance/details/').catch(() => ({ data: [] as RoadAssistanceRequest[] })),
+        axiosInstance.get<PaginatedResponse<RoadAssistanceRequest>>(
           '/requests/road-assistance/awaiting-approval/?page_size=50'
-        ).catch(() => ({ data: { results: [] } }))
+        ).catch(() => ({ data: { results: [] as RoadAssistanceRequest[] } }))
       ]);
 
       const allDetails = allDetailsResponse.data || [];
       const availableStatusRequests = allDetails.filter(
-        (r: any) => r.status === 'pending' || r.status === 'awaiting_approval'
+        (r) => r.status === 'pending' || r.status === 'awaiting_approval'
       );
 
       const myAwaitingRequests = myAwaitingResponse.data.results || [];
-      const myAwaitingIds = new Set(myAwaitingRequests.map((r: any) => r.id));
-      const availableRequests = availableStatusRequests.filter((r: any) => !myAwaitingIds.has(r.id));
+      const myAwaitingIds = new Set(myAwaitingRequests.map((r) => r.id));
+      const availableRequests = availableStatusRequests.filter((r) => !myAwaitingIds.has(r.id));
 
       return availableRequests;
     } catch (error) {
@@ -45,9 +51,9 @@ class RoadAssistanceAPI {
   }
 
   // Onay bekleyen yol yardım taleplerini getir
-  async getAwaitingApprovalRequests(): Promise<any[]> {
+  async getAwaitingApprovalRequests(): Promise<RoadAssistanceRequest[]> {
     try {
-      const response = await axiosInstance.get<PaginatedResponse<any>>(
+      const response = await axiosInstance.get<PaginatedResponse<RoadAssistanceRequest>>(
         '/requests/road-assistance/awaiting-approval/?page_size=15'
       );
       return response.data.results;
@@ -58,9 +64,9 @@ class RoadAssistanceAPI {
   }
 
   // Ödeme bekleyen yol yardım taleplerini getir
-  async getAwaitingPaymentRequests(): Promise<any[]> {
+  async getAwaitingPaymentRequests(): Promise<RoadAssistanceRequest[]> {
     try {
-      const response = await axiosInstance.get<PaginatedResponse<any>>(
+      const response = await axiosInstance.get<PaginatedResponse<RoadAssistanceRequest>>(
         '/requests/road-assistance/awaiting-payment/?page_size=15'
       );
       return response.data.results;
@@ -71,9 +77,9 @@ class RoadAssistanceAPI {
   }
 
   // Devam eden yol yardım taleplerini getir
-  async getInProgressRequests(): Promise<any[]> {
+  async getInProgressRequests(): Promise<RoadAssistanceRequest[]> {
     try {
-      const response = await axiosInstance.get<PaginatedResponse<any>>(
+      const response = await axiosInstance.get<PaginatedResponse<RoadAssistanceRequest>>(
         '/requests/road-assistance/in-progress/?page_size=15'
       );
       return response.data.results;
@@ -84,9 +90,9 @@ class RoadAssistanceAPI {
   }
 
   // Tamamlanan yol yardım taleplerini getir
-  async getCompletedRequests(): Promise<any[]> {
+  async getCompletedRequests(): Promise<RoadAssistanceRequest[]> {
     try {
-      const response = await axiosInstance.get<PaginatedResponse<any>>(
+      const response = await axiosInstance.get<PaginatedResponse<RoadAssistanceRequest>>(
         '/summary/completed/road-assistance/?page_size=15'
       );
       return response.data.results;
@@ -97,9 +103,11 @@ class RoadAssistanceAPI {
   }
 
   // Yol yardım talebi detayını getir
-  async getRequestDetail(id: number): Promise<any> {
+  async getRequestDetail(id: number): Promise<RoadAssistanceRequestDetail> {
     try {
-      const response = await axiosInstance.get<any>(`/requests/road-assistance/details/${id}/`);
+      const response = await axiosInstance.get<RoadAssistanceRequestDetail>(
+        `/requests/road-assistance/details/${id}/`
+      );
       return response.data;
     } catch (error) {
       console.error('❌ Get road assistance request detail error:', error);
@@ -108,11 +116,17 @@ class RoadAssistanceAPI {
   }
 
   // Teklif gönder
-  async submitOffer(trackingToken: string, proposedPrice: number, distanceToLocationKm: number, vehicleId?: number, employeeId?: number): Promise<any> {
+  async submitOffer(
+    trackingToken: string,
+    proposedPrice: number,
+    distanceToLocationKm: number,
+    vehicleId?: number,
+    employeeId?: number
+  ): Promise<RoadAssistanceActionResponse> {
     try {
-      const payload: any = {
+      const payload: RoadAssistanceOfferPayload = {
         proposed_price: proposedPrice,
-        distance_to_location_km: distanceToLocationKm
+        distance_to_location_km: distanceToLocationKm,
       };
 
       // vehicle_id varsa ekle
@@ -123,7 +137,10 @@ class RoadAssistanceAPI {
         payload.employee_id = employeeId;
       }
 
-      const response = await axiosInstance.post(`/requests/road-assistance/${trackingToken}/submit-offer/`, payload);
+      const response = await axiosInstance.post<RoadAssistanceActionResponse>(
+        `/requests/road-assistance/${trackingToken}/submit-offer/`,
+        payload
+      );
       return response.data;
     } catch (error: any) {
       console.error('❌ Submit road assistance offer error:', error?.response?.data);
@@ -131,9 +148,11 @@ class RoadAssistanceAPI {
     }
   }
 
-  async withdrawOffer(trackingToken: string): Promise<any> {
+  async withdrawOffer(trackingToken: string): Promise<RoadAssistanceActionResponse> {
     try {
-      const response = await axiosInstance.delete(`/requests/road-assistance/${trackingToken}/withdraw-offer/`);
+      const response = await axiosInstance.delete<RoadAssistanceActionResponse>(
+        `/requests/road-assistance/${trackingToken}/withdraw-offer/`
+      );
       return response.data;
     } catch (error: any) {
       console.error('❌ API: Yol yardım teklif geri çekme hatası:', error?.response?.data);

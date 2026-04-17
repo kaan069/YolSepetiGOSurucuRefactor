@@ -11,6 +11,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import LoadingSpinner from '../components/LoadingSpinner';
 import { RootStackParamList } from '../navigation';
 import { requestsAPI } from '../api';
+import type { RoadAssistanceRequestDetail } from '../api/types';
 import { useActiveJobStore } from '../store/useActiveJobStore';
 import AppBar from '../components/common/AppBar';
 import { CommissionPaymentModal, CommissionPaymentCard, InsurancePricingCard } from '../components/payment';
@@ -48,7 +49,7 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
   const { isDarkMode, appColors, screenBg } = useAppTheme();
 
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [request, setRequest] = useState<any | null>(null);
+  const [request, setRequest] = useState<RoadAssistanceRequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [distanceToLocation, setDistanceToLocation] = useState<number | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -61,8 +62,11 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
   const isInProgress = status === 'in_progress';
   const isCompleted = status === 'completed';
 
-  // Request ID - backend'den gelen yapıya göre
-  const requestId = request?.request_id?.id || request?.request_id || request?.id || null;
+  // Request ID - backend RequestIdInfo objesi ya da raw number olarak gelebiliyor
+  const requestId =
+    (typeof request?.request_id === 'object' && request?.request_id !== null
+      ? request.request_id.id
+      : request?.request_id) ?? request?.id ?? null;
 
   // Fetch request detail
   const fetchRequest = useCallback(async () => {
@@ -356,7 +360,7 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
 
         {isInProgress && (
           <DriverPhotoUpload
-            requestId={requestId}
+            requestId={requestId || 0}
             existingPhotos={request.photos}
             onPhotosUploaded={fetchRequest}
           />

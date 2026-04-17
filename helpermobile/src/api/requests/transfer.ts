@@ -3,8 +3,11 @@
  * Transfer talepleri için API metodları
  */
 import { axiosInstance, PaginatedResponse } from './base';
-import {
+import type {
   TransferRequest,
+  TransferRequestDetail,
+  TransferOfferPayload,
+  TransferActionResponse,
 } from '../types';
 
 class TransferAPI {
@@ -28,7 +31,7 @@ class TransferAPI {
         axiosInstance.get<TransferRequest[]>('/requests/transfer/details/'),
         axiosInstance.get<PaginatedResponse<TransferRequest>>(
           '/requests/transfer/awaiting-approval/?page_size=50'
-        ).catch(() => ({ data: { results: [] } }))
+        ).catch(() => ({ data: { results: [] as TransferRequest[] } }))
       ]);
 
       const allDetails = allDetailsResponse.data;
@@ -100,12 +103,14 @@ class TransferAPI {
   }
 
   // Transfer talebi detayını getir
-  async getRequestDetail(id: number): Promise<TransferRequest> {
+  async getRequestDetail(id: number): Promise<TransferRequestDetail> {
     try {
-      const response = await axiosInstance.get<TransferRequest>(`/requests/transfer/details/${id}/`);
+      const response = await axiosInstance.get<TransferRequestDetail>(
+        `/requests/transfer/details/${id}/`
+      );
       return response.data;
     } catch (error) {
-      console.error('Get transfer request detail error:', error);
+      console.error('❌ Get transfer request detail error:', error);
       throw error;
     }
   }
@@ -113,14 +118,10 @@ class TransferAPI {
   // Teklif gönder
   async submitOffer(
     trackingToken: string,
-    data: {
-      proposed_price: number;
-      vehicle_id: number;
-      employee_id?: number;
-    }
-  ): Promise<any> {
+    data: TransferOfferPayload
+  ): Promise<TransferActionResponse> {
     try {
-      const response = await axiosInstance.post(
+      const response = await axiosInstance.post<TransferActionResponse>(
         `/requests/transfer/${trackingToken}/submit-offer/`,
         data
       );
@@ -132,9 +133,9 @@ class TransferAPI {
   }
 
   // Teklifi geri çek
-  async withdrawOffer(trackingToken: string): Promise<any> {
+  async withdrawOffer(trackingToken: string): Promise<TransferActionResponse> {
     try {
-      const response = await axiosInstance.delete(
+      const response = await axiosInstance.delete<TransferActionResponse>(
         `/requests/transfer/${trackingToken}/withdraw-offer/`
       );
       return response.data;
@@ -143,10 +144,13 @@ class TransferAPI {
       throw error;
     }
   }
+
   // Yola çıkış bildir
-  async depart(trackingToken: string): Promise<any> {
+  async depart(trackingToken: string): Promise<TransferActionResponse> {
     try {
-      const response = await axiosInstance.post(`/requests/transfer/${trackingToken}/depart/`);
+      const response = await axiosInstance.post<TransferActionResponse>(
+        `/requests/transfer/${trackingToken}/depart/`
+      );
       return response.data;
     } catch (error: any) {
       console.error('❌ API: Transfer yola çıkış hatası:', error?.response?.data);

@@ -46,6 +46,8 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
 
   const status = craneRequest ? getStatus(craneRequest) : null;
   const requestId = craneRequest ? getRequestId(craneRequest) : null;
+  const isAwaitingApproval = status === 'awaiting_approval';
+  const isAwaitingPayment = status === 'awaiting_payment';
 
   // İstek detayını getir
   // Earnings ekranından gelen jobId, ServiceRequest ID olabilir (CraneRequestDetails ID değil)
@@ -248,8 +250,6 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
     );
   }
 
-  const isAwaitingApproval = status === 'awaiting_approval';
-  const isAwaitingPayment = status === 'awaiting_payment';
   const isInProgress = status === 'in_progress';
   const isCompleted = status === 'completed';
 

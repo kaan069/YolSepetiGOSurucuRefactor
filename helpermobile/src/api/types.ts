@@ -325,6 +325,8 @@ export interface PricingBreakdown {
     commission_vat_rate?: number;          // KDV oranı (örn: 20)
     commission_vat_amount?: number;        // KDV tutarı (örn: 60)
     commission_total_with_vat?: number;    // KDV dahil toplam komisyon (örn: 360)
+    // Mesafe (bazı servislerde pricing_breakdown içinde de dönüyor)
+    distance_km?: number;
 }
 
 // Driver Offer Type (Sürücü Teklifi)
@@ -497,6 +499,7 @@ export interface ByServiceTypeEarnings {
     roadAssistance: ServiceTypeEarnings;    // Yol Yardım
     homeToHomeMoving: ServiceTypeEarnings;  // Evden Eve Nakliye
     cityToCity: ServiceTypeEarnings;        // Şehirler Arası Nakliye
+    transfer?: ServiceTypeEarnings;         // Transfer (opsiyonel - backend response'unda olmayabilir)
 }
 
 export interface PeriodEarningsResponse {
@@ -704,7 +707,7 @@ export interface CancelJobResponse {
 }
 
 /** API URL path segment for cancel endpoints */
-export type CancelServiceType = 'tow-truck' | 'crane' | 'road-assistance' | 'home-moving' | 'city-moving';
+export type CancelServiceType = 'tow-truck' | 'crane' | 'road-assistance' | 'home-moving' | 'city-moving' | 'transfer';
 
 // ==================== ELEMAN (EMPLOYEE) TİPLERİ ====================
 // Firma sahiplerinin eleman yönetimi için
@@ -790,6 +793,7 @@ export interface TransferRequest {
   requestOwnerNameSurname?: string;
   requestOwnerPhone?: string;
   trackingToken?: string;
+  tracking_token?: string;                 // snake_case varyantı (bazı backend response'larında gelir)
   status?: string;
   my_offer?: DriverOffer;
   transfer_type: TransferType;
@@ -806,9 +810,18 @@ export interface TransferRequest {
   dropoff_address: string;
   dropoff_latitude: string;
   dropoff_longitude: string;
+  // Orders list mapping fallback alanları (bazı response shape'lerinde pickup_* yerine bu alanlar dönebilir)
+  address?: string;
+  latitude?: string;
+  longitude?: string;
+  destination_address?: string;
+  destination_latitude?: string;
+  destination_longitude?: string;
   return_pickup_location?: { address: string; latitude: string; longitude: string };
   return_dropoff_location?: { address: string; latitude: string; longitude: string };
   estimated_km?: number;
+  distance_km?: number;                    // Orders list mapping'de estimated_km fallback'i
+  estimated_price?: number | string;       // Orders list mapping'de final_price fallback'i
   route_distance?: string;
   distance_to_location_km?: number;
   estimated_duration_hours?: number;
@@ -821,6 +834,222 @@ export interface TransferRequest {
   updated_at: string;
 }
 
+// ==================== ORDERS LIST REQUEST TYPES ====================
+// useOrdersData hook'u tarafından kullanılan minimum güvenli tipler.
+// Nakliye (home-moving + city-moving) ve yol yardım servisleri için backend response'u
+// henüz güçlü tiplenmediğinden (endpoint'ler any[] dönüyor), mapping'de okunan
+// alanları buraya opsiyonel olarak deklare ediyoruz. Yeni alan eklenirken
+// useOrdersData.tsx'teki mapping'lerle senkron tutulmalı.
+
+/**
+ * Nakliye talebi (Evden Eve + Şehirler Arası birleşik listesinde kullanılır).
+ * snake_case ve camelCase varyasyonları birlikte tutulur çünkü backend
+ * her iki formatta da alan gönderebiliyor. `movingType` UI katmanında
+ * `useOrdersData` tarafından eklenen ayrık alandır.
+ */
+export interface MovingRequest {
+  id: number;
+  created_at: string;
+  status?: string;
+  trackingToken?: string;
+  tracking_token?: string;
+
+  // Adres / koordinat varyasyonları
+  from_address?: string;
+  to_address?: string;
+  pickup_address?: string;
+  dropoff_address?: string;
+  from_latitude?: string;
+  from_longitude?: string;
+  to_latitude?: string;
+  to_longitude?: string;
+  pickup_latitude?: string;
+  pickup_longitude?: string;
+  dropoff_latitude?: string;
+  dropoff_longitude?: string;
+
+  // Fiyat ve mesafe varyasyonları
+  final_price?: number | string;
+  estimated_price?: number | string;
+  estimated_km?: number;
+  distance_km?: number;
+  // Backend'den gelen güzergah mesafesi (string formatta, ör: "12.5 km")
+  // CityMovingOfferScreen / HomeMovingOfferScreen tarafından parse edilerek kullanılır
+  route_distance?: string | number;
+
+  // Evden Eve alanları
+  floor_from?: number | string;
+  has_elevator?: boolean;
+  room_count?: number | string;
+
+  // Şehirler Arası alanları
+  from_city?: string;
+  to_city?: string;
+  load_weight?: number | string;
+
+  // Tercih edilen tarih (nakliye)
+  preferred_date?: string;
+
+  // UI katmanı (useOrdersData) tarafından her item'a eklenir
+  movingType?: 'homeMoving' | 'cityMoving';
+}
+
+/**
+ * Yol yardım talebi - orders list mapping'i için minimum tip.
+ * Snake_case / camelCase varyantları koruyor (trackingToken / tracking_token,
+ * latitude / location_latitude vb.). service_type ve assistance_type'ın her ikisi
+ * de backend varyasyonlarına karşılık gelir.
+ */
+export interface RoadAssistanceRequest {
+  id: number;
+  created_at: string;
+  status?: string;
+  trackingToken?: string;
+  tracking_token?: string;
+
+  // Konum varyasyonları
+  address?: string;
+  location_address?: string;
+  latitude?: string;
+  longitude?: string;
+  location_latitude?: string;
+  location_longitude?: string;
+
+  // Fiyat
+  final_price?: number | string;
+  estimated_price?: number | string;
+
+  // Servis tipi varyasyonları
+  service_type?: string;
+  assistance_type?: string;
+
+  // Açıklama varyasyonları
+  description?: string;
+  problem_description?: string;
+}
+
+// ==================== NAKLİYE DETAIL + ACTION TİPLERİ ====================
+// Detail endpoint'i liste item'ın genişletilmiş halidir; NakliyeJobDetailScreen
+// tüketicisinin gerçekten okuduğu alanları minimum olarak buraya eklenir.
+// snake_case + camelCase varyantları backend response formatlarına sadık tutulur.
+
+export interface MovingMyOffer {
+  offer_amount?: number | string;
+  estimated_price?: number | string;
+  driver_earnings?: number | string;
+  platform_commission?: number | string;
+  pricing_breakdown?: PricingBreakdown;
+}
+
+export interface MovingRequestDetail extends MovingRequest {
+  // İş türü (home / city) — bazı response'larda detail içinde gelir
+  moving_type?: 'home' | 'city';
+
+  // İlişkili request_id — backend object ya da number döndürebilir
+  request_id?: RequestIdInfo | number;
+
+  // Müşteri bilgileri
+  requestOwnerNameSurname?: string;
+  requestOwnerPhone?: string;
+  request_owner_name?: string;
+  request_owner_phone?: string;
+
+  // Sürücünün kendi teklifi ve fiyat alanları
+  my_offer?: MovingMyOffer;
+  final_price?: number | string;
+  platform_commission?: number | string;
+  pricing?: InsurancePricingInfo;
+
+  // Fotoğraflar
+  photos?: RequestPhoto[];
+
+  // Evden Eve detayları
+  home_type?: string;
+  floor_to?: number | string;
+  has_elevator_from?: boolean;
+  has_elevator_to?: boolean;
+  has_large_items?: boolean;
+  large_items_note?: string;
+  has_fragile_items?: boolean;
+  needs_packing?: boolean;
+  needs_disassembly?: boolean;
+
+  // Şehirler Arası detayları
+  load_type?: string;
+  width?: number | string;
+  length?: number | string;
+  height?: number | string;
+
+  // Ortak ek alanlar
+  preferred_time_slot?: string;
+  additional_notes?: string;
+  estimated_duration?: number | string;
+  estimated_duration_hours?: number;
+}
+
+/** Nakliye teklif gönderim payload'ı (submit-offer endpoint body). */
+export interface MovingOfferPayload {
+  proposed_price: number;
+  total_distance_km: number;
+  vehicle_id?: number;
+  employee_id?: number;
+}
+
+/** Nakliye teklif/withdraw/depart endpoint'lerinin generic response'u. */
+export interface MovingActionResponse {
+  message?: string;
+}
+
+// ==================== YOL YARDIM DETAIL + ACTION TİPLERİ ====================
+// Detail endpoint'i liste item'ın genişletilmiş halidir.
+// RoadAssistanceJobDetail + RoadAssistanceOffer ekranlarının gerçekten okuduğu
+// alanları minimum olarak buraya eklenir.
+
+export interface RoadAssistanceMyOffer {
+  driver_earnings?: number | string;
+  platform_commission?: number | string;
+  pricing_breakdown?: PricingBreakdown;
+}
+
+export interface RoadAssistanceRequestDetail extends RoadAssistanceRequest {
+  // İlişkili request_id — backend object ya da number döndürebilir
+  request_id?: RequestIdInfo | number;
+
+  // Müşteri bilgileri
+  requestOwnerNameSurname?: string;
+  requestOwnerPhone?: string;
+  request_owner_name?: string;
+  request_owner_phone?: string;
+
+  // Sürücünün kendi teklifi ve fiyat alanları
+  my_offer?: RoadAssistanceMyOffer;
+  final_price?: number | string;
+  platform_commission?: number | string;
+  pricing?: InsurancePricingInfo;
+
+  // Fotoğraflar
+  photos?: RequestPhoto[];
+
+  // Araç problem detayları
+  vehicle_type?: string;
+  problem_types?: string[];
+  additional_notes?: string;
+  estimated_duration?: number | string;
+}
+
+/** Yol yardım teklif gönderim payload'ı (submit-offer endpoint body). */
+export interface RoadAssistanceOfferPayload {
+  proposed_price: number;
+  distance_to_location_km: number;
+  vehicle_id?: number;
+  employee_id?: number;
+}
+
+/** Yol yardım teklif/withdraw endpoint'lerinin generic response'u. */
+export interface RoadAssistanceActionResponse {
+  message?: string;
+}
+
 export interface TransferListItem {
   id: number;
   brand: string;
@@ -828,6 +1057,52 @@ export interface TransferListItem {
   plate_number?: string;
   passenger_capacity?: number;
   vehicle_class?: VehiclePreference;
+}
+
+// ==================== TRANSFER DETAIL + ACTION TİPLERİ ====================
+// Detail endpoint'i liste item'ın genişletilmiş halidir.
+// TransferJobDetailScreen + TransferOfferScreen tüketicilerinin gerçekten okuduğu
+// alanları minimum olarak buraya eklenir. snake_case varyantları backend response
+// formatına sadık tutulur. `TransferRequest` liste tipi zaten transfer'e özel
+// alanları (transfer_type, passenger_count, scheduled_date, is_round_trip vb.)
+// ve `my_offer: DriverOffer` alanını içerdiği için burada tekrar edilmez.
+
+/**
+ * Transfer my_offer objesi — gelecekte detail response için daha esnek bir
+ * my_offer tipi gerekirse kullanılmak üzere public olarak export edilir.
+ * Şu anda `TransferRequest.my_offer` (DriverOffer) tipi kullanılmaya devam ediyor
+ * (override edilirse base tipine assignability bozulur).
+ * Backend sayısal alanları string olarak da dönebildiği için `number | string`.
+ */
+export interface TransferMyOffer {
+  offer_amount?: number | string;
+  estimated_price?: number | string;
+  driver_earnings?: number | string;
+  platform_commission?: number | string;
+  pricing_breakdown?: PricingBreakdown;
+}
+
+/**
+ * Transfer detay endpoint response'u — liste tipinin genişletilmiş hali.
+ * `TransferRequest` liste tipi zaten transfer'e özel alanları içerdiğinden
+ * burada yalnızca detail endpoint'in tüketicide gerçekten okunan ek alanları
+ * beyan edilir (şu an için TransferRequest üzerinde ek alana ihtiyaç yok —
+ * fakat ileride detail-only alanlar eklendiğinde bu interface uzatılabilir).
+ */
+export interface TransferRequestDetail extends TransferRequest {}
+
+/** Transfer teklif gönderim payload'ı (submit-offer endpoint body). */
+export interface TransferOfferPayload {
+  proposed_price: number;
+  vehicle_id: number;
+  employee_id?: number;
+}
+
+/** Transfer teklif/withdraw/depart endpoint'lerinin generic response'u. */
+export interface TransferActionResponse {
+  message?: string;
+  driver_earnings?: number | string;
+  estimated_price?: number | string;
 }
 
 export interface TransferVehicleInfo {

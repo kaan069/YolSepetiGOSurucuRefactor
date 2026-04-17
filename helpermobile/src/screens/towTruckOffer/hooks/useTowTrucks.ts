@@ -40,7 +40,7 @@ export function useTowTrucks(): UseTowTrucksReturn {
 
         // İlk çekiciyi otomatik seç
         if (trucks.length > 0) {
-          setSelectedId(trucks[0].id);
+          setSelectedId(trucks[0].id ?? null);
         }
 
         console.log('✅ Kullanıcının çekicileri yüklendi:', trucks.length, 'adet');

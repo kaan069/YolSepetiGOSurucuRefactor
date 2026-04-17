@@ -50,7 +50,7 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
       const result = await requestsAPI.getTotalEarnings();
       console.log('💰 Reports: Toplam kazanç API response:', result);
       console.log('💰 Reports: Toplam kazanç değeri:', result.total_earnings);
-      setTotalEarnings(result.total_earnings || 0);
+      setTotalEarnings(parseFloat(result.total_earnings) || 0);
     } catch (error: any) {
       console.error('❌ Toplam kazanç yüklenirken hata:', error);
       console.error('❌ Error response:', error.response?.data);
@@ -217,8 +217,8 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
   const totalJobs = filteredTransactions.length;
 
   // Dönemsel kazançlar - Period earnings from backend
-  const periodTowEarnings = parseFloat(periodEarnings?.tow_truck_earnings || '0');
-  const periodCraneEarnings = parseFloat(periodEarnings?.crane_earnings || '0');
+  const periodTowEarnings = parseFloat(periodEarnings?.by_service_type?.towTruck?.earnings || '0');
+  const periodCraneEarnings = parseFloat(periodEarnings?.by_service_type?.crane?.earnings || '0');
   const periodTotalEarnings = parseFloat(periodEarnings?.total_earnings || '0');
 
   // Türk formatında para gösterimi (16227 -> 16.227)

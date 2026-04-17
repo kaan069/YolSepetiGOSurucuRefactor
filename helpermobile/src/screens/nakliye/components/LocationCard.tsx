@@ -7,10 +7,14 @@ import { useAppTheme } from '../../../hooks/useAppTheme';
 
 interface LocationCardProps {
   type: 'pickup' | 'dropoff';
-  address: string;
+  // Backend detay response'larında adres alanı opsiyonel olabildiğinden
+  // prop da opsiyonel tutulur; render'da 'Adres belirtilmemiş' fallback'i var.
+  address?: string;
   latitude: number;
   longitude: number;
-  floor?: number | null;
+  // Backend sayısal alanları string olarak da dönebildiği için (ör. floor_from: "3")
+  // prop'u gevşetiyoruz; render <Text> içinde stringleştirme otomatik.
+  floor?: number | string | null;
   hasElevator?: boolean;
   visible: boolean;
   showDirectionsButton?: boolean;

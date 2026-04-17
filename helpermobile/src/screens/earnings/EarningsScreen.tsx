@@ -3,7 +3,9 @@ import { ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation';
+import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import { CompositeScreenProps } from '@react-navigation/native';
+import { RootStackParamList, RootTabParamList } from '../../navigation';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import useEarnings from './hooks/useEarnings';
 import TotalEarningsCard from './components/TotalEarningsCard';
@@ -15,7 +17,10 @@ import JobHistorySection from './components/JobHistorySection';
 import { CompletedJob } from './constants';
 import { useAppTheme } from '../../hooks/useAppTheme';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'EarningsTab'>;
+type Props = CompositeScreenProps<
+  BottomTabScreenProps<RootTabParamList, 'EarningsTab'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
 
 export default function EarningsScreen({ navigation }: Props) {
   const { screenBg } = useAppTheme();

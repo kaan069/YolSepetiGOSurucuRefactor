@@ -4,7 +4,7 @@
  * Sürücünün konumunu gerçek zamanlı olarak backend'e gönderir
  * WebSocket bağlantısı ile 5 saniyede bir konum güncellemesi yapar
  *
- * WebSocket URL: wss://api.yolsepetigo.com/ws/location/{tracking_token}/
+ * WebSocket URL: {WS_BASE_URL}/ws/location/{tracking_token}/
  * Authentication: JWT Token (query param - React Native limitasyonu)
  *
  * ⚠️ TRACKING TOKEN BAZLI - requestId yerine trackingToken kullanılıyor

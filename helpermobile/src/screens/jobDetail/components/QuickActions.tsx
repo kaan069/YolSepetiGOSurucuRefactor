@@ -30,7 +30,7 @@ export default function QuickActions({
       const phoneUrl = `tel:${cleanPhone}`;
 
       // Platform kontrolü - iOS simülatörde çalışmaz
-      if (Platform.OS === 'ios' && !Platform.isPad && Platform.isTVOS === false) {
+      if (Platform.OS === 'ios' && !Platform.isPad) {
         const supported = await Linking.canOpenURL(phoneUrl);
         if (!supported) {
           Alert.alert(

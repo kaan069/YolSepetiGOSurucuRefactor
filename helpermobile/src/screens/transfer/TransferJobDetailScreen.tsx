@@ -10,6 +10,7 @@ import { ensureForegroundPermission } from '../../utils/locationPermission';
 import { RootStackParamList } from '../../navigation';
 import { requestsAPI, TransferRequest } from '../../api';
 import { transferAPI } from '../../api/requests';
+import type { TransferRequestDetail } from '../../api/types';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import { useNakliyeLocationStore } from '../../store/useNakliyeLocationStore';
 import AppBar from '../../components/common/AppBar';
@@ -108,7 +109,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
   const { isDarkMode, screenBg, cardBg, appColors } = useAppTheme();
 
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
-  const [transferRequest, setTransferRequest] = useState<TransferRequest | null>(null);
+  const [transferRequest, setTransferRequest] = useState<TransferRequestDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [distanceToPickup, setDistanceToPickup] = useState<number | null>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);

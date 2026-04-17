@@ -11,6 +11,7 @@ export interface TowTruckInfo {
   brand: string;               // Marka - Brand
   model: string;               // Model - Model
   year: string;                // Yıl - Year
+  color?: string;              // Renk - Color (backend'den geliyor; formda toplanmıyor, opsiyonel)
 
   // TEKNİK ÖZELLİKLER - Technical Specifications
   platformType: 'open' | 'closed' | 'flatbed'; // Platform türü - Platform type
@@ -29,6 +30,7 @@ export interface CraneInfo {
   brand: string;               // Marka - Brand
   model: string;               // Model - Model
   year: string;                // Yıl - Year
+  color?: string;              // Renk - Color (backend'den geliyor; formda toplanmıyor, opsiyonel)
 
   // TEKNİK ÖZELLİKLER - Technical Specifications
   maxHeight: string;           // Maksimum yükseklik (m) - Maximum height in meters

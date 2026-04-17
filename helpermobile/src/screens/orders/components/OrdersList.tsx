@@ -6,31 +6,10 @@ import LoadingSpinner from '../../../components/LoadingSpinner';
 import EmptyOrdersState from './EmptyOrdersState';
 import { OrderStatus } from '../../../lib/types';
 import { useAppTheme } from '../../../hooks/useAppTheme';
-
-interface Job {
-  id: string;
-  serviceType: 'crane' | 'tow' | 'transport' | 'nakliye' | 'roadAssistance' | 'transfer';
-  vehicleType: string;
-  movingType?: 'homeMoving' | 'cityMoving'; // Nakliye için hangi tür olduğunu belirtir
-  from: {
-    lat: number;
-    lng: number;
-    address: string;
-  };
-  to: {
-    lat: number;
-    lng: number;
-    address: string;
-  };
-  distance: number;
-  estimatedPrice: number;
-  status: OrderStatus;
-  createdAt: Date;
-  description: string;
-}
+import { OrdersJob } from '../types';
 
 interface OrdersListProps {
-  jobs: Job[];
+  jobs: OrdersJob[];
   loading: boolean;
   refreshing: boolean;
   filter: OrderStatus;

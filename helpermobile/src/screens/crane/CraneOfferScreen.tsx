@@ -76,7 +76,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
 
         // Tek vinç varsa otomatik seç
         if (cranes.length === 1) {
-          setSelectedCraneId(cranes[0].id);
+          setSelectedCraneId(cranes[0].id ?? null);
         }
 
         if (cranes.length === 0) {

@@ -14,22 +14,7 @@ import { useAuthStore } from '../../store/authStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
-
-// URI'nin PDF olup olmadığını kontrol et (query parametrelerini de destekler)
-const isPdfFile = (uri: string | null): boolean => {
-  if (!uri) return false;
-  // Query parametrelerini ve hash'i temizle
-  const cleanUri = uri.split('?')[0].split('#')[0].toLowerCase();
-  return cleanUri.endsWith('.pdf');
-};
-
-// Backend'den gelen URL'yi tam URL'e çevir (hem relative hem absolute URL destekler)
-const buildFullUrl = (url: string): string => {
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url; // Zaten tam URL
-  }
-  return `https://api.yolsepetigo.com${url}`; // Relative path
-};
+import { isPdfFile, buildFullUrl } from '../../utils/fileHelpers';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DocumentsScreen'>;
 
