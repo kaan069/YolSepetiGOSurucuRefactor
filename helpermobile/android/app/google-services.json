@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "52264168551",
+    "project_id": "yolpaketi",
+    "storage_bucket": "yolpaketi.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52264168551:android:1c8d536caf496622ec78c2",
+        "android_client_info": {
+          "package_name": "com.devkaans.yolpaketi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8E_PXlLzRWLHJynnERVYKMEJDe4w2ZB8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

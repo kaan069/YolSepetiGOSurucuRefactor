@@ -1,0 +1,96 @@
+{
+    "expo": {
+        "name": "Yol SepetiGo Sürücü",
+        "slug": "yolsepeti",
+        "version": "1.0.1",
+        "orientation": "portrait",
+        "icon": "./assets/gosiyahbeyazlogo.png",
+        "userInterfaceStyle": "light",
+        "newArchEnabled": true,
+        "splash": {
+            "image": "./assets/gosiyahbeyazlogo.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#ffffff"
+        },
+        "ios": {
+            "buildNumber": "5",
+            "supportsTablet": true,
+            "bundleIdentifier": "com.devkaans.yolpaketi",
+            "googleServicesFile": "./GoogleService-Info.plist",
+            "infoPlist": {
+                "NSAppTransportSecurity": {
+                    "NSAllowsArbitraryLoads": true
+                },
+                "NSCameraUsageDescription": "Bu uygulama araç fotoğrafı çekmek için kameranıza erişim izni istemektedir.",
+                "NSPhotoLibraryUsageDescription": "Bu uygulama araç fotoğrafı seçmek için foto galerinize erişim izni istemektedir.",
+                "NSPhotoLibraryAddUsageDescription": "Bu uygulama fotoğraf kaydetmek için galerinize erişim izni istemektedir.",
+                "NSLocationAlwaysAndWhenInUseUsageDescription": "Aktif iş sırasında konumunuzu müşteri ile paylaşmak için arka planda konum iznine ihtiyacımız var.",
+                "NSLocationWhenInUseUsageDescription": "Aktif iş sırasında konumunuzu müşteri ile paylaşmak için konum iznine ihtiyacımız var.",
+                "LSApplicationQueriesSchemes": [
+                    "tel"
+                ],
+                "UIBackgroundModes": [
+                    "location",
+                    "fetch",
+                    "remote-notification"
+                ]
+            }
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/gosiyahbeyazlogo-android.png",
+                "backgroundColor": "#ffffff"
+            },
+            "package": "com.devkaans.yolpaketi",
+            "permissions": [
+                "ACCESS_FINE_LOCATION",
+                "ACCESS_COARSE_LOCATION",
+                "ACCESS_BACKGROUND_LOCATION",
+                "FOREGROUND_SERVICE",
+                "FOREGROUND_SERVICE_LOCATION",
+                "CAMERA",
+                "READ_EXTERNAL_STORAGE",
+                "WRITE_EXTERNAL_STORAGE",
+                "READ_MEDIA_IMAGES",
+                "POST_NOTIFICATIONS",
+                "REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+            ],
+            "googleServicesFile": "./google-services.json",
+            "usesCleartextTraffic": true,
+            "config": {
+                "googleMaps": {
+                    "apiKey": "AIzaSyBXlSJ8uEIz0Uw44CYzJVZQJhjUpLPRErI"
+                }
+            }
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
+        },
+        "plugins": [
+            "expo-font",
+            [
+                "expo-location",
+                {
+                    "locationAlwaysAndWhenInUsePermission": "Aktif iş sırasında konumunuzu müşteri ile paylaşmak için arka planda konum iznine ihtiyacımız var.",
+                    "locationAlwaysPermission": "Aktif iş sırasında arka planda konum takibi için izin gereklidir.",
+                    "locationWhenInUsePermission": "Aktif iş sırasında konumunuzu müşteri ile paylaşmak için konum iznine ihtiyacımız var.",
+                    "isAndroidBackgroundLocationEnabled": true,
+                    "isAndroidForegroundServiceEnabled": true
+                }
+            ],
+            [
+                "expo-notifications",
+                {
+                    "color": "#ffffff",
+                    "sounds": []
+                }
+            ],
+            "@react-native-firebase/app"
+        ],
+        "extra": {
+            "eas": {
+                "projectId": "6aeea94d-22c1-4423-bde3-f592b58513d6"
+            }
+        }
+    }
+}

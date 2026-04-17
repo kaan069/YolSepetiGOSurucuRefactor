@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<gpx version="1.1" creator="Xcode">
+    <!-- İstanbul'da hareket eden rota simülasyonu -->
+    <trk>
+        <name>İstanbul Test Route</name>
+        <trkseg>
+            <!-- Taksim -->
+            <trkpt lat="41.0370" lon="28.9857">
+                <time>2024-01-01T00:00:00Z</time>
+            </trkpt>
+            <!-- Beşiktaş -->
+            <trkpt lat="41.0422" lon="29.0079">
+                <time>2024-01-01T00:05:00Z</time>
+            </trkpt>
+            <!-- Ortaköy -->
+            <trkpt lat="41.0553" lon="29.0275">
+                <time>2024-01-01T00:10:00Z</time>
+            </trkpt>
+            <!-- Bebek -->
+            <trkpt lat="41.0771" lon="29.0436">
+                <time>2024-01-01T00:15:00Z</time>
+            </trkpt>
+            <!-- Rumeli Hisarı -->
+            <trkpt lat="41.0847" lon="29.0559">
+                <time>2024-01-01T00:20:00Z</time>
+            </trkpt>
+        </trkseg>
+    </trk>
+</gpx>
