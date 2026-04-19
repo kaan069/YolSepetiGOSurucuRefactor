@@ -7,7 +7,8 @@
 import { useEffect, useCallback, useState, useRef } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { jobsWebSocket, ServiceType } from '../services/jobsWebSocket';
+import { jobsWebSocket } from '../services/jobsWebSocket';
+import { ServiceType, isServiceType } from '../constants/serviceTypes';
 import { User } from '../api/types';
 
 interface UseJobsWebSocketProps {
@@ -23,15 +24,9 @@ interface UseJobsWebSocketReturn {
   reconnect: () => void;
 }
 
-// Map user_type to WebSocket service type
-const userTypeToServiceType: Record<string, ServiceType> = {
-  'towTruck': 'tow_truck',
-  'crane': 'crane',
-  'homeToHomeMoving': 'home_moving',
-  'cityToCity': 'city_moving',
-  'roadAssistance': 'road_assistance',
-  'transfer': 'transfer',
-};
+// `User.user_type` canonical ServiceType literal'leri ile birebir örtüşür
+// (kayıt sırasında backend'e bu form gönderilir). Bu nedenle ayrı bir alias
+// map'ine ihtiyaç yoktur; runtime'da sadece bilinmeyen değerler filtrelenir.
 
 export function useJobsWebSocket({
   onNewJob,
@@ -65,9 +60,8 @@ export function useJobsWebSocket({
 
       const serviceTypes: ServiceType[] = [];
       for (const userType of userTypes) {
-        const wsType = userTypeToServiceType[userType];
-        if (wsType) {
-          serviceTypes.push(wsType);
+        if (isServiceType(userType)) {
+          serviceTypes.push(userType);
         }
       }
 

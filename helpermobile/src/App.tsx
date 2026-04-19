@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { View, Alert, Platform } from 'react-native';
+import { View, Alert } from 'react-native';
 import * as Font from 'expo-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RootNavigator from './navigation';
@@ -23,10 +23,8 @@ import { useAuthStore } from './store/authStore';
 import { useActiveJobStore } from './store/useActiveJobStore';
 import { useNakliyeLocationStore } from './store/useNakliyeLocationStore';
 import { authAPI, requestsAPI } from './api';
-import { deviceService } from './services/deviceService';
-import { navigateToAcceptedJob } from './utils/notificationNavigation';
+import { navigateToAcceptedJob, navigateToOfferScreen } from './utils/notificationNavigation';
 import { backgroundLocationService } from './services/backgroundLocationService';
-import messaging from '@react-native-firebase/messaging';
 
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
@@ -38,26 +36,6 @@ export default function App() {
   const { trackingToken: activeJobTrackingToken, serviceType: activeJobServiceType, clearActiveJob } = useActiveJobStore();
   const nakliyeLocationState = useNakliyeLocationStore();
   const navigationRef = React.useRef<any>(null);
-
-  // iOS Push Notification Debug
-  React.useEffect(() => {
-    async function testPush() {
-      try {
-        await messaging().registerDeviceForRemoteMessages();
-        const authStatus = await messaging().requestPermission();
-        console.log('🍎 AUTH STATUS:', authStatus);
-
-        const fcmToken = await messaging().getToken();
-        console.log('🍎 FCM TOKEN:', fcmToken);
-
-        const apnsToken = await messaging().getAPNSToken();
-        console.log('🍎 APNS TOKEN:', apnsToken);
-      } catch (error) {
-        console.error('🍎 PUSH ERROR:', error);
-      }
-    }
-    testPush();
-  }, []);
 
   // Check if user has valid tokens on app start
   React.useEffect(() => {
@@ -74,14 +52,6 @@ export default function App() {
               setCurrentUser(profileResponse.user);
 
               setIsAuthenticated(true);
-
-              if (Platform.OS === 'android') {
-                try {
-                  await deviceService.checkPayPOSInstalled();
-                } catch (payposError) {
-                  console.error('⚠️ [App Start] PayPOS kontrol hatası:', payposError);
-                }
-              }
             } else {
               await AsyncStorage.multiRemove(['access_token', 'refresh_token', 'user']);
             }
@@ -153,11 +123,19 @@ export default function App() {
         const jobId = parseInt(activeJobId);
         let detail: any = null;
 
+        // NOT: Store canonical ServiceType tutar (Faz 2). Legacy key'ler
+        // (tow/transport/...) geriye uyum için korundu — eski persist hydrate
+        // edilip migrate edilmeden önce güvenli olmak için.
         const detailFetchers: Record<string, (id: number) => Promise<any>> = {
-          tow: (id) => requestsAPI.getTowTruckRequestDetail(id),
+          // Canonical
+          towTruck: (id) => requestsAPI.getTowTruckRequestDetail(id),
           crane: (id) => requestsAPI.getCraneRequestDetail(id),
           transfer: (id) => requestsAPI.getTransferRequestDetail(id),
           roadAssistance: (id) => requestsAPI.getRoadAssistanceRequestDetail(id),
+          homeToHomeMoving: (id) => requestsAPI.getHomeMovingRequestDetail(id),
+          cityToCity: (id) => requestsAPI.getHomeMovingRequestDetail(id),
+          // Legacy (geriye uyum — migration öncesi çağrılar için)
+          tow: (id) => requestsAPI.getTowTruckRequestDetail(id),
           transport: (id) => requestsAPI.getHomeMovingRequestDetail(id),
         };
 
@@ -190,11 +168,16 @@ export default function App() {
   // ⚠️ NAKLİYE (transport) İŞLERİ HARİÇ - Onlar için manuel "Yola Çık" butonu kullanılır
   // ═══════════════════════════════════════════════════════════════════════════
 
-  // Transport işleri ve employee kullanıcılar için WebSocket'i devre dışı bırak
+  // Transport (nakliye) işleri ve employee kullanıcılar için WebSocket'i devre dışı bırak
   // Employee kullanıcılar kendi WebSocket'lerini EmployeeJobDetailScreen'de yönetir
+  // NOT: Store canonical ServiceType tutar (Faz 2). Nakliye = homeToHomeMoving ∪ cityToCity.
   const currentUser = useAuthStore((s) => s.currentUser);
   const isEmployeeUser = (currentUser as any)?.provider_type === 'employee';
-  const shouldEnableWebSocket = activeJobTrackingToken && activeJobServiceType !== 'transport' && !isEmployeeUser;
+  const isNakliyeServiceType =
+    activeJobServiceType === 'homeToHomeMoving' ||
+    activeJobServiceType === 'cityToCity';
+  const shouldEnableWebSocket =
+    !!activeJobTrackingToken && !isNakliyeServiceType && !isEmployeeUser;
 
   // Global WebSocket - Aktif job varsa her zaman çalışır (background/foreground farketmez)
   // İş tamamlandığında (completed) veya iptal edildiğinde (cancelled) otomatik kapanır
@@ -268,19 +251,9 @@ export default function App() {
 
           if (!data) return;
 
-          // DEBUG: Bildirim verisini konsola bas
-          console.log('🔔 [Banner] Bildirim tüm data:', JSON.stringify(data, null, 2));
-          console.log('🔔 [Banner] data.type:', data.type);
-          console.log('🔔 [Banner] data.service_type:', data.service_type);
-          console.log('🔔 [Banner] data.request_details_id:', data.request_details_id);
-
           const orderId = data.request_details_id || data.orderId || data.order_id || data.requestId || data.request_id;
           const serviceType = data.service_type || data.type || 'tow';
           const notificationType = data.type;
-
-          console.log('🔔 [Banner] Hesaplanan orderId:', orderId);
-          console.log('🔔 [Banner] Hesaplanan serviceType:', serviceType);
-          console.log('🔔 [Banner] Hesaplanan notificationType:', notificationType);
 
           if (navigationRef.current) {
             // Eleman iş ataması bildirimi - EmployeeJobDetail'e yönlendir
@@ -302,17 +275,7 @@ export default function App() {
               navigateToAcceptedJob(navigationRef, orderId, serviceType, '[Banner]');
             }
             else if (orderId) {
-              if (serviceType === 'crane' || serviceType === 'vinc_request') {
-                navigationRef.current.navigate('CraneOffer', { orderId: String(orderId) });
-              } else if (serviceType === 'home_moving' || serviceType === 'evden_eve') {
-                navigationRef.current.navigate('HomeMovingOffer', { orderId: String(orderId) });
-              } else if (serviceType === 'city_moving' || serviceType === 'sehirler_arasi') {
-                navigationRef.current.navigate('CityMovingOffer', { orderId: String(orderId) });
-              } else if (serviceType === 'road_assistance' || serviceType === 'yol_yardim' || serviceType === 'road_assistance_request') {
-                navigationRef.current.navigate('RoadAssistanceOffer', { orderId: String(orderId) });
-              } else {
-                navigationRef.current.navigate('TowTruckOffer', { orderId: String(orderId) });
-              }
+              navigateToOfferScreen(navigationRef, orderId, serviceType);
             }
           }
         }}

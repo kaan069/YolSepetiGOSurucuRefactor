@@ -569,7 +569,7 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
       <CancelJobModal
         visible={showCancelModal}
         onClose={() => setShowCancelModal(false)}
-        serviceType="road-assistance"
+        serviceType="roadAssistance"
         trackingToken={request?.tracking_token || request?.trackingToken || ''}
         onCancelSuccess={handleCancelSuccess}
       />

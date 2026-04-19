@@ -31,9 +31,7 @@ class EmployeePanelAPI {
     // İş listesini getir (pagination destekli)
     async getJobs(params?: GetJobsParams): Promise<EmployeeJobsResponse> {
         try {
-            console.log('📋 [EmployeePanel] İşler isteniyor, params:', params);
             const response = await axiosInstance.get<EmployeeJobsResponse>('/employee/jobs/', { params });
-            console.log('📋 [EmployeePanel] İşler cevabı:', JSON.stringify(response.data, null, 2));
             return response.data;
         } catch (error: any) {
             console.error('Get employee jobs error:', error?.response?.data);

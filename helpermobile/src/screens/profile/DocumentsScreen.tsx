@@ -68,7 +68,6 @@ export default function DocumentsScreen({ navigation, route }: Props) {
     setLoading(true);
     try {
       const response = await documentsAPI.getDocuments();
-      console.log('✅ Belgeler yüklendi:', JSON.stringify(response, null, 2));
 
       // Backend'den gelen URL'leri tam URL'e çevir
       if (response.license_photo) {

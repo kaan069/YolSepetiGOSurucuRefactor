@@ -13,8 +13,6 @@ import { requestsAPI, TowTruckRequestDetail } from '../../api';
 import { useActiveJobStore } from '../../store/useActiveJobStore';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import AppBar from '../../components/common/AppBar';
-// NFC/QR/PayPOS ödeme entegrasyonu iptal edildi - firma ile anlaşılamadı
-// import { NFCPaymentModal, QRPaymentModal, PayPOSPaymentModal, CustomerPaymentWaitingCard } from '../../components/payment';
 import { CustomerPaymentWaitingCard, InsurancePricingCard } from '../../components/payment';
 import CancelJobModal from '../../components/cancellation/CancelJobModal';
 import { useCancellationEventStore } from '../../store/useCancellationEventStore';
@@ -28,7 +26,6 @@ import {
   CustomerInfoCard,
   LocationInfoCard,
   VehicleDetailsCard,
-  // PaymentSection, // NFC/QR/PayPOS ödeme iptal edildi
   CompleteJobCard,
 } from './components';
 import PhotosSection from '../../components/PhotosSection';
@@ -53,11 +50,6 @@ export default function JobDetailScreen({ route, navigation }: Props) {
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
-
-  // Modal states - NFC/QR/PayPOS ödeme iptal edildi
-  // const [showNFCPaymentModal, setShowNFCPaymentModal] = useState(false);
-  // const [showQRPaymentModal, setShowQRPaymentModal] = useState(false);
-  // const [showPayPOSPaymentModal, setShowPayPOSPaymentModal] = useState(false);
 
   const status = towTruckRequest ? getStatus(towTruckRequest) : null;
   const isAwaitingApproval = status === 'awaiting_approval';
@@ -237,7 +229,7 @@ export default function JobDetailScreen({ route, navigation }: Props) {
         clearActiveJob();
       } else if (status === 'in_progress' && towTruckRequest.trackingToken) {
         // İş devam ediyor - aktif iş olarak set et
-        setActiveJob(jobId, towTruckRequest.trackingToken, 'tow');
+        setActiveJob(jobId, towTruckRequest.trackingToken, 'towTruck');
       }
     }
   }, [status, jobId, towTruckRequest, setActiveJob, clearActiveJob]);
@@ -352,13 +344,6 @@ export default function JobDetailScreen({ route, navigation }: Props) {
     );
   }
 
-  // NFC/QR/PayPOS ödeme iptal edildi - paymentAmount kullanılmıyor
-  // const paymentAmount = towTruckRequest?.final_price
-  //   ? Number(towTruckRequest.final_price)
-  //   : towTruckRequest?.my_offer?.driver_earnings
-  //     ? Number(towTruckRequest.my_offer.driver_earnings)
-  //     : 0;
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
       <AppBar title="Çekici İş Detayı" onBackPress={handleBackPress} />
@@ -443,16 +428,6 @@ export default function JobDetailScreen({ route, navigation }: Props) {
               <InsurancePricingCard pricing={towTruckRequest.pricing} />
             )}
 
-            {/* NFC/QR/PayPOS ödeme entegrasyonu iptal edildi - firma ile anlaşılamadı
-            <PaymentSection
-              towTruckRequest={towTruckRequest}
-              visible={isInProgress}
-              onNFCPayment={() => setShowNFCPaymentModal(true)}
-              onQRPayment={() => setShowQRPaymentModal(true)}
-              onPayPOSPayment={() => setShowPayPOSPaymentModal(true)}
-            />
-            */}
-
             <CompleteJobCard
               visible={isInProgress}
               onComplete={handleCompleteJob}
@@ -505,53 +480,11 @@ export default function JobDetailScreen({ route, navigation }: Props) {
         )}
       </ScrollView>
 
-      {/* NFC/QR/PayPOS ödeme entegrasyonu iptal edildi - firma ile anlaşılamadı
-      <NFCPaymentModal
-        visible={showNFCPaymentModal}
-        onClose={() => setShowNFCPaymentModal(false)}
-        amount={paymentAmount}
-        currency="TL"
-        jobId={jobId}
-        customerName={towTruckRequest?.requestOwnerNameSurname}
-        description={`Çekici Hizmeti - ${towTruckRequest?.vehicle_type || ''}`}
-        onPaymentSuccess={(transactionId) => console.log('NFC ödeme başarılı:', transactionId)}
-        onPaymentError={(error) => console.error('NFC ödeme hatası:', error)}
-      />
-
-      <QRPaymentModal
-        visible={showQRPaymentModal}
-        onClose={() => setShowQRPaymentModal(false)}
-        amount={paymentAmount}
-        currency="TL"
-        jobId={jobId}
-        customerName={towTruckRequest?.requestOwnerNameSurname}
-        description={`Çekici Hizmeti - ${towTruckRequest?.vehicle_type || ''}`}
-        onPaymentSuccess={(transactionId) => console.log('QR ödeme başarılı:', transactionId)}
-        onPaymentError={(error) => console.error('QR ödeme hatası:', error)}
-      />
-
-      <PayPOSPaymentModal
-        visible={showPayPOSPaymentModal}
-        onClose={() => setShowPayPOSPaymentModal(false)}
-        amount={paymentAmount}
-        currency="TL"
-        requestId={parseInt(jobId)}
-        customerName={towTruckRequest?.requestOwnerNameSurname}
-        description={`Çekici Hizmeti - ${towTruckRequest?.vehicle_type || ''}`}
-        onPaymentSuccess={() => {
-          console.log('PayPOS ödeme başarılı');
-          // Ödeme başarılı olduğunda sayfayı yenile
-          fetchRequest();
-        }}
-        onPaymentError={(error) => console.error('PayPOS ödeme hatası:', error)}
-      />
-      */}
-
       {/* İş İptal Modal */}
       <CancelJobModal
         visible={showCancelModal}
         onClose={() => setShowCancelModal(false)}
-        serviceType="tow-truck"
+        serviceType="towTruck"
         trackingToken={towTruckRequest?.trackingToken || ''}
         onCancelSuccess={handleCancelSuccess}
       />

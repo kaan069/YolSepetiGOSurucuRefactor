@@ -19,14 +19,15 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { cancellationAPI } from '../../api/requests';
-import type { CancelServiceType, CanCancelResponse } from '../../api/types';
+import type { CanCancelResponse } from '../../api/types';
+import type { ServiceType } from '../../constants/serviceTypes';
 
 type ModalStep = 'checking' | 'confirm' | 'cancelling';
 
 interface CancelJobModalProps {
   visible: boolean;
   onClose: () => void;
-  serviceType: CancelServiceType;
+  serviceType: ServiceType;
   trackingToken: string;
   onCancelSuccess: () => void;
 }

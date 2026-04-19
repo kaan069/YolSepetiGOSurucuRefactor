@@ -1,9 +1,3 @@
-export { default as PaymentConfirmationModal } from './PaymentConfirmationModal';
-export type { JobDetails, ServiceType } from './PaymentConfirmationModal';
-export { default as NFCPaymentModal } from './NFCPaymentModal';
-export { default as QRPaymentModal } from './QRPaymentModal';
-export { default as PayPOSPaymentModal } from './PayPOSPaymentModal';
-export { default as ThreeDSWebView } from './ThreeDSWebView';
 export { default as CommissionPaymentModal } from './CommissionPaymentModal';
 export { default as CommissionPaymentCard } from './CommissionPaymentCard';
 export type { CommissionServiceType, CommissionJobDetails } from './CommissionPaymentCard';

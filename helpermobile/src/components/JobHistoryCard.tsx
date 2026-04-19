@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
-import { CompletedJob } from '../screens/EarningsScreen';
+import { CompletedJob } from '../screens/earnings';
 import { useAppTheme } from '../hooks/useAppTheme';
 
 interface Props {

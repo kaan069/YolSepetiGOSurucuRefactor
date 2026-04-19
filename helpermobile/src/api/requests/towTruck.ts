@@ -189,7 +189,6 @@ class TowTruckAPI {
       if (employeeId) {
         payload.employee_id = employeeId;
       }
-      console.log('🚛 [TowTruck] Teklif payload:', JSON.stringify(payload, null, 2));
       const response = await axiosInstance.post(`/requests/tow-truck/${trackingToken}/submit-offer/`, payload);
       return response.data;
     } catch (error: any) {

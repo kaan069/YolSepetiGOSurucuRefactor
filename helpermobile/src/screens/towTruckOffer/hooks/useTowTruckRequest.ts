@@ -72,10 +72,6 @@ export function useTowTruckRequest(orderId: string): UseTowTruckRequestReturn {
         }
 
         console.log('✅ Talep yüklendi:', fetchedRequest.id);
-        console.log('🔍 [OfferDetail] question_answers:', JSON.stringify(fetchedRequest.question_answers));
-        console.log('🔍 [OfferDetail] vehicle_plate:', fetchedRequest.vehicle_plate);
-        console.log('🔍 [OfferDetail] estimated_km:', fetchedRequest.estimated_km);
-        console.log('🔍 [OfferDetail] vehicle_type:', fetchedRequest.vehicle_type);
         setRequest(fetchedRequest);
       } catch (err: any) {
         console.error('❌ Talep yükleme hatası:', err);

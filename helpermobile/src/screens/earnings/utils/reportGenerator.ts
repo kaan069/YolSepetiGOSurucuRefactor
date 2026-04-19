@@ -1,4 +1,38 @@
-import { CompletedJob, PeriodRange, PERIOD_LABELS, formatMoney, formatDate } from '../constants';
+import {
+  CompletedJob,
+  PeriodRange,
+  PERIOD_LABELS,
+  SERVICE_TYPE_LABELS_PLAIN,
+  formatMoney,
+  formatDate,
+} from '../constants';
+import { SERVICE_LABEL, SERVICE_EMOJI } from '../../../constants/serviceTypeUI';
+
+// Rapor başlıkları — canonical label kaynağından türetilir.
+// PLAIN map diakritik-siz olduğundan raporun ASCII-safe yapısını korur.
+// Nakliye group için canonical `SERVICE_LABEL.nakliye` === 'Nakliye' (diakritiksiz) güvenle kullanılır.
+const REPORT_SECTION_SUFFIX = ' Hizmetleri';
+
+const REPORT_LABELS = {
+  towTruck: SERVICE_TYPE_LABELS_PLAIN.towTruck,
+  crane: SERVICE_TYPE_LABELS_PLAIN.crane,
+  roadAssistance: SERVICE_TYPE_LABELS_PLAIN.roadAssistance,
+  nakliye: SERVICE_LABEL.nakliye,
+} as const;
+
+const REPORT_SECTION_TITLES = {
+  towTruck: `${REPORT_LABELS.towTruck}${REPORT_SECTION_SUFFIX}`,
+  crane: `${REPORT_LABELS.crane}${REPORT_SECTION_SUFFIX}`,
+  roadAssistance: `${REPORT_LABELS.roadAssistance}${REPORT_SECTION_SUFFIX}`,
+  nakliye: `${REPORT_LABELS.nakliye}${REPORT_SECTION_SUFFIX}`,
+} as const;
+
+const REPORT_SECTION_EMOJIS = {
+  towTruck: SERVICE_EMOJI.towTruck,
+  crane: SERVICE_EMOJI.crane,
+  roadAssistance: SERVICE_EMOJI.roadAssistance,
+  nakliye: SERVICE_EMOJI.nakliye,
+} as const;
 
 // İşleri hizmet türüne göre grupla
 function groupJobs(jobs: CompletedJob[]) {
@@ -53,10 +87,10 @@ export function generateTextReport(jobs: CompletedJob[], range: PeriodRange): st
   r += `┌──────────────────────────────────────────────────────────┐\n`;
   r += `│                   HIZMET BAZLI OZET                      │\n`;
   r += `├──────────────────────────────────────────────────────────┤\n`;
-  if (g.towTruck.length > 0) r += `│  Cekici:        ${String(g.towTruck.length).padStart(3)} is    ${formatMoney(g.towTruckTotal).padStart(15)} TL       │\n`;
-  if (g.crane.length > 0) r += `│  Vinc:          ${String(g.crane.length).padStart(3)} is    ${formatMoney(g.craneTotal).padStart(15)} TL       │\n`;
-  if (g.roadAssistance.length > 0) r += `│  Yol Yardim:    ${String(g.roadAssistance.length).padStart(3)} is    ${formatMoney(g.roadAssistanceTotal).padStart(15)} TL       │\n`;
-  if (g.nakliye.length > 0) r += `│  Nakliye:       ${String(g.nakliye.length).padStart(3)} is    ${formatMoney(g.nakliyeTotal).padStart(15)} TL       │\n`;
+  if (g.towTruck.length > 0) r += `│  ${(REPORT_LABELS.towTruck + ':').padEnd(15)} ${String(g.towTruck.length).padStart(3)} is    ${formatMoney(g.towTruckTotal).padStart(15)} TL       │\n`;
+  if (g.crane.length > 0) r += `│  ${(REPORT_LABELS.crane + ':').padEnd(15)} ${String(g.crane.length).padStart(3)} is    ${formatMoney(g.craneTotal).padStart(15)} TL       │\n`;
+  if (g.roadAssistance.length > 0) r += `│  ${(REPORT_LABELS.roadAssistance + ':').padEnd(15)} ${String(g.roadAssistance.length).padStart(3)} is    ${formatMoney(g.roadAssistanceTotal).padStart(15)} TL       │\n`;
+  if (g.nakliye.length > 0) r += `│  ${(REPORT_LABELS.nakliye + ':').padEnd(15)} ${String(g.nakliye.length).padStart(3)} is    ${formatMoney(g.nakliyeTotal).padStart(15)} TL       │\n`;
   r += `└──────────────────────────────────────────────────────────┘\n\n`;
 
   // Detay bölümleri
@@ -88,10 +122,10 @@ export function generateTextReport(jobs: CompletedJob[], range: PeriodRange): st
     return s;
   };
 
-  r += addSection('Cekici Hizmetleri', '🚗', g.towTruck, g.towTruckTotal);
-  r += addSection('Vinc Hizmetleri', '🏗️', g.crane, g.craneTotal);
-  r += addSection('Yol Yardim Hizmetleri', '🔧', g.roadAssistance, g.roadAssistanceTotal);
-  r += addSection('Nakliye Hizmetleri', '🚚', g.nakliye, g.nakliyeTotal);
+  r += addSection(REPORT_SECTION_TITLES.towTruck, REPORT_SECTION_EMOJIS.towTruck, g.towTruck, g.towTruckTotal);
+  r += addSection(REPORT_SECTION_TITLES.crane, REPORT_SECTION_EMOJIS.crane, g.crane, g.craneTotal);
+  r += addSection(REPORT_SECTION_TITLES.roadAssistance, REPORT_SECTION_EMOJIS.roadAssistance, g.roadAssistance, g.roadAssistanceTotal);
+  r += addSection(REPORT_SECTION_TITLES.nakliye, REPORT_SECTION_EMOJIS.nakliye, g.nakliye, g.nakliyeTotal);
 
   // Footer
   r += `╔══════════════════════════════════════════════════════════╗\n`;
@@ -125,10 +159,10 @@ export function generateDetailedReport(jobs: CompletedJob[], range: PeriodRange)
   r += `───────────────────────────────────────────────────────────────\n`;
   r += `Hizmet Turu          Is Sayisi        Toplam Kazanc\n`;
   r += `───────────────────────────────────────────────────────────────\n`;
-  if (g.towTruck.length > 0) r += `Cekici               ${String(g.towTruck.length).padStart(5)}            ${formatMoney(g.towTruckTotal).padStart(15)} TL\n`;
-  if (g.crane.length > 0) r += `Vinc                 ${String(g.crane.length).padStart(5)}            ${formatMoney(g.craneTotal).padStart(15)} TL\n`;
-  if (g.roadAssistance.length > 0) r += `Yol Yardim           ${String(g.roadAssistance.length).padStart(5)}            ${formatMoney(g.roadAssistanceTotal).padStart(15)} TL\n`;
-  if (g.nakliye.length > 0) r += `Nakliye              ${String(g.nakliye.length).padStart(5)}            ${formatMoney(g.nakliyeTotal).padStart(15)} TL\n`;
+  if (g.towTruck.length > 0) r += `${REPORT_LABELS.towTruck.padEnd(21)}${String(g.towTruck.length).padStart(5)}            ${formatMoney(g.towTruckTotal).padStart(15)} TL\n`;
+  if (g.crane.length > 0) r += `${REPORT_LABELS.crane.padEnd(21)}${String(g.crane.length).padStart(5)}            ${formatMoney(g.craneTotal).padStart(15)} TL\n`;
+  if (g.roadAssistance.length > 0) r += `${REPORT_LABELS.roadAssistance.padEnd(21)}${String(g.roadAssistance.length).padStart(5)}            ${formatMoney(g.roadAssistanceTotal).padStart(15)} TL\n`;
+  if (g.nakliye.length > 0) r += `${REPORT_LABELS.nakliye.padEnd(21)}${String(g.nakliye.length).padStart(5)}            ${formatMoney(g.nakliyeTotal).padStart(15)} TL\n`;
   r += `───────────────────────────────────────────────────────────────\n`;
   r += `TOPLAM               ${String(jobs.length).padStart(5)}            ${formatMoney(g.totalAmount).padStart(15)} TL\n`;
   r += `═══════════════════════════════════════════════════════════════\n\n`;
@@ -151,10 +185,10 @@ export function generateDetailedReport(jobs: CompletedJob[], range: PeriodRange)
     return s;
   };
 
-  r += addTable('Cekici Hizmetleri', g.towTruck);
-  r += addTable('Vinc Hizmetleri', g.crane);
-  r += addTable('Yol Yardim Hizmetleri', g.roadAssistance);
-  r += addTable('Nakliye Hizmetleri', g.nakliye);
+  r += addTable(REPORT_SECTION_TITLES.towTruck, g.towTruck);
+  r += addTable(REPORT_SECTION_TITLES.crane, g.crane);
+  r += addTable(REPORT_SECTION_TITLES.roadAssistance, g.roadAssistance);
+  r += addTable(REPORT_SECTION_TITLES.nakliye, g.nakliye);
 
   r += `\n═══════════════════════════════════════════════════════════════\n`;
   r += `                    GENEL TOPLAM: ${formatMoney(g.totalAmount)} TL\n`;

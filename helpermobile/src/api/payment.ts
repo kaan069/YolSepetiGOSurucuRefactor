@@ -1,4 +1,14 @@
 import axiosInstance from './axiosConfig';
+import { logger } from '../utils/logger';
+
+// Payment katmanı için güvenli error sanitizer.
+// Backend error response body'sini ASLA loglamaz (kart, alias, 3DS body,
+// transaction id gibi hassas alanlar içerebilir). Sadece HTTP status ve
+// statik action adı loglanır.
+const logPaymentError = (action: string, error: any): void => {
+  const status = error?.response?.status;
+  logger.error('payment', `${action} failed`, status ? { status } : undefined);
+};
 
 // =============== TYPES ===============
 
@@ -122,7 +132,7 @@ class PaymentAPI {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Save card error:', error?.response?.data || error.message);
+      logPaymentError('saveCard', error);
       throw error;
     }
   }
@@ -137,7 +147,7 @@ class PaymentAPI {
 
       return response.data || [];
     } catch (error: any) {
-      console.error('❌ Get saved cards error:', error?.response?.data || error.message);
+      logPaymentError('getSavedCards', error);
       throw error;
     }
   }
@@ -152,7 +162,7 @@ class PaymentAPI {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Get card detail error:', error?.response?.data || error.message);
+      logPaymentError('getCardDetail', error);
       throw error;
     }
   }
@@ -167,7 +177,7 @@ class PaymentAPI {
 
       return { success: true, message: 'Kart başarıyla silindi' };
     } catch (error: any) {
-      console.error('❌ Delete card error:', error?.response?.data || error.message);
+      logPaymentError('deleteCard', error);
       throw error;
     }
   }
@@ -182,7 +192,7 @@ class PaymentAPI {
 
       return { success: true, message: 'Varsayılan kart güncellendi' };
     } catch (error: any) {
-      console.error('❌ Set default card error:', error?.response?.data || error.message);
+      logPaymentError('setDefaultCard', error);
       throw error;
     }
   }
@@ -199,7 +209,7 @@ class PaymentAPI {
 
       return { success: true, message: 'Kart adı güncellendi' };
     } catch (error: any) {
-      console.error('❌ Update card alias error:', error?.response?.data || error.message);
+      logPaymentError('updateCardAlias', error);
       throw error;
     }
   }
@@ -221,7 +231,7 @@ class PaymentAPI {
 
       return this.parseCommissionResponse(response);
     } catch (error: any) {
-      console.error('❌ Card verification initiate error:', error?.response?.data || error.message);
+      logPaymentError('initiateCardVerification', error);
       throw error;
     }
   }
@@ -238,7 +248,7 @@ class PaymentAPI {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Card verification status error:', error?.response?.data || error.message);
+      logPaymentError('getCardVerificationStatus', error);
       throw error;
     }
   }
@@ -297,7 +307,7 @@ class PaymentAPI {
 
       return this.parseCommissionResponse(response);
     } catch (error: any) {
-      console.error('❌ Initiate commission payment error:', error?.response?.data || error.message);
+      logPaymentError('initiateCommissionPaymentNewCard', error);
       throw error;
     }
   }
@@ -320,7 +330,7 @@ class PaymentAPI {
 
       return this.parseCommissionResponse(response);
     } catch (error: any) {
-      console.error('❌ Initiate commission payment error:', error?.response?.data || error.message);
+      logPaymentError('initiateCommissionPaymentSavedCard', error);
       throw error;
     }
   }
@@ -340,7 +350,7 @@ class PaymentAPI {
 
       return this.parseCommissionResponse(response);
     } catch (error: any) {
-      console.error('❌ Initiate commission payment error:', error?.response?.data || error.message);
+      logPaymentError('initiateCommissionPaymentDefaultCard', error);
       throw error;
     }
   }
@@ -357,7 +367,7 @@ class PaymentAPI {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Get commission payment status error:', error?.response?.data || error.message);
+      logPaymentError('getCommissionPaymentStatus', error);
       throw error;
     }
   }

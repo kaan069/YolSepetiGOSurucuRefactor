@@ -5,5 +5,4 @@ export { default as QuickActions } from './QuickActions';
 export { default as CustomerInfoCard } from './CustomerInfoCard';
 export { default as LocationInfoCard } from './LocationInfoCard';
 export { default as VehicleDetailsCard } from './VehicleDetailsCard';
-export { default as PaymentSection } from './PaymentSection';
 export { default as CompleteJobCard } from './CompleteJobCard';

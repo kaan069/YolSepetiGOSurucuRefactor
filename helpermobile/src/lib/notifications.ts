@@ -48,7 +48,6 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
   // Get FCM token from Firebase
   try {
     token = await messaging().getToken();
-    console.log('FCM Token:', token);
   } catch (error) {
     console.error('Error getting FCM token:', error);
   }
@@ -95,16 +94,10 @@ export function setupForegroundNotificationHandler() {
  */
 export function setupBackgroundNotificationHandler() {
   messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-    console.log('📬 [Background Handler] Bildirim alındı:', remoteMessage);
-    console.log('📬 [Background Handler] Bildirim data detay:', JSON.stringify(remoteMessage.data, null, 2));
-    console.log('📬 [Background Handler] Bildirim notification:', JSON.stringify(remoteMessage.notification, null, 2));
-
     // Bildirime tıklandığında navigation için AsyncStorage'a kaydet
     // Böylece app mount olduğunda navigation yapılabilir
     const data = remoteMessage.data;
     if (data) {
-      console.log('💾 [Background Handler] Pending navigation AsyncStorage\'a kaydediliyor...');
-
       const orderId = data.request_details_id || data.orderId || data.order_id || data.requestId || data.request_id;
       const serviceType = data.service_type || data.type || 'tow';
 
@@ -114,10 +107,6 @@ export function setupBackgroundNotificationHandler() {
         serviceType: serviceType,
         timestamp: Date.now()
       }));
-
-      console.log('✅ [Background Handler] Pending navigation kaydedildi');
-      console.log('   • orderId:', orderId);
-      console.log('   • serviceType:', serviceType);
     }
   });
 }

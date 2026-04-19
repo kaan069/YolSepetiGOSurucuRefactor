@@ -131,16 +131,7 @@ export const useAuthStore = create<Store>((set, get) => ({
     try {
       // 1. Backend'e refresh token'ı blacklist et
       try {
-        // Önce AsyncStorage'daki tüm token'ları kontrol et (DEBUG)
-        const allKeys = await AsyncStorage.getAllKeys();
-        console.log('📦 AsyncStorage keys:', allKeys.filter(k => k.includes('token') || k.includes('user')));
-
         let refreshToken = await AsyncStorage.getItem('refresh_token');
-        const accessToken = await AsyncStorage.getItem('access_token');
-
-        console.log('🔍 Token kontrolü:');
-        console.log('   • Refresh token var mı?', refreshToken ? 'EVET' : 'HAYIR');
-        console.log('   • Access token var mı?', accessToken ? 'EVET' : 'HAYIR');
 
         // Token'ı temizle (whitespace varsa)
         if (refreshToken) {
@@ -148,17 +139,9 @@ export const useAuthStore = create<Store>((set, get) => ({
         }
 
         if (refreshToken && refreshToken.length > 0) {
-          console.log('🔒 Refresh token blacklist ediliyor...');
-          console.log('   • Token uzunluğu:', refreshToken.length);
-          console.log('   • Token preview:', refreshToken.substring(0, 30) + '...');
-
-          const response = await axiosInstance.post('/auth/logout/', {
+          await axiosInstance.post('/auth/logout/', {
             refresh_token: refreshToken
           });
-
-          console.log('✅ Refresh token blacklist edildi:', response.data.message);
-        } else {
-          console.log('⏭️  Refresh token yok, blacklist atlanıyor');
         }
       } catch (logoutError: any) {
         // Token geçersiz veya zaten blacklist'te olabilir - önemli değil, devam et
@@ -174,16 +157,9 @@ export const useAuthStore = create<Store>((set, get) => ({
         const deviceId = await AsyncStorage.getItem('device_id');
 
         if (deviceId && deviceId.trim().length > 0) {
-          console.log('🔔 FCM token siliniyor...');
-          console.log('   • Device ID:', deviceId);
-
-          const response = await axiosInstance.delete('/auth/notifications/logout/', {
+          await axiosInstance.delete('/auth/notifications/logout/', {
             data: { device_id: deviceId.trim() }
           });
-
-          console.log('✅ FCM token silindi:', response.data.message);
-        } else {
-          console.log('⏭️  Device ID yok, FCM token silme atlanıyor');
         }
       } catch (fcmError: any) {
         // 404 = Token bulunamadı (normal), 400+ = Başka hata

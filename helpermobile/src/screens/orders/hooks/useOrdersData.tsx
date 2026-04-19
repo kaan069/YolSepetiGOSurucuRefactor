@@ -6,6 +6,7 @@ import { OrderStatus } from '../../../lib/types';
 import { useActiveJobStore } from '../../../store/useActiveJobStore';
 import { useJobCountsStore } from '../../../store/useJobCountsStore';
 import { OrdersJob } from '../types';
+import type { ServiceType } from '../../../constants/serviceTypes';
 
 // Service filter types - artık yol yardım ve nakliye de destekleniyor
 // nakliye = evden eve + şehirler arası (birleşik olarak gösterilir)
@@ -491,7 +492,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
         return {
           id: request.id.toString(),
-          serviceType: 'tow',
+          serviceType: 'towTruck',
           vehicleType: `Çekici - ${request.vehicle_type}`,
           from: {
             lat: parseFloat(request.pickup_latitude || '0'),
@@ -537,7 +538,9 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
       return {
         id: request.id.toString(),
-        serviceType: 'transport', // OrdersJob tipine uygun - App.tsx'te otomatik konum paylaşımı hariç tutuluyor
+        // UI-level `ServiceGroup` — birleşik "Nakliye" kartı; atomik ayrım
+        // `movingType` üzerinden yapılır (navigation + setActiveJob).
+        serviceType: 'nakliye',
         vehicleType: typeLabel,
         movingType: request.movingType as OrdersJob['movingType'], // homeMoving veya cityMoving - teklif ekranına yönlendirme için
         from: {
@@ -686,10 +689,38 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
         }
       }
 
-      // trackingToken varsa aktif iş olarak set et
+      // trackingToken varsa aktif iş olarak set et.
+      // Store CANONICAL atomik `ServiceType` bekler — `serviceFilter`
+      // (UI-level `ServiceFilterType`) burada atomik'e çevrilir.
       if (trackingToken) {
-        const jobServiceType = inProgressJob.serviceType === 'transport' ? 'transport' : serviceFilter;
-        setActiveJob(inProgressJob.id, trackingToken, jobServiceType as any);
+        let jobServiceType: ServiceType | null = null;
+        switch (serviceFilter) {
+          case 'tow':
+            jobServiceType = 'towTruck';
+            break;
+          case 'crane':
+            jobServiceType = 'crane';
+            break;
+          case 'roadAssistance':
+            jobServiceType = 'roadAssistance';
+            break;
+          case 'transfer':
+            jobServiceType = 'transfer';
+            break;
+          case 'nakliye':
+            // Nakliye UI group'u atomik'e `movingType` ile ayrılır.
+            // `movingType` yoksa ambiguous → setActiveJob atlanır (yanlış
+            // WS kanalına bağlanmak persist v0→v1 migrate ile aynı riskli).
+            if (inProgressJob.movingType === 'homeMoving') {
+              jobServiceType = 'homeToHomeMoving';
+            } else if (inProgressJob.movingType === 'cityMoving') {
+              jobServiceType = 'cityToCity';
+            }
+            break;
+        }
+        if (jobServiceType) {
+          setActiveJob(inProgressJob.id, trackingToken, jobServiceType);
+        }
       }
     }
   }, [filteredJobs, serviceFilter, towTruckRequests, craneRequests, nakliyeRequests, roadAssistanceRequests, transferRequests, setActiveJob]);

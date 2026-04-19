@@ -1,8 +1,15 @@
 import { OrderStatus } from '../../lib/types';
+import type { ServiceGroup } from '../../constants/serviceTypes';
 
 export interface OrdersJob {
   id: string;
-  serviceType: 'crane' | 'tow' | 'transport' | 'nakliye' | 'roadAssistance' | 'transfer';
+  /**
+   * UI-level `ServiceGroup` — canonical atomik tipler + `'nakliye'` birleşik
+   * kartı. `homeToHomeMoving` ve `cityToCity` bu listede UI tarafında
+   * `'nakliye'` olarak birleşik render edilir; atomik ayrım için `movingType`
+   * alanı taşınır (navigation + setActiveJob store adapter).
+   */
+  serviceType: ServiceGroup;
   vehicleType: string;
   movingType?: 'homeMoving' | 'cityMoving';
   from: {

@@ -1,20 +1,26 @@
 /**
  * JOBS WEBSOCKET SERVICE
  *
- * Real-time job notifications for all service types
+ * Real-time job notifications for all service types.
  *
- * WebSocket Endpoints (base URL `WS_BASE_URL` üzerinden türetilir):
- * - {WS_BASE_URL}/ws/jobs/tow_truck/?auth={jwt}
- * - {WS_BASE_URL}/ws/jobs/crane/?auth={jwt}
- * - {WS_BASE_URL}/ws/jobs/home_moving/?auth={jwt}
- * - {WS_BASE_URL}/ws/jobs/city_moving/?auth={jwt}
- * - {WS_BASE_URL}/ws/jobs/road_assistance/?auth={jwt}
+ * Canonical `ServiceType` (camelCase) alınır; backend-facing URL segment'i
+ * `SERVICE_WS_CHANNEL` boundary map'i ile snake_case'e çevrilir.
+ *
+ * WebSocket endpoint'leri (base URL `WS_BASE_URL` üzerinden türetilir):
+ *   towTruck         -> {WS_BASE_URL}/ws/jobs/tow_truck/?auth={jwt}
+ *   crane            -> {WS_BASE_URL}/ws/jobs/crane/?auth={jwt}
+ *   roadAssistance   -> {WS_BASE_URL}/ws/jobs/road_assistance/?auth={jwt}
+ *   homeToHomeMoving -> {WS_BASE_URL}/ws/jobs/home_moving/?auth={jwt}
+ *   cityToCity       -> {WS_BASE_URL}/ws/jobs/city_moving/?auth={jwt}
+ *   transfer         -> {WS_BASE_URL}/ws/jobs/transfer/?auth={jwt}
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { WS_BASE_URL } from '../constants/network';
+import { ServiceType, SERVICE_WS_CHANNEL } from '../constants/serviceTypes';
 
-export type ServiceType = 'tow_truck' | 'crane' | 'home_moving' | 'city_moving' | 'road_assistance' | 'transfer';
+// Backward-compatible re-export — legacy caller'lar `import { ServiceType } from '../services/jobsWebSocket'` yaptıysa kırılmasın.
+export type { ServiceType };
 
 export interface JobMessage {
   type: 'new_job' | 'job_updated' | 'job_cancelled' | 'connection_established';
@@ -135,7 +141,8 @@ class JobsWebSocketService {
         return;
       }
 
-      const wsUrl = `${WS_BASE_URL}/ws/jobs/${serviceType}/?auth=${token}`;
+      const channel = SERVICE_WS_CHANNEL[serviceType];
+      const wsUrl = `${WS_BASE_URL}/ws/jobs/${channel}/?auth=${token}`;
       const ws = new WebSocket(wsUrl);
 
       const connection: WebSocketConnection = {

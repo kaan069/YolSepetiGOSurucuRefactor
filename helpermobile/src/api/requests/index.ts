@@ -29,7 +29,7 @@ import { roadAssistanceAPI } from './roadAssistance';
 import { commonAPI } from './common';
 import { cancellationAPI } from './cancellation';
 import { transferAPI } from './transfer';
-import type { CancelServiceType } from '../types';
+import type { ServiceType } from '../../constants/serviceTypes';
 
 /**
  * Backward Compatible RequestsAPI
@@ -132,18 +132,14 @@ class RequestsAPI {
   rejectRequestByCustomer = commonAPI.rejectRequestByCustomer.bind(commonAPI);
   completeTowTruckRequest = (id: number) => commonAPI.completeTowTruckRequest(id);
 
-  // ==================== PAYPOS NFC ÖDEME ====================
-  initiatePayPOSPayment = (requestId: number) => commonAPI.initiatePayPOSPayment(requestId);
-  getPaymentStatus = (requestId: number) => commonAPI.getPaymentStatus(requestId);
-
   // ==================== İŞ SAYILARI (JOB COUNTS) ====================
   getAllServicesCounts = () => commonAPI.getAllServicesCounts();
   getServiceCounts = (serviceType: string) => commonAPI.getServiceCounts(serviceType);
 
   // ==================== İPTAL (CANCELLATION) ====================
-  canCancelJob = (serviceType: CancelServiceType, trackingToken: string) =>
+  canCancelJob = (serviceType: ServiceType, trackingToken: string) =>
     cancellationAPI.canCancel(serviceType, trackingToken);
-  cancelJob = (serviceType: CancelServiceType, trackingToken: string, reason?: string) =>
+  cancelJob = (serviceType: ServiceType, trackingToken: string, reason?: string) =>
     cancellationAPI.cancelJob(serviceType, trackingToken, reason);
 }
 

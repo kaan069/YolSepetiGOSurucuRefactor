@@ -67,12 +67,6 @@ export function usePricing(
         setLoading(true);
         setError(null);
 
-        console.log('═══════════════════════════════════════════════');
-        console.log('💰 FİYAT HESAPLAMA BAŞLADI');
-        console.log('═══════════════════════════════════════════════');
-        console.log('📍 Toplam Mesafe:', totalDistance.toFixed(2), 'km');
-        console.log('🔑 Tracking Token:', trackingToken.substring(0, 16) + '...');
-
         const result = await requestsAPI.calculateTowTruckPrice(
           trackingToken,
           parseFloat(totalDistance.toFixed(2)),
@@ -85,9 +79,6 @@ export function usePricing(
             hasExtraAttachments: vehicleConditions.hasExtraAttachments || false,
           }
         );
-
-        console.log('✅ Fiyat hesaplandı:', result.driverEarnings, 'TL');
-        console.log('═══════════════════════════════════════════════');
 
         setPricing(result);
       } catch (err: any) {

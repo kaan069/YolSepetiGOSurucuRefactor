@@ -1,4 +1,14 @@
 import { EarningsServiceType } from '../../api';
+import {
+  SERVICE_GROUP_MEMBERS,
+  type ServiceType,
+} from '../../constants/serviceTypes';
+import {
+  SERVICE_LABEL,
+  SERVICE_EMOJI,
+  SERVICE_COLOR,
+  SERVICE_BG_COLOR,
+} from '../../constants/serviceTypeUI';
 
 export type PeriodRange = 'today' | 'week' | 'month' | 'year';
 
@@ -21,29 +31,45 @@ export type CompletedJob = {
   serviceType: 'towTruck' | 'crane' | 'roadAssistance' | 'homeMoving' | 'cityMoving' | 'homeToHomeMoving' | 'cityToCity' | 'transfer';
 };
 
-// Hizmet tipi konfigürasyonları - tek yerden yönetim
-export const SERVICE_TYPES: ServiceTypeConfig[] = [
-  { value: 'towTruck', label: 'Çekici', emoji: '🚗', color: '#1976D2', bgColor: '#E3F2FD' },
-  { value: 'crane', label: 'Vinç', emoji: '🏗️', color: '#F57C00', bgColor: '#FFF3E0' },
-  { value: 'roadAssistance', label: 'Yol Yardım', emoji: '🔧', color: '#388E3C', bgColor: '#E8F5E9' },
-  { value: 'homeToHomeMoving', label: 'Evden Eve', emoji: '🏠', color: '#7B1FA2', bgColor: '#F3E5F5' },
-  { value: 'cityToCity', label: 'Şehirler Arası', emoji: '🚚', color: '#9C27B0', bgColor: '#F3E5F5' },
-  { value: 'transfer', label: 'Transfer', emoji: '🚐', color: '#5C6BC0', bgColor: '#E8EAF6' },
+// Earnings ekranı için gösterilen atomik servis tipleri (nakliye group'u
+// STAT_CARDS üzerinden ayrıca handle edilir). Sıra mevcut UI sırasıyla korunur.
+const EARNINGS_ATOMIC_ORDER: readonly ServiceType[] = [
+  'towTruck',
+  'crane',
+  'roadAssistance',
+  'homeToHomeMoving',
+  'cityToCity',
+  'transfer',
 ];
 
-// Hizmet tipi etiketleri (emoji'li)
+// Hizmet tipi konfigürasyonları - canonical UI map'lerinden türetilir
+export const SERVICE_TYPES: ServiceTypeConfig[] = EARNINGS_ATOMIC_ORDER.map((value) => ({
+  value: value as EarningsServiceType,
+  label: SERVICE_LABEL[value],
+  emoji: SERVICE_EMOJI[value],
+  color: SERVICE_COLOR[value],
+  bgColor: SERVICE_BG_COLOR[value],
+}));
+
+// Hizmet tipi etiketleri (emoji'li).
+// Canonical atomik key'lerin yanı sıra geriye-dönük uyumluluk için legacy
+// `homeMoving` / `cityMoving` alias'ları korunur — CompletedJob.serviceType
+// union'u bu literal'ları hâlâ içeriyor (geçmiş kayıtlar).
 export const SERVICE_TYPE_LABELS: Record<string, string> = {
-  towTruck: '🚗 Çekici',
-  crane: '🏗️ Vinç',
-  roadAssistance: '🔧 Yol Yardım',
-  homeMoving: '🏠 Evden Eve',
-  homeToHomeMoving: '🏠 Evden Eve',
-  cityMoving: '🚚 Şehirler Arası',
-  cityToCity: '🚚 Şehirler Arası',
-  transfer: '🚐 Transfer',
+  towTruck: `${SERVICE_EMOJI.towTruck} ${SERVICE_LABEL.towTruck}`,
+  crane: `${SERVICE_EMOJI.crane} ${SERVICE_LABEL.crane}`,
+  roadAssistance: `${SERVICE_EMOJI.roadAssistance} ${SERVICE_LABEL.roadAssistance}`,
+  homeToHomeMoving: `${SERVICE_EMOJI.homeToHomeMoving} ${SERVICE_LABEL.homeToHomeMoving}`,
+  cityToCity: `${SERVICE_EMOJI.cityToCity} ${SERVICE_LABEL.cityToCity}`,
+  transfer: `${SERVICE_EMOJI.transfer} ${SERVICE_LABEL.transfer}`,
+  // legacy aliases
+  homeMoving: `${SERVICE_EMOJI.homeToHomeMoving} ${SERVICE_LABEL.homeToHomeMoving}`,
+  cityMoving: `${SERVICE_EMOJI.cityToCity} ${SERVICE_LABEL.cityToCity}`,
 };
 
-// Hizmet tipi etiketleri (düz metin - rapor için)
+// Hizmet tipi etiketleri (düz metin, diakritiksiz - TR rapor uyumluluğu için).
+// Canonical SERVICE_LABEL diakritik içerdiğinden ASCII eşlenik burada yerel
+// tanımlanır (rapor çıktısı bu formda kalmalı).
 export const SERVICE_TYPE_LABELS_PLAIN: Record<string, string> = {
   towTruck: 'Cekici',
   crane: 'Vinc',
@@ -63,14 +89,36 @@ export const PERIOD_LABELS: Record<string, string> = {
   year: 'Bu Yil',
 };
 
-// İstatistik kartları konfigürasyonu (nakliye birleşik)
-export const STAT_CARDS = [
-  { key: 'towTruck', serviceTypes: ['towTruck'] as EarningsServiceType[], label: 'Çekici', emoji: '🚗', color: '#1976D2', bgColor: '#E3F2FD' },
-  { key: 'crane', serviceTypes: ['crane'] as EarningsServiceType[], label: 'Vinç', emoji: '🏗️', color: '#F57C00', bgColor: '#FFF3E0' },
-  { key: 'roadAssistance', serviceTypes: ['roadAssistance'] as EarningsServiceType[], label: 'Yol Yardım', emoji: '🔧', color: '#388E3C', bgColor: '#E8F5E9' },
-  { key: 'nakliye', serviceTypes: ['homeToHomeMoving', 'cityToCity'] as EarningsServiceType[], label: 'Nakliye', emoji: '🚚', color: '#7B1FA2', bgColor: '#F3E5F5' },
-  { key: 'transfer', serviceTypes: ['transfer'] as EarningsServiceType[], label: 'Transfer', emoji: '🚐', color: '#5C6BC0', bgColor: '#E8EAF6' },
+// İstatistik kartları konfigürasyonu (nakliye birleşik).
+// key + serviceTypes pairing mevcut STAT_CARDS davranışıyla birebir eşleşir,
+// label/emoji/color/bgColor canonical UI map'lerinden türetilir.
+type StatCardKey = 'towTruck' | 'crane' | 'roadAssistance' | 'nakliye' | 'transfer';
+
+type StatCardConfig = {
+  key: StatCardKey;
+  serviceTypes: EarningsServiceType[];
+  label: string;
+  emoji: string;
+  color: string;
+  bgColor: string;
+};
+
+const STAT_CARD_KEYS: readonly StatCardKey[] = [
+  'towTruck',
+  'crane',
+  'roadAssistance',
+  'nakliye',
+  'transfer',
 ];
+
+export const STAT_CARDS: StatCardConfig[] = STAT_CARD_KEYS.map((key) => ({
+  key,
+  serviceTypes: [...SERVICE_GROUP_MEMBERS[key]] as EarningsServiceType[],
+  label: SERVICE_LABEL[key],
+  emoji: SERVICE_EMOJI[key],
+  color: SERVICE_COLOR[key],
+  bgColor: SERVICE_BG_COLOR[key],
+}));
 
 export const PAGE_SIZE = 20;
 

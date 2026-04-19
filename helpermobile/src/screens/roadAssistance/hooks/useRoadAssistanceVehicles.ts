@@ -31,8 +31,6 @@ export function useRoadAssistanceVehicles() {
           console.log('   verification_status:', v.verification_status);
           console.log('   is_verified:', v.is_verified);
           console.log('   status:', v.status);
-          console.log('   All keys:', Object.keys(v));
-          console.log('   Raw object:', JSON.stringify(v, null, 2));
         });
         console.log('═══════════════════════════════════════════════════');
 

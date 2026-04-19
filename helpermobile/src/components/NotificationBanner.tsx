@@ -82,15 +82,9 @@ export default function NotificationBanner({
   };
 
   const handlePress = () => {
-    console.log('🔔 [NotificationBanner] Görüntüle butonuna basıldı');
-    console.log('🔔 [NotificationBanner] onPress fonksiyonu var mı?', !!onPress);
     handleDismiss();
     if (onPress) {
-      console.log('🔔 [NotificationBanner] onPress çağrılıyor...');
       onPress();
-      console.log('🔔 [NotificationBanner] onPress çağrıldı ✅');
-    } else {
-      console.warn('⚠️ [NotificationBanner] onPress fonksiyonu yok!');
     }
   };
 

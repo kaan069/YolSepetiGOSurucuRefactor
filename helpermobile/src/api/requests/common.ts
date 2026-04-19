@@ -243,50 +243,6 @@ class CommonAPI {
     }
   }
 
-  // ==================== PAYPOS NFC ÖDEME (DRIVER) ====================
-
-  /**
-   * PayPOS NFC ödeme başlat (Sadece towTruck için)
-   * Sürücü müşteriden ödeme almak için bu endpoint'i çağırır
-   * Backend PayPOS API ile session oluşturur ve deeplink URL döner
-   */
-  async initiatePayPOSPayment(requestId: number): Promise<{
-    success: boolean;
-    deeplink_url: string;
-    payment_session_id: string;
-    amount: string;
-    reference_no: string;
-    message: string;
-  }> {
-    try {
-      const response = await axiosInstance.post(`/payment/nfc/driver/${requestId}/init/`);
-      return response.data;
-    } catch (error: any) {
-      console.error('❌ Initiate PayPOS payment error:', error?.response?.data);
-      throw error;
-    }
-  }
-
-  /**
-   * Ödeme durumunu kontrol et
-   * WebSocket bağlantısı olmadığında polling için kullanılabilir
-   */
-  async getPaymentStatus(requestId: number): Promise<{
-    success: boolean;
-    payment_status: 'pending' | 'initiated' | 'processing' | 'completed' | 'failed';
-    request_status: string;
-    amount: string;
-    payment_method: string;
-    paid_at?: string;
-  }> {
-    try {
-      const response = await axiosInstance.get(`/payment/nfc/driver/${requestId}/status/`);
-      return response.data;
-    } catch (error: any) {
-      console.error('❌ Get payment status error:', error?.response?.data);
-      throw error;
-    }
-  }
 }
 
 export const commonAPI = new CommonAPI();

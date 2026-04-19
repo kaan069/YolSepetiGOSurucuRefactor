@@ -706,9 +706,6 @@ export interface CancelJobResponse {
     };
 }
 
-/** API URL path segment for cancel endpoints */
-export type CancelServiceType = 'tow-truck' | 'crane' | 'road-assistance' | 'home-moving' | 'city-moving' | 'transfer';
-
 // ==================== ELEMAN (EMPLOYEE) TİPLERİ ====================
 // Firma sahiplerinin eleman yönetimi için
 

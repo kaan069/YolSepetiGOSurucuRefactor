@@ -93,11 +93,6 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
       console.log('📊 Reports: Çekici işleri:', towTruckJobs.length);
       console.log('📊 Reports: Vinç işleri:', craneJobs.length);
 
-      // Debug: İlk çekici işinin tüm verilerini göster
-      if (towTruckJobs.length > 0) {
-        console.log('🔍 İlk çekici işi detayları:', JSON.stringify(towTruckJobs[0], null, 2));
-      }
-
       // Çekici işlerini transaction formatına çevir
       const towTransactions: Transaction[] = towTruckJobs.map((job) => {
         // Request ID'den müşteri bilgilerini çıkar
@@ -120,11 +115,6 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
           date: job.completed_at || job.updated_at || job.created_at,
         };
       });
-
-      // Debug: İlk vinç işinin tüm verilerini göster
-      if (craneJobs.length > 0) {
-        console.log('🔍 İlk vinç işi detayları:', JSON.stringify(craneJobs[0], null, 2));
-      }
 
       // Vinç işlerini transaction formatına çevir
       const craneTransactions: Transaction[] = craneJobs.map((job) => {

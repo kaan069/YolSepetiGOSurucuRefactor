@@ -1,9 +1,14 @@
 /**
  * Job Cancellation API
- * Tüm servis tipleri için ortak iptal API metodları
+ * Tüm servis tipleri için ortak iptal API metodları.
+ *
+ * Canonical `ServiceType` alır, backend URL segment'ine `SERVICE_CANCEL_PATH`
+ * üzerinden çevirir. Böylece call-site'lar canonical formu taşır,
+ * kebab-case URL detayı tek noktada izole kalır.
  */
 import { axiosInstance } from './base';
-import { CanCancelResponse, CancelJobResponse, CancelServiceType } from '../types';
+import { CanCancelResponse, CancelJobResponse } from '../types';
+import { ServiceType, SERVICE_CANCEL_PATH } from '../../constants/serviceTypes';
 
 class CancellationAPI {
   /**
@@ -11,11 +16,12 @@ class CancellationAPI {
    * GET /requests/<service>/<tracking_token>/can-cancel/
    */
   async canCancel(
-    serviceType: CancelServiceType,
+    serviceType: ServiceType,
     trackingToken: string
   ): Promise<CanCancelResponse> {
+    const pathSegment = SERVICE_CANCEL_PATH[serviceType];
     const response = await axiosInstance.get<CanCancelResponse>(
-      `/requests/${serviceType}/${trackingToken}/can-cancel/`
+      `/requests/${pathSegment}/${trackingToken}/can-cancel/`
     );
     return response.data;
   }
@@ -25,12 +31,13 @@ class CancellationAPI {
    * POST /requests/<service>/<tracking_token>/cancel/
    */
   async cancelJob(
-    serviceType: CancelServiceType,
+    serviceType: ServiceType,
     trackingToken: string,
     reason?: string
   ): Promise<CancelJobResponse> {
+    const pathSegment = SERVICE_CANCEL_PATH[serviceType];
     const response = await axiosInstance.post<CancelJobResponse>(
-      `/requests/${serviceType}/${trackingToken}/cancel/`,
+      `/requests/${pathSegment}/${trackingToken}/cancel/`,
       reason ? { reason } : {}
     );
     return response.data;

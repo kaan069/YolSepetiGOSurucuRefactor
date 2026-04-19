@@ -224,11 +224,8 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
       passenger_capacity: parseInt(mCapacity),
       vehicle_class: mVehicleClass,
     };
-    console.log('🚗 [TransferVehicle] Backend\'e arac kaydi gonderiliyor:', JSON.stringify(payload, null, 2));
-
     try {
       const vehicleData = await vehiclesAPI.createTransferVehicle(payload);
-      console.log('✅ [TransferVehicle] Backend\'den cevap:', JSON.stringify(vehicleData, null, 2));
 
       // Araç fotoğrafı + VIP iç görselleri tek seferde yükle
       if (vehicleData.id && (mPhoto || mInteriorPhotos.some(p => p))) {
@@ -268,7 +265,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
       const typeLabel = modalType === 'vip' ? 'VIP' : 'Servis';
       Alert.alert('Basarili', `${typeLabel} araci eklendi!`);
     } catch (error: any) {
-      console.error('❌ [TransferVehicle] Arac kaydi hatasi:', error?.response?.status, JSON.stringify(error?.response?.data, null, 2));
+      console.error('❌ [TransferVehicle] Arac kaydi hatasi:', error?.response?.status);
       const msg = error?.response?.data?.message || error?.response?.data?.error || 'Arac eklenemedi.';
       Alert.alert('Hata', msg);
     } finally {
@@ -347,7 +344,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
         navigation.goBack();
       }
     } catch (error: any) {
-      console.error('❌ [TransferVehicle] Belge yukleme hatasi:', error?.response?.status, JSON.stringify(error?.response?.data, null, 2));
+      console.error('❌ [TransferVehicle] Belge yukleme hatasi:', error?.response?.status);
       Alert.alert('Hata', 'Belgeler yuklenirken bir hata olustu. Lutfen tekrar deneyin.');
     } finally {
       setFinishLoading(false);

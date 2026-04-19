@@ -8,7 +8,7 @@ import { OrderStatus } from '../../lib/types';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useJobsWebSocket } from '../../hooks/useJobsWebSocket';
-import { ServiceType } from '../../services/jobsWebSocket';
+import { ServiceType } from '../../constants/serviceTypes';
 import { useCancellationEventStore } from '../../store/useCancellationEventStore';
 import { useJobUpdateEventStore } from '../../store/useJobUpdateEventStore';
 import { useJobCountsStore } from '../../store/useJobCountsStore';
@@ -24,14 +24,14 @@ import OrdersList from './components/OrdersList';
 import { useOrdersFilters } from './hooks/useOrdersFilters';
 import { useOrdersData, ServiceFilterType } from './hooks/useOrdersData';
 
-// WebSocket service type -> Screen service filter mapping
+// Canonical ServiceType -> Screen service filter mapping
 const wsServiceToFilter: Record<ServiceType, ServiceFilterType> = {
-  tow_truck: 'tow',
+  towTruck: 'tow',
   crane: 'crane',
-  home_moving: 'nakliye',
-  city_moving: 'nakliye',
-  road_assistance: 'roadAssistance',
-  transfer: 'transfer' as ServiceFilterType,
+  homeToHomeMoving: 'nakliye',
+  cityToCity: 'nakliye',
+  roadAssistance: 'roadAssistance',
+  transfer: 'transfer',
 };
 
 // Status -> mainTab ve filter mapping
@@ -104,13 +104,13 @@ export default function OrdersScreen() {
 
   // WebSocket refresh helper
   const refreshByServiceType = useCallback((serviceType: ServiceType) => {
-    if (serviceType === 'tow_truck') {
+    if (serviceType === 'towTruck') {
       fetchTowTruckRequests();
     } else if (serviceType === 'crane') {
       fetchCraneRequests();
-    } else if (serviceType === 'home_moving' || serviceType === 'city_moving') {
+    } else if (serviceType === 'homeToHomeMoving' || serviceType === 'cityToCity') {
       fetchNakliyeRequests();
-    } else if (serviceType === 'road_assistance') {
+    } else if (serviceType === 'roadAssistance') {
       fetchRoadAssistanceRequests();
     } else if (serviceType === 'transfer') {
       fetchTransferRequests();

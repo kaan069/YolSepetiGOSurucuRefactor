@@ -192,19 +192,9 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
       // Token'ı al - önce store'dan, yoksa route param'dan
       const verificationToken = data.verificationToken || routeToken;
 
-      // Debug log - tüm registration data'yı göster
-      console.log('📋 Registration Data:', {
-        phoneNumber: data.phoneNumber,
-        storeToken: data.verificationToken ? data.verificationToken.substring(0, 30) + '...' : 'BOŞ/YOK',
-        routeToken: routeToken ? routeToken.substring(0, 30) + '...' : 'BOŞ/YOK',
-        usingToken: verificationToken ? verificationToken.substring(0, 30) + '...' : 'BOŞ/YOK',
-        vehicleTypes: data.vehicleTypes,
-        selectedVehicleTypes: data.selectedVehicleTypes,
-      });
-
       // Verification token kontrolü
       if (!verificationToken) {
-        console.error('❌ Verification token yok! store:', data.verificationToken, 'route:', routeToken);
+        console.error('❌ Verification token yok');
         Alert.alert('Hata', 'Telefon doğrulaması yapılmamış. Lütfen kayıt işlemini baştan başlatın.');
         navigation.navigate('PhoneNumber');
         return;

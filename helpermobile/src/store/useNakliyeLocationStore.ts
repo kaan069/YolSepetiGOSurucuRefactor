@@ -21,11 +21,6 @@ export const useNakliyeLocationStore = create<NakliyeLocationState>((set) => ({
   movingType: null,
 
   startLocationSharing: (trackingToken, jobId, movingType) => {
-    console.log('[NakliyeLocationStore] Konum paylaşımı başlatılıyor');
-    console.log('   • Tracking Token:', trackingToken?.substring(0, 16) + '...');
-    console.log('   • Job ID:', jobId);
-    console.log('   • Moving Type:', movingType);
-
     set({
       isLocationSharing: true,
       trackingToken,
@@ -35,8 +30,6 @@ export const useNakliyeLocationStore = create<NakliyeLocationState>((set) => ({
   },
 
   stopLocationSharing: () => {
-    console.log('[NakliyeLocationStore] Konum paylaşımı durduruluyor');
-
     set({
       isLocationSharing: false,
       trackingToken: null,

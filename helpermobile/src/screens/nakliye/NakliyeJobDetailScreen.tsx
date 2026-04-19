@@ -18,7 +18,8 @@ import CancelJobModal from '../../components/cancellation/CancelJobModal';
 import { useCancellationEventStore } from '../../store/useCancellationEventStore';
 import { useJobUpdateEventStore } from '../../store/useJobUpdateEventStore';
 import { useAppTheme } from '../../hooks/useAppTheme';
-import type { CancelServiceType, MovingRequestDetail } from '../../api/types';
+import type { MovingRequestDetail } from '../../api/types';
+import type { ServiceType } from '../../constants/serviceTypes';
 import {
   StatusBanner,
   EarningsCard,
@@ -286,7 +287,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
     navigation.navigate('Tabs', { screen: 'OrdersTab' });
   };
 
-  const cancelServiceType: CancelServiceType = movingType === 'city' ? 'city-moving' : 'home-moving';
+  const cancelServiceType: ServiceType = movingType === 'city' ? 'cityToCity' : 'homeToHomeMoving';
 
   // Değerler - request değiştiğinde yeniden hesaplanır (yeni iş geldiğinde memo invalidate olur)
   const {

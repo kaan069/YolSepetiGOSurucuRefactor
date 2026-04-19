@@ -14,11 +14,25 @@
  */
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
-import { Card, Text, Button } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import PaymentLogos from './PaymentLogos';
+import type { ServiceGroup } from '../../constants/serviceTypes';
+import { SERVICE_LABEL, SERVICE_ICON } from '../../constants/serviceTypeUI';
 
-export type CommissionServiceType = 'crane' | 'nakliye' | 'roadAssistance' | 'transfer';
+/**
+ * Commission card yalnızca şu 4 servis için render edilir (callers:
+ * CraneJobDetailScreen / NakliyeJobDetailScreen / RoadAssistanceJobDetailScreen /
+ * TransferJobDetailScreen). `CommissionServiceType` canonical `ServiceGroup`
+ * union'ından bu subset'e daraltılmıştır.
+ *
+ * Not: Label'lar commission context'ine özel " Hizmeti" suffix ile gösterilir
+ * (ör. "Vinç" -> "Vinç Hizmeti"). Icon'lar canonical `SERVICE_ICON` ile birebir.
+ */
+export type CommissionServiceType = Extract<
+  ServiceGroup,
+  'crane' | 'nakliye' | 'roadAssistance' | 'transfer'
+>;
 
 export interface CommissionJobDetails {
   finalPrice?: number | string;
@@ -38,20 +52,6 @@ interface CommissionPaymentCardProps {
   distanceKm?: number | null;
   estimatedDuration?: number | string | null;
 }
-
-const serviceLabels: Record<CommissionServiceType, string> = {
-  crane: 'Vinç Hizmeti',
-  nakliye: 'Nakliye Hizmeti',
-  roadAssistance: 'Yol Yardım Hizmeti',
-  transfer: 'Transfer Hizmeti',
-};
-
-const serviceIcons: Record<CommissionServiceType, string> = {
-  crane: 'crane',
-  nakliye: 'truck-cargo-container',
-  roadAssistance: 'car-wrench',
-  transfer: 'car-estate',
-};
 
 const formatCurrency = (amount: number | string): string => {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
@@ -102,12 +102,12 @@ export default function CommissionPaymentCard({
         <View style={styles.serviceRow}>
           <View style={styles.serviceIconContainer}>
             <MaterialCommunityIcons
-              name={serviceIcons[serviceType]}
+              name={SERVICE_ICON[serviceType]}
               size={24}
               color="#26a69a"
             />
           </View>
-          <Text style={styles.serviceLabel}>{serviceLabels[serviceType]}</Text>
+          <Text style={styles.serviceLabel}>{`${SERVICE_LABEL[serviceType]} Hizmeti`}</Text>
         </View>
 
         {/* Mesafe */}

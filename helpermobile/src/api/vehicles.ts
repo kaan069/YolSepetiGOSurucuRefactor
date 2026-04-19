@@ -200,24 +200,11 @@ class VehiclesAPI {
                 }
             );
 
-            console.log('═══════════════════════════════════════');
-            console.log('✅ ÇEKICI FOTOĞRAF UPLOAD BAŞARILI');
-            console.log('═══════════════════════════════════════');
-            console.log('   • Response status:', response.status);
-            console.log('   • Response data:', JSON.stringify(response.data, null, 2));
-            console.log('═══════════════════════════════════════');
+            console.log('✅ ÇEKICI FOTOĞRAF UPLOAD BAŞARILI, status:', response.status);
 
             return response.data;
         } catch (error: any) {
-            console.log('═══════════════════════════════════════');
-            console.error('❌ ÇEKICI FOTOĞRAF UPLOAD HATASI');
-            console.log('═══════════════════════════════════════');
-            console.error('   • Error:', error);
-            console.error('   • Error message:', error?.message);
-            console.error('   • Error response:', error?.response);
-            console.error('   • Error response status:', error?.response?.status);
-            console.error('   • Error response data:', JSON.stringify(error?.response?.data, null, 2));
-            console.log('═══════════════════════════════════════');
+            console.error('❌ ÇEKICI FOTOĞRAF UPLOAD HATASI:', error?.message, 'status:', error?.response?.status);
             throw error;
         }
     }
@@ -271,24 +258,11 @@ class VehiclesAPI {
                 }
             );
 
-            console.log('═══════════════════════════════════════');
-            console.log('✅ VINÇ FOTOĞRAF UPLOAD BAŞARILI');
-            console.log('═══════════════════════════════════════');
-            console.log('   • Response status:', response.status);
-            console.log('   • Response data:', JSON.stringify(response.data, null, 2));
-            console.log('═══════════════════════════════════════');
+            console.log('✅ VINÇ FOTOĞRAF UPLOAD BAŞARILI, status:', response.status);
 
             return response.data;
         } catch (error: any) {
-            console.log('═══════════════════════════════════════');
-            console.error('❌ VINÇ FOTOĞRAF UPLOAD HATASI');
-            console.log('═══════════════════════════════════════');
-            console.error('   • Error:', error);
-            console.error('   • Error message:', error?.message);
-            console.error('   • Error response:', error?.response);
-            console.error('   • Error response status:', error?.response?.status);
-            console.error('   • Error response data:', JSON.stringify(error?.response?.data, null, 2));
-            console.log('═══════════════════════════════════════');
+            console.error('❌ VINÇ FOTOĞRAF UPLOAD HATASI:', error?.message, 'status:', error?.response?.status);
             throw error;
         }
     }
@@ -413,23 +387,11 @@ class VehiclesAPI {
                 }
             );
 
-            console.log('═══════════════════════════════════════');
-            console.log('✅ NAKLİYE FOTOĞRAF UPLOAD BAŞARILI');
-            console.log('═══════════════════════════════════════');
-            console.log('   • Response status:', response.status);
-            console.log('   • Response data:', JSON.stringify(response.data, null, 2));
-            console.log('═══════════════════════════════════════');
+            console.log('✅ NAKLİYE FOTOĞRAF UPLOAD BAŞARILI, status:', response.status);
 
             return response.data;
         } catch (error: any) {
-            console.log('═══════════════════════════════════════');
-            console.error('❌ NAKLİYE FOTOĞRAF UPLOAD HATASI');
-            console.log('═══════════════════════════════════════');
-            console.error('   • Error:', error);
-            console.error('   • Error message:', error?.message);
-            console.error('   • Error response status:', error?.response?.status);
-            console.error('   • Error response data:', JSON.stringify(error?.response?.data, null, 2));
-            console.log('═══════════════════════════════════════');
+            console.error('❌ NAKLİYE FOTOĞRAF UPLOAD HATASI:', error?.message, 'status:', error?.response?.status);
             throw error;
         }
     }
@@ -527,23 +489,11 @@ class VehiclesAPI {
                 }
             );
 
-            console.log('═══════════════════════════════════════');
-            console.log('✅ YOL YARDIM FOTOĞRAF UPLOAD BAŞARILI');
-            console.log('═══════════════════════════════════════');
-            console.log('   • Response status:', response.status);
-            console.log('   • Response data:', JSON.stringify(response.data, null, 2));
-            console.log('═══════════════════════════════════════');
+            console.log('✅ YOL YARDIM FOTOĞRAF UPLOAD BAŞARILI, status:', response.status);
 
             return response.data;
         } catch (error: any) {
-            console.log('═══════════════════════════════════════');
-            console.error('❌ YOL YARDIM FOTOĞRAF UPLOAD HATASI');
-            console.log('═══════════════════════════════════════');
-            console.error('   • Error:', error);
-            console.error('   • Error message:', error?.message);
-            console.error('   • Error response status:', error?.response?.status);
-            console.error('   • Error response data:', JSON.stringify(error?.response?.data, null, 2));
-            console.log('═══════════════════════════════════════');
+            console.error('❌ YOL YARDIM FOTOĞRAF UPLOAD HATASI:', error?.message, 'status:', error?.response?.status);
             throw error;
         }
     }

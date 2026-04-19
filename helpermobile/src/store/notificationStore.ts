@@ -50,7 +50,6 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   // Actions
   setFcmToken: (token: string) => {
-    console.log('🔔 FCM Token store\'a kaydedildi:', token);
     set({ fcmToken: token });
   },
 

@@ -1,6 +1,7 @@
 import axiosInstance from './axiosConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthResponse, RegisterRequest, LoginRequest, SendOTPRequest, SendOTPResponse, VerifyOTPRequest, VerifyOTPResponse, AccountReadinessResponse } from './types';
+import { logger } from '../utils/logger';
 
 class AuthAPI {
     // ==================== OTP İşlemleri ====================
@@ -11,7 +12,7 @@ class AuthAPI {
      */
     async sendOTP(phoneNumber: string): Promise<SendOTPResponse> {
         try {
-            console.log('📱 OTP gönderiliyor...');
+            logger.debug('auth', 'Sending OTP');
 
             // Telefon numarasını temizle (sadece rakamlar)
             let cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
@@ -28,17 +29,15 @@ class AuthAPI {
 
             // +90 ile birleştir (backend bu formatı bekliyor)
             const fullNumber = `+90${cleanNumber}`;
-            console.log('📱 Gönderilen numara:', fullNumber);
 
             const response = await axiosInstance.post<SendOTPResponse>('/api/otp/send/', {
                 phoneNumber: fullNumber,
             });
 
-            console.log('✅ OTP başarıyla gönderildi');
+            logger.debug('auth', 'OTP sent');
             return response.data;
         } catch (error: any) {
-            console.error('❌ OTP gönderme hatası:', error);
-            console.error('❌ Error response:', error?.response?.data);
+            logger.error('auth', 'OTP send failed', error);
             throw error;
         }
     }
@@ -50,7 +49,7 @@ class AuthAPI {
      */
     async verifyOTP(phoneNumber: string, otpCode: string): Promise<VerifyOTPResponse> {
         try {
-            console.log('🔐 OTP doğrulanıyor...');
+            logger.debug('auth', 'Verifying OTP');
 
             // Telefon numarasını temizle
             let cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
@@ -71,14 +70,11 @@ class AuthAPI {
                 otpCode: otpCode,
             });
 
-            console.log('✅ OTP doğrulandı');
-            console.log('📦 OTP Verify Response:', JSON.stringify(response.data, null, 2));
-            console.log('🔑 verification_token var mı?', !!response.data.verification_token);
+            logger.info('auth', 'OTP verified');
 
             return response.data;
         } catch (error: any) {
-            console.error('❌ OTP doğrulama hatası:', error);
-            console.error('❌ Error response:', error?.response?.data);
+            logger.error('auth', 'OTP verify failed', error);
             throw error;
         }
     }
@@ -88,7 +84,7 @@ class AuthAPI {
     // Kullanıcı kaydı
     async register(data: RegisterRequest): Promise<AuthResponse> {
         try {
-            console.log('📝 Register API çağrısı yapılıyor...');
+            logger.debug('auth', 'Register API call');
 
             // Telefon numarasını normalize et (OTP verify ile aynı formatta olmalı)
             let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
@@ -105,7 +101,6 @@ class AuthAPI {
 
             // +90 ile birleştir (backend bu formatı bekliyor - OTP verify ile aynı)
             const normalizedPhone = `+90${cleanNumber}`;
-            console.log('📱 Register - Normalize edilmiş numara:', normalizedPhone);
 
             // Request verisini hazırla
             const requestData = {
@@ -116,38 +111,34 @@ class AuthAPI {
             const response = await axiosInstance.post<AuthResponse>('/auth/register/', requestData, {
                 timeout: 120000  // 120 saniye (2 dakika) - kayıt işlemi backend'de çok uzun sürebilir
             });
-            console.log('✅ Register API yanıtı alındı');
+            logger.debug('auth', 'Register response received');
 
             // Token'ları kaydet - AsyncStorage hatası kaydı engellemez
             try {
                 if (response.data.tokens) {
-                    console.log('💾 Token\'lar AsyncStorage\'a kaydediliyor...');
                     await AsyncStorage.setItem('access_token', response.data.tokens.access);
                     await AsyncStorage.setItem('refresh_token', response.data.tokens.refresh);
-                    console.log('✅ Token\'lar kaydedildi');
                 }
             } catch (storageError) {
-                console.error('⚠️ Token kaydetme hatası (devam ediliyor):', storageError);
+                logger.warn('auth', 'Token storage failed (register)', storageError);
                 // Storage hatası kaydı engellemez
             }
 
             // Kullanıcı bilgilerini kaydet - AsyncStorage hatası kaydı engellemez
             try {
                 if (response.data.user) {
-                    console.log('💾 User bilgisi AsyncStorage\'a kaydediliyor...');
                     const userString = JSON.stringify(response.data.user);
                     await AsyncStorage.setItem('user', userString);
-                    console.log('✅ User bilgisi kaydedildi');
                 }
             } catch (storageError) {
-                console.error('⚠️ User kaydetme hatası (devam ediliyor):', storageError);
+                logger.warn('auth', 'User storage failed (register)', storageError);
                 // Storage hatası kaydı engellemez
             }
 
-            console.log('✅ Register işlemi tamamlandı');
+            logger.info('auth', 'Register completed');
             return response.data;
         } catch (error) {
-            console.error('❌ Register error:', error);
+            logger.error('auth', 'Register failed', error);
             throw error;
         }
     }
@@ -157,35 +148,16 @@ class AuthAPI {
         let response;
 
         try {
-            console.log('🔐 [authAPI] Login başlıyor...');
+            logger.debug('auth', 'Login starting');
 
-            try {
-                console.log('🔐 [authAPI] Request data stringify yapılıyor...');
-                const dataStr = JSON.stringify(data);
-                console.log('🔐 [authAPI] Request data:', dataStr);
-            } catch (strErr) {
-                console.error('⚠️ [authAPI] JSON.stringify hatası:', strErr);
-            }
-
-            console.log('🔐 [authAPI] Axios POST çağrısı yapılıyor...');
             response = await axiosInstance.post<AuthResponse>('/auth/login/', data);
 
-            console.log('✅ [authAPI] API yanıtı alındı');
-            console.log('✅ [authAPI] Response status:', response.status);
+            logger.debug('auth', 'Login response received', { status: response.status });
         } catch (error: any) {
-            console.error('❌ [authAPI] API çağrısı başarısız');
-            console.error('❌ [authAPI] Error message:', error?.message || 'Yok');
-            console.error('❌ [authAPI] Error response status:', error?.response?.status || 'Yok');
-
-            // Hata detaylarını güvenli şekilde logla
-            try {
-                if (error?.response?.data) {
-                    const errorData = JSON.stringify(error.response.data);
-                    console.error('❌ [authAPI] Error response data:', errorData);
-                }
-            } catch (logErr) {
-                console.error('⚠️ [authAPI] Error logging hatası');
-            }
+            logger.error('auth', 'Login failed', {
+                message: error?.message,
+                status: error?.response?.status,
+            });
 
             throw error;
         }
@@ -193,14 +165,10 @@ class AuthAPI {
         // Token'ları kaydet
         if (response.data.tokens) {
             try {
-                console.log('💾 [authAPI] Token kaydetme başlıyor...');
                 await AsyncStorage.setItem('access_token', response.data.tokens.access);
-                console.log('✅ [authAPI] Access token kaydedildi');
-
                 await AsyncStorage.setItem('refresh_token', response.data.tokens.refresh);
-                console.log('✅ [authAPI] Refresh token kaydedildi');
             } catch (storageError) {
-                console.error('⚠️ [authAPI] Token kaydetme hatası:', storageError);
+                logger.warn('auth', 'Token storage failed (login)', storageError);
                 // Storage hatası login'i engellemez
             }
         }
@@ -208,19 +176,15 @@ class AuthAPI {
         // Kullanıcı bilgilerini kaydet
         if (response.data.user) {
             try {
-                console.log('💾 [authAPI] User kaydı başlıyor...');
                 const userString = JSON.stringify(response.data.user);
-                console.log('💾 [authAPI] User stringify yapıldı, uzunluk:', userString.length);
-
                 await AsyncStorage.setItem('user', userString);
-                console.log('✅ [authAPI] User AsyncStorage\'a kaydedildi');
             } catch (storageError) {
-                console.error('⚠️ [authAPI] User kaydetme hatası:', storageError);
+                logger.warn('auth', 'User storage failed (login)', storageError);
                 // Storage hatası login'i engellemez
             }
         }
 
-        console.log('✅ [authAPI] Login tamamlandı, response döndürülüyor');
+        logger.info('auth', 'Login completed');
         return response.data;
     }
 
@@ -241,7 +205,7 @@ class AuthAPI {
 
             return response.data;
         } catch (error) {
-            console.error('Refresh token error:', error);
+            logger.error('auth', 'Refresh token failed', error);
             await this.logout();
             throw error;
         }
@@ -260,7 +224,7 @@ class AuthAPI {
             const userString = await AsyncStorage.getItem('user');
             return userString ? JSON.parse(userString) : null;
         } catch (error) {
-            console.error('Get user error:', error);
+            logger.error('auth', 'Get user failed', error);
             return null;
         }
     }
@@ -277,7 +241,7 @@ class AuthAPI {
 
             return response.data;
         } catch (error) {
-            console.error('Get profile error:', error);
+            logger.error('auth', 'Get profile failed', error);
             throw error;
         }
     }
@@ -305,7 +269,7 @@ class AuthAPI {
 
             return response.data;
         } catch (error) {
-            console.error('Update profile error:', error);
+            logger.error('auth', 'Update profile failed', error);
             throw error;
         }
     }
@@ -324,7 +288,7 @@ class AuthAPI {
 
             return response.data;
         } catch (error) {
-            console.error('Update user type error:', error);
+            logger.error('auth', 'Update user type failed', error);
             throw error;
         }
     }
@@ -338,7 +302,7 @@ class AuthAPI {
     // Şifremi unuttum - yeni şifre SMS ile gönderilir
     async forgotPassword(phoneNumber: string): Promise<{ message: string }> {
         try {
-            console.log('🔑 Şifremi unuttum isteği gönderiliyor...');
+            logger.debug('auth', 'Forgot password request');
 
             // Boşlukları kaldır
             let cleanNumber = phoneNumber.replace(/\s/g, '');
@@ -350,16 +314,15 @@ class AuthAPI {
 
             // +90 ile birleştir
             const fullNumber = `+90${cleanNumber}`;
-            console.log('📱 Gönderilen numara:', fullNumber);
 
             const response = await axiosInstance.post<{ message: string }>('/auth/forgot-password/', {
                 phone_number: fullNumber,
             });
 
-            console.log('✅ Şifremi unuttum başarılı');
+            logger.info('auth', 'Forgot password sent');
             return response.data;
         } catch (error: any) {
-            console.error('❌ Şifremi unuttum hatası:', error);
+            logger.error('auth', 'Forgot password failed', error);
             throw error;
         }
     }
@@ -370,7 +333,7 @@ class AuthAPI {
             const response = await axiosInstance.get<{ user_is_online: boolean; status_text: string }>('/auth/status/online/');
             return response.data;
         } catch (error) {
-            console.error('Get online status error:', error);
+            logger.error('auth', 'Get online status failed', error);
             throw error;
         }
     }
@@ -381,7 +344,7 @@ class AuthAPI {
             const response = await axiosInstance.get<AccountReadinessResponse>('/auth/account-ready/');
             return response.data;
         } catch (error) {
-            console.error('Check account readiness error:', error);
+            logger.error('auth', 'Account readiness check failed', error);
             throw error;
         }
     }
@@ -394,7 +357,7 @@ class AuthAPI {
             });
             return response.data;
         } catch (error) {
-            console.error('Update online status error:', error);
+            logger.error('auth', 'Update online status failed', error);
             throw error;
         }
     }
@@ -416,22 +379,13 @@ class AuthAPI {
         created: boolean;
     }> {
         try {
-            console.log('🔔 FCM Token kaydediliyor...');
-            console.log('   • Device ID:', data.device_id || 'default');
-            console.log('   • Device Type:', data.device_type || 'unknown');
-
             const response = await axiosInstance.put('/auth/notifications/update/', data);
-
-            console.log('✅ FCM Token başarıyla kaydedildi');
-            console.log('   • Created:', response.data.created ? 'Yeni cihaz' : 'Güncellendi');
 
             return response.data;
         } catch (error: any) {
-            console.error('❌ FCM Token kaydetme hatası:', error);
-
             // 500 IntegrityError - Backend duplicate key hatası (ignore et)
             if (error?.response?.status === 500 && error?.response?.data?.includes?.('IntegrityError')) {
-                console.warn('⚠️ FCM Token zaten kayıtlı (IntegrityError), devam ediliyor...');
+                logger.warn('fcm', 'FCM token already registered (IntegrityError)');
                 return {
                     message: 'Token already registered',
                     fcm_token: data.fcm_token,
@@ -440,6 +394,7 @@ class AuthAPI {
                 };
             }
 
+            logger.error('fcm', 'FCM token register failed', error);
             throw error;
         }
     }
@@ -453,26 +408,22 @@ class AuthAPI {
         device_id: string;
     }> {
         try {
-            console.log('🗑️ FCM Token siliniyor...');
-            console.log('   • Device ID:', deviceId || 'default');
-
             const response = await axiosInstance.delete('/auth/notifications/logout/', {
                 data: { device_id: deviceId }
             });
 
-            console.log('✅ FCM Token başarıyla silindi');
             return response.data;
         } catch (error: any) {
             // 404 hatası token bulunamadı demektir, bu normal (sessizce handle et)
             if (error?.response?.status === 404) {
-                console.log('ℹ️  FCM Token zaten silinmiş');
+                logger.info('fcm', 'FCM token already deleted');
                 return {
                     message: 'Token bulunamadı',
                     device_id: deviceId || 'default'
                 };
             }
 
-            console.error('❌ FCM Token silme hatası:', error);
+            logger.error('fcm', 'FCM token delete failed', error);
             throw error;
         }
     }

@@ -98,14 +98,9 @@ class FCMService {
      */
     async getFCMToken(): Promise<string | null> {
         try {
-            console.log('🔔 FCM token alınıyor...');
-
             // Firebase'den token al
             const token = await messaging().getToken();
             this.fcmToken = token;
-
-            console.log('✅ FCM token alındı');
-            console.log('   Token uzunluğu:', token?.length || 0);
 
             // Backend'e token'ı kaydet
             await this.registerTokenToBackend(token);

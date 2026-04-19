@@ -158,7 +158,6 @@ export function validateNotificationData(data: any): data is NotificationDataPay
   for (const field of requiredFields) {
     if (!data[field]) {
       console.error(`❌ Missing required field: ${field}`);
-      console.error('📦 Received data:', JSON.stringify(data, null, 2));
       return false;
     }
   }

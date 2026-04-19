@@ -120,18 +120,14 @@ export default function OTPVerificationScreen({ navigation }: Props) {
 
       const response = await authAPI.verifyOTP(data.phoneNumber, otpCode);
 
-      console.log('✅ OTP doğrulandı, response:', JSON.stringify(response, null, 2));
-
       // Verification token'ı al (hem snake_case hem camelCase kontrol et)
       const token = response.verification_token || (response as any).verificationToken;
 
       if (!token) {
-        console.error('❌ verification_token bulunamadı! Response:', response);
+        console.error('❌ verification_token bulunamadı');
         setError('Doğrulama başarısız. Lütfen tekrar deneyin.');
         return;
       }
-
-      console.log('✅ Verification token alındı:', token.substring(0, 20) + '...');
 
       // Verification token'ı store'a kaydet
       setVerificationToken(token);

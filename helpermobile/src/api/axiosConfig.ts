@@ -5,6 +5,7 @@ import axios, {
 } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../constants/network";
+import { logger } from "../utils/logger";
 
 // Logout durumunu takip et - logout sırasında 401 bildirimleri gösterme
 let isLoggingOut = false;
@@ -30,7 +31,7 @@ axiosInstance.interceptors.request.use(
             try {
                 token = await AsyncStorage.getItem("access_token");
             } catch (storageError) {
-                console.error('⚠️ [AXIOS] AsyncStorage.getItem hatası:', storageError);
+                logger.warn('network', 'Token read from storage failed', storageError);
                 // Storage hatası request'i engellemez
             }
 
@@ -40,12 +41,12 @@ axiosInstance.interceptors.request.use(
 
             return config;
         } catch (err) {
-            console.error('❌ [AXIOS] Request interceptor hatası:', err);
+            logger.error('network', 'Request interceptor failure', err);
             return config; // Hata olsa bile request'i gönder
         }
     },
     (error: AxiosError) => {
-        console.error("❌ [AXIOS] Request Error:", error);
+        logger.error('network', 'Request error', error);
         return Promise.reject(error);
     }
 );
@@ -65,44 +66,43 @@ axiosInstance.interceptors.response.use(
 
                 // Photo endpoint veya FCM logout endpoint'inde 404 varsa log'lama
                 if (!(is404 && (isPhotoEndpoint || isFCMLogout))) {
-                    console.error(
-                        `❌ [AXIOS] API Error ${error.response.status}:`,
-                        error.response.data
-                    );
-                    // Bildirim kaldırıldı - sadece console log
+                    // Response body'yi logla(ma) — sadece status + endpoint (PII/secret sızıntısı önlemi)
+                    logger.error('network', 'API error', {
+                        status: error.response.status,
+                        method: error.config?.method,
+                        url: error.config?.url,
+                    });
+                    // Bildirim kaldırıldı - sadece logger
                 }
 
                 if (error.response.status === 401) {
                     try {
                         // Eğer logout işlemi sırasındaysak, bildirim gösterme
                         if (isLoggingOut) {
-                            console.log('🔕 [AXIOS] 401 - Logout sırasında');
+                            logger.debug('network', '401 during logout, suppressed');
                             return Promise.reject(error);
                         }
 
-                        console.log('🗑️ [AXIOS] 401 - Token siliniyor...');
                         await AsyncStorage.removeItem("access_token");
                         await AsyncStorage.removeItem("refresh_token");
-                        console.log('✅ [AXIOS] Token silindi');
-
-                        // Local bildirim kaldırıldı - sadece console log
-                        console.log('🔒 [AXIOS] Oturum süresi doldu');
                     } catch (storageError) {
-                        console.error('⚠️ [AXIOS] Token silme hatası:', storageError);
+                        logger.warn('network', 'Token removal failed (401 handler)', storageError);
                     }
                 }
             } else if (error.request) {
-                console.error("❌ [AXIOS] No Response:", error.request);
-
-                // Local bildirim kaldırıldı - sadece console log
-                console.log('🌐 [AXIOS] Sunucuya bağlanılamadı');
+                // error.request tüm XHR objesini içerir (header/url leak) —
+                // sadece güvenli minimum context logla.
+                logger.warn('network', 'No response from server', {
+                    method: error.config?.method,
+                    url: error.config?.url,
+                });
             } else {
-                console.error("❌ [AXIOS] Request Setup Error:", error.message);
+                logger.error('network', 'Request setup error', error.message);
             }
 
             return Promise.reject(error);
         } catch (err) {
-            console.error('❌ [AXIOS] Response interceptor hatası:', err);
+            logger.error('network', 'Response interceptor failure', err);
             return Promise.reject(error);
         }
     }

@@ -12,7 +12,8 @@ import {
 import { useAuthStore } from "../store/authStore";
 import { useNotificationStore } from "../store/notificationStore";
 import authAPI from "../api/auth";
-import { navigateToAcceptedJob } from "../utils/notificationNavigation";
+import { navigateToAcceptedJob, navigateToOfferScreen } from "../utils/notificationNavigation";
+import { logger } from "../utils/logger";
 
 const FCM_TOKEN_KEY = "fcm_token";
 
@@ -110,7 +111,7 @@ export function useNotifications(navigationRef?: any) {
 
                 return unsubscribeTokenRefresh;
             } catch (error) {
-                console.error("❌ FCM token initialization hatası:", error);
+                logger.error('fcm', 'FCM token initialization hatası', error);
             }
         };
 
@@ -161,11 +162,6 @@ export function useNotifications(navigationRef?: any) {
         // Firebase: Bildirimden uygulama açıldığında (background/quit state)
         openedAppUnsubscribe.current = onNotificationOpenedApp(
             async (remoteMessage) => {
-                console.log('🍎🔔 [iOS-BG] Platform:', Platform.OS);
-                console.log('🍎🔔 [iOS-BG] remoteMessage keys:', Object.keys(remoteMessage));
-                console.log('🍎🔔 [iOS-BG] remoteMessage.data:', JSON.stringify(remoteMessage.data));
-                console.log('🍎🔔 [iOS-BG] remoteMessage.notification:', JSON.stringify(remoteMessage.notification));
-
                 if (currentUser?.id && remoteMessage.notification) {
                     const notificationData = {
                         id: remoteMessage.messageId || Date.now().toString(),
@@ -182,31 +178,15 @@ export function useNotifications(navigationRef?: any) {
 
                 const data = remoteMessage.data;
                 if (!data) {
-                    console.error('🍎❌ [iOS-BG] DATA NULL! remoteMessage:', JSON.stringify(remoteMessage));
                     return;
                 }
-
-                // DEBUG: Her alan tek tek logla
-                console.log('🍎🔔 [iOS-BG] data.type:', typeof data.type, data.type);
-                console.log('🍎🔔 [iOS-BG] data.service_type:', typeof data.service_type, data.service_type);
-                console.log('🍎🔔 [iOS-BG] data.request_details_id:', typeof data.request_details_id, data.request_details_id);
-                console.log('🍎🔔 [iOS-BG] data.request_id:', typeof data.request_id, data.request_id);
-                console.log('🍎🔔 [iOS-BG] data.orderId:', typeof data.orderId, data.orderId);
-                console.log('🍎🔔 [iOS-BG] data.order_id:', typeof data.order_id, data.order_id);
-                console.log('🍎🔔 [iOS-BG] data.requestId:', typeof data.requestId, data.requestId);
 
                 const orderId = data.request_details_id || data.orderId || data.order_id || data.requestId || data.request_id;
                 const serviceType = data.service_type || data.type || 'tow';
                 const notificationType = data.type;
 
-                console.log('🍎🔔 [iOS-BG] FINAL orderId:', typeof orderId, orderId);
-                console.log('🍎🔔 [iOS-BG] FINAL serviceType:', serviceType);
-                console.log('🍎🔔 [iOS-BG] FINAL notificationType:', notificationType);
-                console.log('🍎🔔 [iOS-BG] navigationRef ready:', !!navigationRef?.current);
-
                 if (navigationRef?.current) {
                     setTimeout(() => {
-                        console.log('🍎🔔 [iOS-BG] setTimeout fired, navigating...');
                         if (notificationType === 'job_completed' || notificationType === 'request_completed') {
                             navigationRef.current.navigate('Tabs', { screen: 'EarningsTab' });
                         }
@@ -217,19 +197,7 @@ export function useNotifications(navigationRef?: any) {
                             navigateToAcceptedJob(navigationRef, orderId, serviceType, '[Background]');
                         }
                         else if (orderId) {
-                            if (serviceType === 'crane' || serviceType === 'vinc_request') {
-                                navigationRef.current.navigate('CraneOffer', { orderId: String(orderId) });
-                            } else if (serviceType === 'home_moving' || serviceType === 'evden_eve') {
-                                navigationRef.current.navigate('HomeMovingOffer', { orderId: String(orderId) });
-                            } else if (serviceType === 'city_moving' || serviceType === 'sehirler_arasi') {
-                                navigationRef.current.navigate('CityMovingOffer', { orderId: String(orderId) });
-                            } else if (serviceType === 'road_assistance' || serviceType === 'yol_yardim' || serviceType === 'road_assistance_request') {
-                                navigationRef.current.navigate('RoadAssistanceOffer', { orderId: String(orderId) });
-                            } else if (serviceType === 'transfer' || serviceType === 'transfer_request') {
-                                navigationRef.current.navigate('TransferOffer', { orderId: String(orderId) });
-                            } else {
-                                navigationRef.current.navigate('TowTruckOffer', { orderId: String(orderId) });
-                            }
+                            navigateToOfferScreen(navigationRef, orderId, serviceType);
                         }
                     }, 500);
                 } else {
@@ -241,7 +209,7 @@ export function useNotifications(navigationRef?: any) {
                             timestamp: Date.now()
                         }));
                     } catch (error) {
-                        console.error("❌ [Background] AsyncStorage kayıt hatası:", error);
+                        logger.error('fcm', '[Background] AsyncStorage kayıt hatası', error);
                     }
                 }
             }
@@ -265,11 +233,6 @@ export function useNotifications(navigationRef?: any) {
 
         getInitialNotification().then((remoteMessage) => {
             if (remoteMessage && remoteMessage.notification) {
-                console.log('🍎🔔 [iOS-KILLED] Platform:', Platform.OS);
-                console.log('🍎🔔 [iOS-KILLED] remoteMessage keys:', Object.keys(remoteMessage));
-                console.log('🍎🔔 [iOS-KILLED] remoteMessage.data:', JSON.stringify(remoteMessage.data));
-                console.log('🍎🔔 [iOS-KILLED] remoteMessage.notification:', JSON.stringify(remoteMessage.notification));
-
                 const notificationData = {
                     id: remoteMessage.messageId || Date.now().toString(),
                     userId: currentUser.id,
@@ -284,26 +247,12 @@ export function useNotifications(navigationRef?: any) {
 
                 const data = remoteMessage.data;
                 if (!data) {
-                    console.error('🍎❌ [iOS-KILLED] DATA NULL! remoteMessage:', JSON.stringify(remoteMessage));
                     return;
                 }
-
-                // DEBUG: Her alan tek tek logla
-                console.log('🍎🔔 [iOS-KILLED] data.type:', typeof data.type, data.type);
-                console.log('🍎🔔 [iOS-KILLED] data.service_type:', typeof data.service_type, data.service_type);
-                console.log('🍎🔔 [iOS-KILLED] data.request_details_id:', typeof data.request_details_id, data.request_details_id);
-                console.log('🍎🔔 [iOS-KILLED] data.request_id:', typeof data.request_id, data.request_id);
-                console.log('🍎🔔 [iOS-KILLED] data.orderId:', typeof data.orderId, data.orderId);
-                console.log('🍎🔔 [iOS-KILLED] data.order_id:', typeof data.order_id, data.order_id);
-                console.log('🍎🔔 [iOS-KILLED] data.requestId:', typeof data.requestId, data.requestId);
 
                 const orderId = data.request_details_id || data.orderId || data.order_id || data.requestId || data.request_id;
                 const serviceType = data.service_type || data.type || 'tow';
                 const notificationType = data.type;
-
-                console.log('🍎🔔 [iOS-KILLED] FINAL orderId:', typeof orderId, orderId);
-                console.log('🍎🔔 [iOS-KILLED] FINAL serviceType:', serviceType);
-                console.log('🍎🔔 [iOS-KILLED] FINAL notificationType:', notificationType);
 
                 setTimeout(() => {
                     if (notificationType === 'job_completed' || notificationType === 'request_completed') {
@@ -316,24 +265,12 @@ export function useNotifications(navigationRef?: any) {
                         navigateToAcceptedJob(navigationRef, orderId, serviceType, '[Killed State]');
                     }
                     else if (orderId) {
-                        if (serviceType === 'crane' || serviceType === 'vinc_request') {
-                            navigationRef.current?.navigate('CraneOffer', { orderId: String(orderId) });
-                        } else if (serviceType === 'home_moving' || serviceType === 'evden_eve') {
-                            navigationRef.current?.navigate('HomeMovingOffer', { orderId: String(orderId) });
-                        } else if (serviceType === 'city_moving' || serviceType === 'sehirler_arasi') {
-                            navigationRef.current?.navigate('CityMovingOffer', { orderId: String(orderId) });
-                        } else if (serviceType === 'road_assistance' || serviceType === 'yol_yardim' || serviceType === 'road_assistance_request') {
-                            navigationRef.current?.navigate('RoadAssistanceOffer', { orderId: String(orderId) });
-                        } else if (serviceType === 'transfer' || serviceType === 'transfer_request') {
-                            navigationRef.current?.navigate('TransferOffer', { orderId: String(orderId) });
-                        } else {
-                            navigationRef.current?.navigate('TowTruckOffer', { orderId: String(orderId) });
-                        }
+                        navigateToOfferScreen(navigationRef, orderId, serviceType);
                     }
                 }, 1500);
             }
         }).catch((error) => {
-            console.error("❌ [Killed State] getInitialNotification hatası:", error);
+            logger.error('fcm', '[Killed State] getInitialNotification hatası', error);
         });
     }, [navigationRef?.current, currentUser?.id, addNotification]);
 
@@ -385,6 +322,6 @@ async function sendTokenToBackend(
         });
 
     } catch (error: any) {
-        console.error("❌ FCM token backend'e gönderilemedi:", error?.message || error);
+        logger.error('fcm', "FCM token backend'e gönderilemedi", error?.message || error);
     }
 }

@@ -49,7 +49,6 @@ class DocumentsAPI {
     async getDocuments(): Promise<DocumentResponse> {
         try {
             const response = await axiosInstance.get<DocumentResponse>('/auth/documents/license/');
-            console.log('📄 [DocumentsAPI] GET response:', JSON.stringify(response.data, null, 2));
             return response.data;
         } catch (error) {
             console.error('Get documents error:', error);
