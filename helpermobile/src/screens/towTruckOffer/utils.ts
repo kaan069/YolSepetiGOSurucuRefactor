@@ -3,6 +3,7 @@
  *
  * Çekici teklif ekranında kullanılan yardımcı fonksiyonlar.
  */
+import { logger } from '../../utils/logger';
 
 /**
  * İki koordinat arasındaki mesafeyi hesaplar (Haversine formülü)
@@ -117,7 +118,7 @@ export const parseRouteDistance = (routeDistance: string): number => {
  */
 export const getRequestId = (request: any): number => {
   if (!request?.request_id) {
-    console.error('❌ getRequestId: request_id is null or undefined');
+    logger.error('orders', 'getRequestId: request_id is null or undefined');
     return 0;
   }
 

@@ -5,6 +5,7 @@
  */
 import { useState, useEffect } from 'react';
 import { vehiclesAPI, NakliyeVehicle } from '../../../api';
+import { logger } from '../../../utils/logger';
 
 export function useNakliyeVehicles() {
   const [vehicles, setVehicles] = useState<NakliyeVehicle[]>([]);
@@ -19,21 +20,6 @@ export function useNakliyeVehicles() {
         setError(null);
         const data = await vehiclesAPI.getMyNakliyeVehicles();
 
-        console.log('═══════════════════════════════════════════════════');
-        console.log('🚛 NAKLİYE ARAÇLARI - API RESPONSE:');
-        console.log('═══════════════════════════════════════════════════');
-        console.log('Toplam araç sayısı:', data.length);
-        data.forEach((v: any, i: number) => {
-          console.log(`\n📍 Araç ${i + 1}:`);
-          console.log('   ID:', v.id);
-          console.log('   Marka/Model:', v.brand, v.model);
-          console.log('   Plaka:', v.plate_number);
-          console.log('   verification_status:', v.verification_status);
-          console.log('   is_verified:', v.is_verified);
-          console.log('   status:', v.status);
-        });
-        console.log('═══════════════════════════════════════════════════');
-
         // Araçları normalize et - verification_status yoksa veya farklı alanda ise kontrol et
         const normalizedData = data.map((v: any) => {
           // Backend'den gelen olası farklı alan isimleri
@@ -44,7 +30,6 @@ export function useNakliyeVehicles() {
 
           // Eğer hiç verification bilgisi yoksa, varsayılan olarak approved kabul et
           if (!verificationStatus) {
-            console.log(`⚠️ Araç ${v.id} için verification_status bulunamadı, approved kabul ediliyor`);
             verificationStatus = 'approved';
           }
 
@@ -56,17 +41,15 @@ export function useNakliyeVehicles() {
 
         // Sadece onaylı araçları filtrele
         const approvedVehicles = normalizedData.filter((v: any) => v.verification_status === 'approved');
-        console.log('✅ Onaylı araç sayısı:', approvedVehicles.length);
 
         setVehicles(normalizedData); // Normalize edilmiş araçları göster
 
         // İlk onaylı aracı otomatik seç
         if (approvedVehicles.length > 0 && !selectedId) {
-          console.log('🎯 Otomatik seçilen araç ID:', approvedVehicles[0].id);
           setSelectedId(approvedVehicles[0].id);
         }
       } catch (err: any) {
-        console.error('❌ Nakliye araçları yüklenemedi:', err);
+        logger.error('vehicles', 'useNakliyeVehicles.fetch failure', { status: err?.response?.status });
         setError(err?.message || 'Araçlar yüklenemedi');
       } finally {
         setLoading(false);

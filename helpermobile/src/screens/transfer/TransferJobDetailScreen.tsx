@@ -22,6 +22,7 @@ import { useJobUpdateEventStore } from '../../store/useJobUpdateEventStore';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import PhotosSection from '../../components/PhotosSection';
 import DriverPhotoUpload from '../../components/DriverPhotoUpload';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferJobDetail'>;
 
@@ -238,7 +239,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
           longitude: location.coords.longitude,
         });
       } catch (error) {
-        console.error('Konum alinamadi:', error);
+        logger.error('orders', 'Konum alinamadi');
       }
     };
     getCurrentLocation();
@@ -366,7 +367,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
       const updatedRequest = await requestsAPI.getTransferRequestDetail(parseInt(jobId));
       setTransferRequest(updatedRequest);
     } catch (error) {
-      console.error('Yenileme hatasi:', error);
+      logger.error('orders', 'Yenileme hatasi');
     }
     Alert.alert('Odeme Basarili', 'Komisyon odemesi tamamlandi.', [{ text: 'Tamam' }]);
   };

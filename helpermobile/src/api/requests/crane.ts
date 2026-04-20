@@ -7,6 +7,7 @@ import {
   CraneRequest,
   CraneListResponse,
 } from '../types';
+import { logOrdersError } from './_helpers';
 
 class CraneAPI {
   // Bekleyen vinç taleplerini getir
@@ -17,7 +18,7 @@ class CraneAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get pending crane requests error:', error);
+      logOrdersError('crane.getPendingRequests', error);
       throw error;
     }
   }
@@ -43,7 +44,7 @@ class CraneAPI {
 
       return availableRequests;
     } catch (error) {
-      console.error('❌ Get available crane requests error:', error);
+      logOrdersError('crane.getAvailableRequests', error);
       throw error;
     }
   }
@@ -56,7 +57,7 @@ class CraneAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting approval crane requests error:', error);
+      logOrdersError('crane.getAwaitingApprovalRequests', error);
       throw error;
     }
   }
@@ -69,7 +70,7 @@ class CraneAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting payment crane requests error:', error);
+      logOrdersError('crane.getAwaitingPaymentRequests', error);
       throw error;
     }
   }
@@ -82,7 +83,7 @@ class CraneAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get in progress crane requests error:', error);
+      logOrdersError('crane.getInProgressRequests', error);
       throw error;
     }
   }
@@ -95,7 +96,7 @@ class CraneAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get completed crane requests error:', error);
+      logOrdersError('crane.getCompletedRequests', error);
       throw error;
     }
   }
@@ -106,7 +107,7 @@ class CraneAPI {
       const response = await axiosInstance.get<CraneRequest>(`/requests/crane/details/${id}/`);
       return response.data;
     } catch (error) {
-      console.error('Get crane request detail error:', error);
+      logOrdersError('crane.getRequestDetail', error);
       throw error;
     }
   }
@@ -123,7 +124,7 @@ class CraneAPI {
       });
       return match || null;
     } catch (error) {
-      console.error('Find crane by service request ID error:', error);
+      logOrdersError('crane.findByServiceRequestId', error);
       return null;
     }
   }
@@ -134,7 +135,7 @@ class CraneAPI {
       const response = await axiosInstance.get<CraneListResponse>('/requests/crane/my-cranes/');
       return response.data;
     } catch (error) {
-      console.error('❌ Get my cranes error:', error);
+      logOrdersError('crane.getMyCranes', error);
       throw error;
     }
   }
@@ -161,7 +162,7 @@ class CraneAPI {
       const response = await axiosInstance.post(`/requests/crane/${trackingToken}/submit-offer/`, payload);
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Vinç teklif gönderme hatası:', error?.response?.data);
+      logOrdersError('crane.submitOffer', error);
       throw error;
     }
   }
@@ -172,7 +173,7 @@ class CraneAPI {
       const response = await axiosInstance.post(`/requests/crane/${requestId}/complete/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Complete crane request error:', error?.response?.data);
+      logOrdersError('crane.completeRequest', error);
       throw error;
     }
   }
@@ -183,7 +184,7 @@ class CraneAPI {
       const response = await axiosInstance.post(`/requests/crane/${requestId}/pay-commission/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Pay crane commission error:', error?.response?.data);
+      logOrdersError('crane.payCommission', error);
       throw error;
     }
   }
@@ -193,7 +194,7 @@ class CraneAPI {
       const response = await axiosInstance.delete(`/requests/crane/${trackingToken}/withdraw-offer/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Vinç teklif geri çekme hatası:', error?.response?.data);
+      logOrdersError('crane.withdrawOffer', error);
       throw error;
     }
   }

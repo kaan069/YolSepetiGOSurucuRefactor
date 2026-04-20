@@ -13,6 +13,7 @@ import { User } from '../../api/types';
 import authAPI from '../../api/auth';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AccountManagement'>;
 
@@ -30,7 +31,7 @@ export default function AccountManagementScreen({ navigation }: Props) {
         const response = await authAPI.getProfile();
         setApiUser(response.user);
       } catch (error) {
-        console.error('Error loading user profile:', error);
+        logger.error('general', 'Error loading user profile');
       } finally {
         setLoading(false);
       }

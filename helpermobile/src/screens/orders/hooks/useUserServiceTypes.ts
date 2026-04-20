@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { authAPI } from '../../../api';
 import { ServiceFilterType } from './useOrdersData';
+import { logger } from '../../../utils/logger';
 
 const SERVICE_ORDER: ServiceFilterType[] = ['tow', 'crane', 'nakliye', 'roadAssistance', 'transfer'];
 
@@ -44,7 +45,7 @@ export function useUserServiceTypes(onServiceTypeChange?: (type: ServiceFilterTy
 
       }
     } catch (error) {
-      console.error('❌ Failed to fetch user service types:', error);
+      logger.error('orders', 'Failed to fetch user service types');
     } finally {
       setLoading(false);
     }

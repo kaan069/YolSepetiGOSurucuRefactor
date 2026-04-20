@@ -21,6 +21,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { WS_BASE_URL } from '../constants/network';
+import { logger } from '../utils/logger';
 
 export interface LocationUpdate {
   latitude: number;
@@ -114,7 +115,7 @@ class LocationWebSocketService {
   async connect(config: LocationWebSocketConfig): Promise<void> {
     // ⚠️ GUARD: Tracking token yoksa bağlanma
     if (!config.trackingToken) {
-      console.warn('⚠️ [WebSocket] connect() called with null/undefined trackingToken - ignoring');
+      logger.warn('websocket', 'location.connect called without trackingToken');
       return;
     }
 
@@ -148,7 +149,7 @@ class LocationWebSocketService {
       const token = await AsyncStorage.getItem('access_token');
 
       if (!token) {
-        console.error('❌ [CRITICAL] JWT token bulunamadı! Lütfen login olun');
+        logger.error('websocket', 'location.connect - JWT token missing');
         throw new Error('JWT token bulunamadı - Lütfen login olun');
       }
 
@@ -194,7 +195,7 @@ class LocationWebSocketService {
               break;
           }
         } catch (error) {
-          console.error('❌ [Driver WebSocket] Mesaj parse hatası:', error);
+          logger.error('websocket', 'location.onmessage parse error');
         }
       };
 
@@ -209,7 +210,7 @@ class LocationWebSocketService {
         }
 
         // Internet varsa gerçek bir hata
-        console.error('❌ [Driver WebSocket] ERROR:', error.type);
+        logger.error('websocket', 'location.onerror', { type: error?.type });
         this.config?.onError?.(error);
       };
 
@@ -218,12 +219,12 @@ class LocationWebSocketService {
 
         // Error code kontrolü
         if (event.code === 4003) {
-          console.error('❌ [Driver WebSocket] Bu request size ait değil!');
+          logger.error('websocket', 'location.onclose request not owned by user', { code: 4003 });
           return;
         }
 
         if (event.code === 4001) {
-          console.error('❌ [Driver WebSocket] JWT Token geçersiz veya süresi dolmuş!');
+          logger.error('websocket', 'location.onclose JWT invalid or expired', { code: 4001 });
           return;
         }
 
@@ -239,7 +240,7 @@ class LocationWebSocketService {
         // Bounce detection: bağlantı çok kısa sürdüyse reconnect etme
         const connectionDuration = Date.now() - this.lastConnectedAt;
         if (this.lastConnectedAt > 0 && connectionDuration < LocationWebSocketService.MIN_CONNECTION_DURATION_MS) {
-          console.warn(`⚠️ [Driver WebSocket] Bağlantı ${connectionDuration}ms içinde kapandı, reconnect atlanıyor`);
+          logger.warn('websocket', 'location.onclose bounce detected, reconnect skipped', { durationMs: connectionDuration });
           return;
         }
 
@@ -249,7 +250,7 @@ class LocationWebSocketService {
         }
       };
     } catch (error) {
-      console.error('❌ WebSocket bağlantı hatası:', error);
+      logger.error('websocket', 'location.connect failure');
       this.config?.onError?.(error);
     }
   }
@@ -284,9 +285,9 @@ class LocationWebSocketService {
 
       this.ws.send(JSON.stringify(message));
     } else {
-      const state = this.ws ? this.ws.readyState : 'NULL';
+      const state = this.ws ? this.ws.readyState : null;
       const stateText = state === 0 ? 'CONNECTING' : state === 1 ? 'OPEN' : state === 2 ? 'CLOSING' : state === 3 ? 'CLOSED' : 'NULL';
-      console.warn(`⚠️ WebSocket bağlı değil (${stateText}), konum gönderilemedi`);
+      logger.warn('websocket', 'location.sendLocation skipped - socket not open', { state: stateText });
     }
   }
 

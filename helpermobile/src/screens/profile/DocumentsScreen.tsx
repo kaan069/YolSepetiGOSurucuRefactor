@@ -15,6 +15,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { isPdfFile, buildFullUrl } from '../../utils/fileHelpers';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DocumentsScreen'>;
 
@@ -34,7 +35,6 @@ export default function DocumentsScreen({ navigation, route }: Props) {
   // Ekran her odaklandığında belgeleri yeniden yükle
   useFocusEffect(
     React.useCallback(() => {
-      console.log('🔄 [DocumentsScreen] Ekran odaklandı, belgeler yükleniyor...');
       loadDocuments();
     }, [])
   );
@@ -42,7 +42,6 @@ export default function DocumentsScreen({ navigation, route }: Props) {
   // Yükleme sırasında geri tuşunu engelle
   useEffect(() => {
     if (uploading) {
-      console.log('🔒 [DocumentsScreen] Upload sırasında - geri dönüş engelleniyor');
       // Navigation listener ekle
       const unsubscribe = navigation.addListener('beforeRemove', (e) => {
         if (!uploading) {
@@ -71,26 +70,20 @@ export default function DocumentsScreen({ navigation, route }: Props) {
 
       // Backend'den gelen URL'leri tam URL'e çevir
       if (response.license_photo) {
-        const fullUrl = buildFullUrl(response.license_photo);
-        console.log('📷 Ehliyet URL:', fullUrl);
-        setLicensePhoto(fullUrl);
+        setLicensePhoto(buildFullUrl(response.license_photo));
       }
       if (response.tax_plate_photo) {
-        const fullUrl = buildFullUrl(response.tax_plate_photo);
-        console.log('📷 Vergi Levhası URL:', fullUrl);
-        setTaxPlatePhoto(fullUrl);
+        setTaxPlatePhoto(buildFullUrl(response.tax_plate_photo));
       }
       if (response.k_document_photo) {
-        const fullUrl = buildFullUrl(response.k_document_photo);
-        console.log('📷 K Belgesi URL:', fullUrl);
-        setKDocumentPhoto(fullUrl);
+        setKDocumentPhoto(buildFullUrl(response.k_document_photo));
       }
 
       setVerificationStatus(response.verification_status);
     } catch (error: any) {
       // 404 hatası normaldir (belge yüklenmemişse)
       if (error?.response?.status !== 404) {
-        console.error('❌ Belgeler yüklenirken hata:', error);
+        logger.error('general', 'DocumentsScreen.loadDocuments failure', { status: error?.response?.status });
       }
     } finally {
       setLoading(false);
@@ -129,7 +122,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
         }
       }
     } catch (error) {
-      console.error('Kamera hatası:', error);
+      logger.error('general', 'DocumentsScreen.camera failure');
       Alert.alert('Hata', 'Fotoğraf çekilirken bir hata oluştu.');
     }
   };
@@ -166,7 +159,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
         }
       }
     } catch (error) {
-      console.error('Galeri hatası:', error);
+      logger.error('general', 'DocumentsScreen.gallery failure');
       Alert.alert('Hata', 'Galeri erişimi sırasında bir hata oluştu.');
     }
   };
@@ -209,7 +202,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
         }
       }
     } catch (error) {
-      console.error('Dosya seçme hatası:', error);
+      logger.error('general', 'DocumentsScreen.pickDocument failure');
       Alert.alert('Hata', 'Dosya seçilirken bir hata oluştu.');
     }
   };
@@ -234,27 +227,13 @@ export default function DocumentsScreen({ navigation, route }: Props) {
   // Bildirim izni iste
   const requestNotificationPermission = async (): Promise<boolean> => {
     try {
-      console.log('🔔 [DocumentsScreen] Bildirim izni isteniyor...');
-
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      if (existingStatus === 'granted') return true;
 
-      if (existingStatus === 'granted') {
-        console.log('✅ [DocumentsScreen] Bildirim izni zaten verilmiş');
-        return true;
-      }
-
-      // İzin iste
       const { status } = await Notifications.requestPermissionsAsync();
-
-      if (status === 'granted') {
-        console.log('✅ [DocumentsScreen] Bildirim izni verildi');
-        return true;
-      } else {
-        console.log('❌ [DocumentsScreen] Bildirim izni reddedildi');
-        return false;
-      }
+      return status === 'granted';
     } catch (error) {
-      console.error('❌ [DocumentsScreen] Bildirim izni hatası:', error);
+      logger.error('fcm', 'DocumentsScreen.notificationPermission failure');
       return false;
     }
   };
@@ -265,21 +244,11 @@ export default function DocumentsScreen({ navigation, route }: Props) {
       'Bildirim İzni Gerekli',
       'İşleri görebilmeniz için bildirime izin vermeniz gerekmektedir. Bildirimler sayesinde yeni iş taleplerinden haberdar olabilirsiniz.',
       [
-        {
-          text: 'İptal',
-          style: 'cancel',
-          onPress: () => {
-            console.log('⚠️ [DocumentsScreen] Kullanıcı bildirim iznini atladı');
-          }
-        },
+        { text: 'İptal', style: 'cancel' },
         {
           text: 'İzin Ver',
           onPress: async () => {
-            const granted = await requestNotificationPermission();
-            if (!granted) {
-              // Hala reddedildiyse, tekrar gösterme
-              console.log('⚠️ [DocumentsScreen] Bildirim izni tekrar reddedildi');
-            }
+            await requestNotificationPermission();
           }
         }
       ]
@@ -310,27 +279,19 @@ export default function DocumentsScreen({ navigation, route }: Props) {
       return;
     }
 
-    console.log('📤 [DocumentsScreen] Belge yükleme başlıyor...');
-    console.log('   • Ehliyet:', hasNewLicensePhoto ? 'Var' : 'Yok');
-    console.log('   • Vergi Levhası:', hasNewTaxPhoto ? 'Var' : 'Yok');
-    console.log('   • K Belgesi:', hasNewKDocumentPhoto ? 'Var' : 'Yok');
-
     setUploading(true);
     try {
-      const response = await documentsAPI.uploadDocuments(
+      await documentsAPI.uploadDocuments(
         hasNewLicensePhoto ? licensePhoto : null,
         hasNewTaxPhoto ? taxPlatePhoto : null,
         hasNewKDocumentPhoto ? kDocumentPhoto : null
       );
-
-      console.log('✅ [DocumentsScreen] Belgeler başarıyla yüklendi:', response);
 
       // Belge durumunu güncelle
       setVerificationStatus('pending');
 
       // Kayıt akışındaysa Alert gösterme, local URI'leri koru
       if (fromRegistration) {
-        console.log('✅ [DocumentsScreen] Kayıt akışı - belgeler yüklendi, local görseller korunuyor');
         // loadDocuments() çağrılmıyor: kullanıcı seçtiği görseli ekranda görsün
         // Backend URL'leri bir sonraki ekran açılışında useFocusEffect ile yüklenecek
       } else {
@@ -342,8 +303,6 @@ export default function DocumentsScreen({ navigation, route }: Props) {
             {
               text: 'Tamam',
               onPress: async () => {
-                console.log('✅ [DocumentsScreen] Ana ekrana yönlendiriliyor...');
-
                 // Ana ekrana yönlendir (Tab Navigator)
                 navigation.reset({
                   index: 0,
@@ -353,9 +312,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
                 // Arka planda profil tamamlanma durumunu kontrol et
                 setTimeout(async () => {
                   try {
-                    console.log('🔍 [DocumentsScreen] Profil tamamlanma durumu kontrol ediliyor...');
                     const completenessResponse = await documentsAPI.checkProfileCompleteness();
-                    console.log('📋 [DocumentsScreen] Profil durumu:', completenessResponse);
 
                     // Eğer hala eksik alanlar varsa bildir
                     if (!completenessResponse.is_complete && completenessResponse.missing_fields.length > 0) {
@@ -380,11 +337,9 @@ export default function DocumentsScreen({ navigation, route }: Props) {
                           }
                         ]
                       );
-                    } else {
-                      console.log('✅ [DocumentsScreen] Profil tamamlandı!');
                     }
-                  } catch (error) {
-                    console.error('❌ [DocumentsScreen] Profil durumu kontrol hatası:', error);
+                  } catch (error: any) {
+                    logger.error('general', 'DocumentsScreen.profileCompleteness failure', { status: error?.response?.status });
                   }
                 }, 1000); // Ana ekrana geçiş animasyonu için 1 saniye bekle
               }
@@ -393,9 +348,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
         );
       }
     } catch (error: any) {
-      console.error('❌ [DocumentsScreen] Belge yükleme hatası:', error);
-      console.error('   • Error response:', error?.response);
-      console.error('   • Error data:', error?.response?.data);
+      logger.error('general', 'DocumentsScreen.uploadDocuments failure', { status: error?.response?.status });
 
       // Backend'den gelen detaylı hata mesajını göster
       let errorMessage = 'Belgeler yüklenirken bir hata oluştu.';
@@ -427,7 +380,6 @@ export default function DocumentsScreen({ navigation, route }: Props) {
         [{ text: 'Tamam' }]
       );
     } finally {
-      console.log('🏁 [DocumentsScreen] Upload işlemi tamamlandı');
       setUploading(false);
     }
   };
@@ -458,7 +410,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
               setVerificationStatus(null);
               Alert.alert('Başarılı', 'Belgeler başarıyla silindi.');
             } catch (error: any) {
-              console.error('❌ Belge silme hatası:', error);
+              logger.error('general', 'DocumentsScreen.deleteDocuments failure', { status: error?.response?.status });
               const errorMessage = error?.response?.data?.error || 'Belgeler silinirken bir hata oluştu.';
               Alert.alert('Hata', errorMessage);
             } finally {
@@ -800,7 +752,6 @@ export default function DocumentsScreen({ navigation, route }: Props) {
               mode="contained"
               icon="arrow-right"
               onPress={() => {
-                console.log('✅ [DocumentsScreen] Kayıt akışı devam - Şirket bilgilerine yönlendiriliyor...');
                 navigation.navigate('CompanyInfo', { fromRegistration: true });
               }}
               style={styles.continueButton}

@@ -7,6 +7,16 @@ import {
 } from './types';
 import { useVehicleStore } from '../store/useVehicleStore';
 import { File as ExpoFile, Paths } from 'expo-file-system';
+import { logger } from '../utils/logger';
+
+// Vehicles katmanı için güvenli error sanitizer.
+// Backend error response body'sini ASLA loglamaz (plaka, marka, model, araç
+// objesi, signed document URL gibi alanlar içerebilir). Sadece HTTP status ve
+// statik action adı loglanır.
+const logVehiclesError = (action: string, error: any): void => {
+    const status = error?.response?.status;
+    logger.error('vehicles', `${action} failed`, status ? { status } : undefined);
+};
 
 // URI'den MIME type belirle (PDF dahil)
 export function getMimeTypeFromUri(uri: string): { filename: string; mimeType: string } {
@@ -41,9 +51,9 @@ export function getMimeTypeFromUri(uri: string): { filename: string; mimeType: s
 export async function downloadToCache(url: string): Promise<string> {
     const filename = url.split('/').pop()?.split('?')[0] || 'vehicle_photo.jpg';
     const destination = new ExpoFile(Paths.cache, filename);
-    console.log('📥 [downloadToCache] İndiriliyor:', url);
+    // NOTE: URL ve dönen local cache URI hassas olabilir (signed bucket path,
+    // tracking token, cihaz dosya sistemi). Loglamıyoruz.
     const downloadedFile = await ExpoFile.downloadFileAsync(url, destination);
-    console.log('✅ [downloadToCache] İndirildi:', downloadedFile.uri);
     return downloadedFile.uri;
 }
 
@@ -56,7 +66,7 @@ class VehiclesAPI {
             const response = await axiosInstance.get<TowTruck[]>('/vehicles/my-cekici/');
             return response.data;
         } catch (error) {
-            console.error('Get my tow trucks error:', error);
+            logVehiclesError('getMyTowTrucks', error);
             throw error;
         }
     }
@@ -67,7 +77,7 @@ class VehiclesAPI {
             const response = await axiosInstance.post<TowTruck>('/vehicles/cekici/create/', data);
             return response.data;
         } catch (error) {
-            console.error('Create tow truck error:', error);
+            logVehiclesError('createTowTruck', error);
             throw error;
         }
     }
@@ -78,7 +88,7 @@ class VehiclesAPI {
             const response = await axiosInstance.put<TowTruck>(`/vehicles/cekici/${id}/update/`, data);
             return response.data;
         } catch (error) {
-            console.error('Update tow truck error:', error);
+            logVehiclesError('updateTowTruck', error);
             throw error;
         }
     }
@@ -88,7 +98,7 @@ class VehiclesAPI {
         try {
             await axiosInstance.delete(`/vehicles/cekici/${id}/delete/`);
         } catch (error) {
-            console.error('Delete tow truck error:', error);
+            logVehiclesError('deleteTowTruck', error);
             throw error;
         }
     }
@@ -101,7 +111,7 @@ class VehiclesAPI {
             const response = await axiosInstance.get<Crane[]>('/vehicles/my-vinc/');
             return response.data;
         } catch (error) {
-            console.error('Get my cranes error:', error);
+            logVehiclesError('getMyCranes', error);
             throw error;
         }
     }
@@ -112,7 +122,7 @@ class VehiclesAPI {
             const response = await axiosInstance.get<Crane>(`/vehicles/vinc/${id}/`);
             return response.data;
         } catch (error) {
-            console.error('Get crane by ID error:', error);
+            logVehiclesError('getCraneById', error);
             throw error;
         }
     }
@@ -123,7 +133,7 @@ class VehiclesAPI {
             const response = await axiosInstance.post<Crane>('/vehicles/vinc/create/', data);
             return response.data;
         } catch (error) {
-            console.error('Create crane error:', error);
+            logVehiclesError('createCrane', error);
             throw error;
         }
     }
@@ -134,7 +144,7 @@ class VehiclesAPI {
             const response = await axiosInstance.put<Crane>(`/vehicles/vinc/${id}/update/`, data);
             return response.data;
         } catch (error) {
-            console.error('Update crane error:', error);
+            logVehiclesError('updateCrane', error);
             throw error;
         }
     }
@@ -144,7 +154,7 @@ class VehiclesAPI {
         try {
             await axiosInstance.delete(`/vehicles/vinc/${id}/delete/`);
         } catch (error) {
-            console.error('Delete crane error:', error);
+            logVehiclesError('deleteCrane', error);
             throw error;
         }
     }
@@ -164,31 +174,17 @@ class VehiclesAPI {
     // Çekici fotoğrafı yükle
     async uploadTowTruckPhoto(cekiciId: number, photoUri?: string, insurancePhotoUri?: string): Promise<any> {
         try {
-            console.log('═══════════════════════════════════════');
-            console.log('📸 ÇEKICI FOTOĞRAF UPLOAD API BAŞLIYOR');
-            console.log('═══════════════════════════════════════');
-            console.log('   • Çekici ID:', cekiciId);
-            console.log('   • Photo URI:', photoUri);
-            console.log('   • Insurance URI:', insurancePhotoUri);
-            console.log('   • Endpoint: /vehicles/documents/cekici/' + cekiciId + '/upload/');
-
             const formData = new FormData();
 
             if (photoUri) {
                 const { filename, mimeType } = getMimeTypeFromUri(photoUri);
-                console.log('   • Filename:', filename);
-                console.log('   • File type:', mimeType);
                 formData.append('vehicle_photo', { uri: photoUri, name: filename, type: mimeType } as any);
             }
 
             if (insurancePhotoUri) {
                 const ins = getMimeTypeFromUri(insurancePhotoUri);
-                console.log('   • Insurance filename:', ins.filename);
-                console.log('   • Insurance file type:', ins.mimeType);
                 formData.append('insurance_document_photo', { uri: insurancePhotoUri, name: ins.filename, type: ins.mimeType } as any);
             }
-
-            console.log('   • FormData hazırlandı, POST isteği gönderiliyor...');
 
             const response = await axiosInstance.post(
                 `/vehicles/documents/cekici/${cekiciId}/upload/`,
@@ -200,11 +196,11 @@ class VehiclesAPI {
                 }
             );
 
-            console.log('✅ ÇEKICI FOTOĞRAF UPLOAD BAŞARILI, status:', response.status);
+            logger.info('vehicles', 'uploadTowTruckPhoto ok', { status: response.status });
 
             return response.data;
         } catch (error: any) {
-            console.error('❌ ÇEKICI FOTOĞRAF UPLOAD HATASI:', error?.message, 'status:', error?.response?.status);
+            logVehiclesError('uploadTowTruckPhoto', error);
             throw error;
         }
     }
@@ -224,20 +220,10 @@ class VehiclesAPI {
     // Vinç fotoğrafı yükle
     async uploadCranePhoto(vincId: number, photoUri?: string, insurancePhotoUri?: string): Promise<any> {
         try {
-            console.log('═══════════════════════════════════════');
-            console.log('📸 VINÇ FOTOĞRAF UPLOAD API BAŞLIYOR');
-            console.log('═══════════════════════════════════════');
-            console.log('   • Vinç ID:', vincId);
-            console.log('   • Photo URI:', photoUri);
-            console.log('   • Insurance URI:', insurancePhotoUri);
-            console.log('   • Endpoint: /vehicles/documents/vinc/' + vincId + '/upload/');
-
             const formData = new FormData();
 
             if (photoUri) {
                 const { filename, mimeType } = getMimeTypeFromUri(photoUri);
-                console.log('   • Filename:', filename);
-                console.log('   • File type:', mimeType);
                 formData.append('vehicle_photo', { uri: photoUri, name: filename, type: mimeType } as any);
             }
 
@@ -245,8 +231,6 @@ class VehiclesAPI {
                 const ins = getMimeTypeFromUri(insurancePhotoUri);
                 formData.append('insurance_document_photo', { uri: insurancePhotoUri, name: ins.filename, type: ins.mimeType } as any);
             }
-
-            console.log('   • FormData hazırlandı, POST isteği gönderiliyor...');
 
             const response = await axiosInstance.post(
                 `/vehicles/documents/vinc/${vincId}/upload/`,
@@ -258,11 +242,11 @@ class VehiclesAPI {
                 }
             );
 
-            console.log('✅ VINÇ FOTOĞRAF UPLOAD BAŞARILI, status:', response.status);
+            logger.info('vehicles', 'uploadCranePhoto ok', { status: response.status });
 
             return response.data;
         } catch (error: any) {
-            console.error('❌ VINÇ FOTOĞRAF UPLOAD HATASI:', error?.message, 'status:', error?.response?.status);
+            logVehiclesError('uploadCranePhoto', error);
             throw error;
         }
     }
@@ -313,7 +297,7 @@ class VehiclesAPI {
             const response = await axiosInstance.get<NakliyeVehicle[]>('/vehicles/my-nakliye/');
             return response.data;
         } catch (error) {
-            console.error('Get my nakliye vehicles error:', error);
+            logVehiclesError('getMyNakliyeVehicles', error);
             throw error;
         }
     }
@@ -324,7 +308,7 @@ class VehiclesAPI {
             const response = await axiosInstance.post<NakliyeVehicle>('/vehicles/nakliye/create/', data);
             return response.data;
         } catch (error) {
-            console.error('Create nakliye vehicle error:', error);
+            logVehiclesError('createNakliyeVehicle', error);
             throw error;
         }
     }
@@ -335,7 +319,7 @@ class VehiclesAPI {
             const response = await axiosInstance.put<NakliyeVehicle>(`/vehicles/nakliye/${id}/update/`, data);
             return response.data;
         } catch (error) {
-            console.error('Update nakliye vehicle error:', error);
+            logVehiclesError('updateNakliyeVehicle', error);
             throw error;
         }
     }
@@ -345,7 +329,7 @@ class VehiclesAPI {
         try {
             await axiosInstance.delete(`/vehicles/nakliye/${id}/delete/`);
         } catch (error) {
-            console.error('Delete nakliye vehicle error:', error);
+            logVehiclesError('deleteNakliyeVehicle', error);
             throw error;
         }
     }
@@ -353,20 +337,10 @@ class VehiclesAPI {
     // Nakliye aracı fotoğrafı yükle
     async uploadNakliyeVehiclePhoto(nakliyeId: number, photoUri?: string, insurancePhotoUri?: string): Promise<any> {
         try {
-            console.log('═══════════════════════════════════════');
-            console.log('📸 NAKLİYE FOTOĞRAF UPLOAD API BAŞLIYOR');
-            console.log('═══════════════════════════════════════');
-            console.log('   • Nakliye ID:', nakliyeId);
-            console.log('   • Photo URI:', photoUri);
-            console.log('   • Insurance URI:', insurancePhotoUri);
-            console.log('   • Endpoint: /vehicles/documents/nakliye/' + nakliyeId + '/upload/');
-
             const formData = new FormData();
 
             if (photoUri) {
                 const { filename, mimeType } = getMimeTypeFromUri(photoUri);
-                console.log('   • Filename:', filename);
-                console.log('   • File type:', mimeType);
                 formData.append('vehicle_photo', { uri: photoUri, name: filename, type: mimeType } as any);
             }
 
@@ -374,8 +348,6 @@ class VehiclesAPI {
                 const ins = getMimeTypeFromUri(insurancePhotoUri);
                 formData.append('insurance_document_photo', { uri: insurancePhotoUri, name: ins.filename, type: ins.mimeType } as any);
             }
-
-            console.log('   • FormData hazırlandı, POST isteği gönderiliyor...');
 
             const response = await axiosInstance.post(
                 `/vehicles/documents/nakliye/${nakliyeId}/upload/`,
@@ -387,11 +359,11 @@ class VehiclesAPI {
                 }
             );
 
-            console.log('✅ NAKLİYE FOTOĞRAF UPLOAD BAŞARILI, status:', response.status);
+            logger.info('vehicles', 'uploadNakliyeVehiclePhoto ok', { status: response.status });
 
             return response.data;
         } catch (error: any) {
-            console.error('❌ NAKLİYE FOTOĞRAF UPLOAD HATASI:', error?.message, 'status:', error?.response?.status);
+            logVehiclesError('uploadNakliyeVehiclePhoto', error);
             throw error;
         }
     }
@@ -415,7 +387,7 @@ class VehiclesAPI {
             const response = await axiosInstance.get<RoadAssistanceVehicle[]>('/vehicles/my-yol-yardim/');
             return response.data;
         } catch (error) {
-            console.error('Get my road assistance vehicles error:', error);
+            logVehiclesError('getMyRoadAssistanceVehicles', error);
             throw error;
         }
     }
@@ -426,7 +398,7 @@ class VehiclesAPI {
             const response = await axiosInstance.post<RoadAssistanceVehicle>('/vehicles/yol-yardim/create/', data);
             return response.data;
         } catch (error) {
-            console.error('Create road assistance vehicle error:', error);
+            logVehiclesError('createRoadAssistanceVehicle', error);
             throw error;
         }
     }
@@ -437,7 +409,7 @@ class VehiclesAPI {
             const response = await axiosInstance.put<RoadAssistanceVehicle>(`/vehicles/yol-yardim/${id}/update/`, data);
             return response.data;
         } catch (error) {
-            console.error('Update road assistance vehicle error:', error);
+            logVehiclesError('updateRoadAssistanceVehicle', error);
             throw error;
         }
     }
@@ -447,7 +419,7 @@ class VehiclesAPI {
         try {
             await axiosInstance.delete(`/vehicles/yol-yardim/${id}/delete/`);
         } catch (error) {
-            console.error('Delete road assistance vehicle error:', error);
+            logVehiclesError('deleteRoadAssistanceVehicle', error);
             throw error;
         }
     }
@@ -455,20 +427,10 @@ class VehiclesAPI {
     // Yol yardım aracı fotoğrafı yükle
     async uploadRoadAssistanceVehiclePhoto(yolYardimId: number, photoUri?: string, insurancePhotoUri?: string): Promise<any> {
         try {
-            console.log('═══════════════════════════════════════');
-            console.log('📸 YOL YARDIM FOTOĞRAF UPLOAD API BAŞLIYOR');
-            console.log('═══════════════════════════════════════');
-            console.log('   • Yol Yardım ID:', yolYardimId);
-            console.log('   • Photo URI:', photoUri);
-            console.log('   • Insurance URI:', insurancePhotoUri);
-            console.log('   • Endpoint: /vehicles/documents/yol-yardim/' + yolYardimId + '/upload/');
-
             const formData = new FormData();
 
             if (photoUri) {
                 const { filename, mimeType } = getMimeTypeFromUri(photoUri);
-                console.log('   • Filename:', filename);
-                console.log('   • File type:', mimeType);
                 formData.append('vehicle_photo', { uri: photoUri, name: filename, type: mimeType } as any);
             }
 
@@ -476,8 +438,6 @@ class VehiclesAPI {
                 const ins = getMimeTypeFromUri(insurancePhotoUri);
                 formData.append('insurance_document_photo', { uri: insurancePhotoUri, name: ins.filename, type: ins.mimeType } as any);
             }
-
-            console.log('   • FormData hazırlandı, POST isteği gönderiliyor...');
 
             const response = await axiosInstance.post(
                 `/vehicles/documents/yol-yardim/${yolYardimId}/upload/`,
@@ -489,11 +449,11 @@ class VehiclesAPI {
                 }
             );
 
-            console.log('✅ YOL YARDIM FOTOĞRAF UPLOAD BAŞARILI, status:', response.status);
+            logger.info('vehicles', 'uploadRoadAssistanceVehiclePhoto ok', { status: response.status });
 
             return response.data;
         } catch (error: any) {
-            console.error('❌ YOL YARDIM FOTOĞRAF UPLOAD HATASI:', error?.message, 'status:', error?.response?.status);
+            logVehiclesError('uploadRoadAssistanceVehiclePhoto', error);
             throw error;
         }
     }
@@ -513,7 +473,7 @@ class VehiclesAPI {
             const response = await axiosInstance.post('/vehicles/transfer/create/', data);
             return response.data;
         } catch (error) {
-            console.error('Create transfer vehicle error:', error);
+            logVehiclesError('createTransferVehicle', error);
             throw error;
         }
     }
@@ -533,7 +493,7 @@ class VehiclesAPI {
             );
             return response.data;
         } catch (error) {
-            console.error('Upload transfer vehicle photo error:', error);
+            logVehiclesError('uploadTransferVehiclePhoto', error);
             throw error;
         }
     }
@@ -547,7 +507,7 @@ class VehiclesAPI {
             );
             return response.data;
         } catch (error) {
-            console.error('Upload transfer vehicle documents error:', error);
+            logVehiclesError('uploadTransferVehicleDocuments', error);
             throw error;
         }
     }
@@ -566,7 +526,7 @@ class VehiclesAPI {
             const response = await axiosInstance.patch(`/vehicles/transfer/${transferId}/update/`, data);
             return response.data;
         } catch (error) {
-            console.error('Update transfer vehicle error:', error);
+            logVehiclesError('updateTransferVehicle', error);
             throw error;
         }
     }
@@ -576,7 +536,7 @@ class VehiclesAPI {
         try {
             await axiosInstance.delete(`/vehicles/transfer/${transferId}/delete/`);
         } catch (error) {
-            console.error('Delete transfer vehicle error:', error);
+            logVehiclesError('deleteTransferVehicle', error);
             throw error;
         }
     }
@@ -597,7 +557,7 @@ class VehiclesAPI {
             const response = await axiosInstance.get<any[]>('/vehicles/my-transfer/');
             return response.data;
         } catch (error) {
-            console.error('Get my transfer vehicles error:', error);
+            logVehiclesError('getMyTransferVehicles', error);
             throw error;
         }
     }
@@ -607,14 +567,6 @@ class VehiclesAPI {
     // Kullanıcının tüm araçlarını yükle ve store'a kaydet
     async loadUserVehicles(): Promise<void> {
         try {
-            console.log('');
-            console.log('═══════════════════════════════════════════════');
-            console.log('🔄 [vehiclesAPI] loadUserVehicles BAŞLIYOR');
-            console.log('═══════════════════════════════════════════════');
-
-            // Fetch all vehicle types from backend
-            console.log('🌐 [vehiclesAPI] Backend API çağrıları başlatılıyor...');
-
             // Nakliye ve Yol Yardım API'leri henüz hazır olmayabilir, hata durumunda boş array döndür
             const [towTrucks, cranes, nakliyeVehicles, roadAssistanceVehicles, transferVehicles] = await Promise.all([
                 this.getMyTowTrucks().catch(() => []),
@@ -624,20 +576,10 @@ class VehiclesAPI {
                 this.getMyTransferVehicles().catch(() => [])
             ]);
 
-            console.log('✅ [vehiclesAPI] Backend API yanıtları alındı:');
-            console.log(`   • Tow trucks: ${towTrucks.length} adet`);
-            console.log(`   • Cranes: ${cranes.length} adet`);
-            console.log(`   • Nakliye: ${nakliyeVehicles.length} adet`);
-            console.log(`   • Yol Yardım: ${roadAssistanceVehicles.length} adet`);
-            console.log(`   • Transfer: ${transferVehicles.length} adet`);
-
             // Clear existing vehicles and load from backend
-            console.log('🗑️ [vehiclesAPI] Store temizleniyor...');
             useVehicleStore.getState().clearAll();
-            console.log('✅ [vehiclesAPI] Store temizlendi');
 
             // Add tow trucks from backend to store
-            console.log("💾 [vehiclesAPI] Çekici araçlar store'a ekleniyor...");
             towTrucks.forEach(truck => {
                 const store = useVehicleStore.getState();
                 const existingIndex = store.towTrucks.findIndex(t => t.plate === truck.plate_number);
@@ -657,12 +599,10 @@ class VehiclesAPI {
                     useVehicleStore.setState(state => ({
                         towTrucks: [...state.towTrucks, towTruckData]
                     }));
-                    console.log(`   ✅ Eklendi: ${towTruckData.brand} ${towTruckData.model} (${towTruckData.plate})`);
                 }
             });
 
             // Add cranes from backend to store
-            console.log("💾 [vehiclesAPI] Vinç araçlar store'a ekleniyor...");
             cranes.forEach(crane => {
                 const store = useVehicleStore.getState();
                 const existingIndex = store.cranes.findIndex(c => c.plate === crane.plate_number);
@@ -681,13 +621,11 @@ class VehiclesAPI {
                     useVehicleStore.setState(state => ({
                         cranes: [...state.cranes, craneData]
                     }));
-                    console.log(`   ✅ Eklendi: ${craneData.brand} ${craneData.model} (${craneData.plate})`);
                 }
             });
 
             // Add nakliye vehicles from backend to store
             // Backend alanları: brand, model, year, plate_number, vehicle_type, vehicle_type_display, capacity_type, max_volume, max_weight, has_helper
-            console.log("💾 [vehiclesAPI] Nakliye araçlar store'a ekleniyor...");
             nakliyeVehicles.forEach(vehicle => {
                 const store = useVehicleStore.getState();
                 const existingIndex = store.homeMoving.findIndex(v => v.plate === vehicle.plate_number);
@@ -727,13 +665,11 @@ class VehiclesAPI {
                     useVehicleStore.setState(state => ({
                         homeMoving: [...state.homeMoving, nakliyeData]
                     }));
-                    console.log(`   ✅ Eklendi: ${nakliyeData.brand} ${nakliyeData.model} (${nakliyeData.plate})`);
                 }
             });
 
             // Add road assistance vehicles from backend to store
             // Backend alanları: brand, model, year, plate_number, available_services
-            console.log("💾 [vehiclesAPI] Yol Yardım araçlar store'a ekleniyor...");
             roadAssistanceVehicles.forEach(vehicle => {
                 const store = useVehicleStore.getState();
                 const existingIndex = store.roadAssistance.findIndex(v => v.id === vehicle.id?.toString());
@@ -768,12 +704,10 @@ class VehiclesAPI {
                     useVehicleStore.setState(state => ({
                         roadAssistance: [...state.roadAssistance, roadAssistanceData]
                     }));
-                    console.log(`   ✅ Eklendi: ${roadAssistanceData.brand} ${roadAssistanceData.model} (${roadAssistanceData.plate}) - Yol Yardım`);
                 }
             });
 
             // Add transfer vehicles to store
-            console.log("💾 [vehiclesAPI] Transfer araçlar store'a ekleniyor...");
             transferVehicles.forEach((vehicle: any) => {
                 const store = useVehicleStore.getState();
                 const existingIndex = store.transfers.findIndex(t => t.plate === vehicle.plate_number);
@@ -793,27 +727,19 @@ class VehiclesAPI {
                     useVehicleStore.setState(state => ({
                         transfers: [...state.transfers, transferData]
                     }));
-                    console.log(`   ✅ Eklendi: ${transferData.brand} ${transferData.model} (${transferData.plate}) - Transfer ${transferData.transferType}`);
                 }
             });
 
-            console.log('');
-            console.log('✅ [vehiclesAPI] TÜM ARAÇLAR YÜKLENDI');
-            console.log(`   • ${towTrucks.length} çekici araç`);
-            console.log(`   • ${cranes.length} vinç araç`);
-            console.log(`   • ${nakliyeVehicles.length} nakliye araç`);
-            console.log(`   • ${roadAssistanceVehicles.length} yol yardım hizmeti`);
-            console.log(`   • ${transferVehicles.length} transfer araç`);
-            console.log('═══════════════════════════════════════════════');
-            console.log('');
+            // Sadece count'lar loglanır; brand/model/plate (PII) loglanmaz.
+            logger.info('vehicles', 'loadUserVehicles ok', {
+                towTrucks: towTrucks.length,
+                cranes: cranes.length,
+                nakliye: nakliyeVehicles.length,
+                roadAssistance: roadAssistanceVehicles.length,
+                transfer: transferVehicles.length,
+            });
         } catch (error) {
-            console.error('');
-            console.error('═══════════════════════════════════════════════');
-            console.error('❌ [vehiclesAPI] loadUserVehicles HATASI');
-            console.error('═══════════════════════════════════════════════');
-            console.error('   • Error:', error);
-            console.error('═══════════════════════════════════════════════');
-            console.error('');
+            logVehiclesError('loadUserVehicles', error);
             throw error;
         }
     }

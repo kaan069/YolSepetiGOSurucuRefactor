@@ -36,6 +36,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ServiceType, isServiceType } from '../constants/serviceTypes';
+import { logger } from '../utils/logger';
 
 /**
  * Persist v0 → v1 migration map. Yalnız AsyncStorage hydrate sırasında
@@ -126,8 +127,9 @@ export const useActiveJobStore = create<ActiveJobState>()(
           const mapped = LEGACY_V0_MAP[oldType];
           if (mapped === null) {
             // Ambiguous (`'transport'`) → güvenli clear
-            console.log(
-              "[useActiveJobStore] v0→v1 migrate: 'transport' ambiguous, aktif iş temizleniyor."
+            logger.debug(
+              'general',
+              "useActiveJobStore v0->v1 migrate: 'transport' ambiguous, cleared"
             );
             return {
               activeJobId: null,
@@ -137,8 +139,10 @@ export const useActiveJobStore = create<ActiveJobState>()(
           }
           if (mapped === undefined) {
             // Bilinmeyen legacy literal → güvenli clear
-            console.warn(
-              `[useActiveJobStore] v0→v1 migrate: bilinmeyen serviceType="${String(oldType)}", aktif iş temizleniyor.`
+            logger.warn(
+              'general',
+              'useActiveJobStore v0->v1 migrate: unknown serviceType, cleared',
+              { legacy: String(oldType) }
             );
             return {
               activeJobId: null,

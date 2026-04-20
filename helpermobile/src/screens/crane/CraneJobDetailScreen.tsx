@@ -28,6 +28,7 @@ import {
 import { calculateDistance, getStatus, getRequestId } from './constants';
 import PhotosSection from '../../components/PhotosSection';
 import DriverPhotoUpload from '../../components/DriverPhotoUpload';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneJobDetail'>;
 
@@ -179,7 +180,7 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
           longitude: location.coords.longitude,
         });
       } catch (error) {
-        console.error('Konum alınamadı:', error);
+        logger.error('orders', 'Konum alnamad');
       }
     };
     getCurrentLocation();
@@ -218,7 +219,7 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
       const updatedRequest = await requestsAPI.getCraneRequestDetail(parseInt(jobId));
       setCraneRequest(updatedRequest);
     } catch (error) {
-      console.error('Yenileme hatası:', error);
+      logger.error('orders', 'Yenileme hatas');
     }
     Alert.alert('Ödeme Başarılı', 'Komisyon ödemesi tamamlandı.', [{ text: 'Tamam' }]);
   };

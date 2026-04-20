@@ -25,6 +25,7 @@ import { vehiclesAPI } from '../../api';
 import { AppBar, SelectDropdown } from '../../components/common';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { TRANSPORT_VEHICLE_BRANDS, getVehicleYears, getModelsByBrand } from '../../data/vehicleData';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferVehicleDetails'>;
 
@@ -239,11 +240,11 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
               formData.append(`interior_photo_${i + 1}`, { uri: photo, type: 'image/jpeg', name: `interior_photo_${i + 1}.jpg` } as any);
             }
           });
-          console.log('📷 [TransferVehicle] Foto/gorseller yukleniyor, vehicleId:', vehicleData.id);
+          logger.debug('orders', 'TransferVehicle Foto/gorseller yukleniyor vehicleId');
           await vehiclesAPI.uploadTransferVehicleDocuments(vehicleData.id, formData);
-          console.log('✅ [TransferVehicle] Foto/gorseller yuklendi');
+          logger.debug('orders', 'TransferVehicle Foto/gorseller yuklendi');
         } catch (photoErr: any) {
-          console.error('❌ [TransferVehicle] Foto yukleme hatasi:', photoErr?.response?.data || photoErr.message);
+          logger.error('orders', 'TransferVehicle Foto yukleme hatasi');
         }
       }
 
@@ -265,7 +266,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
       const typeLabel = modalType === 'vip' ? 'VIP' : 'Servis';
       Alert.alert('Basarili', `${typeLabel} araci eklendi!`);
     } catch (error: any) {
-      console.error('❌ [TransferVehicle] Arac kaydi hatasi:', error?.response?.status);
+      logger.error('orders', 'TransferVehicle Arac kaydi hatasi');
       const msg = error?.response?.data?.message || error?.response?.data?.error || 'Arac eklenemedi.';
       Alert.alert('Hata', msg);
     } finally {
@@ -311,7 +312,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
       // Belgeleri her arac icin yukle
       const docEntries = Object.entries(documentPhotos);
       if (docEntries.length > 0) {
-        console.log('📄 [TransferVehicle] Belge yukleme basliyor, toplam belge:', docEntries.length, 'toplam arac:', addedVehicles.length);
+        logger.debug('orders', 'TransferVehicle Belge yukleme basliyor toplam belge');
 
         for (const vehicle of addedVehicles) {
           const formData = new FormData();
@@ -322,13 +323,13 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
               name: `${key}.jpg`,
             } as any);
           }
-          console.log(`📄 [TransferVehicle] Belgeler yukleniyor vehicleId: ${vehicle.id} (${vehicle.type} - ${vehicle.plate})`);
+          logger.debug('orders', 'TransferVehicle Belgeler yukleniyor vehicleId: vehicle.id vehicle.type - vehicle');
           await vehiclesAPI.uploadTransferVehicleDocuments(vehicle.id, formData);
-          console.log(`✅ [TransferVehicle] Belgeler yuklendi vehicleId: ${vehicle.id}`);
+          logger.debug('orders', 'TransferVehicle Belgeler yuklendi vehicleId: vehicle.id');
         }
-        console.log('✅ [TransferVehicle] Tum belgeler basariyla yuklendi');
+        logger.debug('orders', 'TransferVehicle Tum belgeler basariyla yuklendi');
       } else {
-        console.log('⚠️ [TransferVehicle] Yuklenecek belge yok, devam ediliyor');
+        logger.debug('orders', 'TransferVehicle Yuklenecek belge yok devam ediliyor');
       }
 
       // Navigate
@@ -344,7 +345,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
         navigation.goBack();
       }
     } catch (error: any) {
-      console.error('❌ [TransferVehicle] Belge yukleme hatasi:', error?.response?.status);
+      logger.error('orders', 'TransferVehicle Belge yukleme hatasi');
       Alert.alert('Hata', 'Belgeler yuklenirken bir hata olustu. Lutfen tekrar deneyin.');
     } finally {
       setFinishLoading(false);

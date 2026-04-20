@@ -9,6 +9,7 @@ import type {
   TransferOfferPayload,
   TransferActionResponse,
 } from '../types';
+import { logOrdersError } from './_helpers';
 
 class TransferAPI {
   // Bekleyen transfer taleplerini getir
@@ -19,7 +20,7 @@ class TransferAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get pending transfer requests error:', error);
+      logOrdersError('transfer.getPendingRequests', error);
       throw error;
     }
   }
@@ -45,7 +46,7 @@ class TransferAPI {
 
       return availableRequests;
     } catch (error) {
-      console.error('❌ Get available transfer requests error:', error);
+      logOrdersError('transfer.getAvailableRequests', error);
       throw error;
     }
   }
@@ -58,7 +59,7 @@ class TransferAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting approval transfer requests error:', error);
+      logOrdersError('transfer.getAwaitingApprovalRequests', error);
       throw error;
     }
   }
@@ -71,7 +72,7 @@ class TransferAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting payment transfer requests error:', error);
+      logOrdersError('transfer.getAwaitingPaymentRequests', error);
       throw error;
     }
   }
@@ -84,7 +85,7 @@ class TransferAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get in progress transfer requests error:', error);
+      logOrdersError('transfer.getInProgressRequests', error);
       throw error;
     }
   }
@@ -97,7 +98,7 @@ class TransferAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get completed transfer requests error:', error);
+      logOrdersError('transfer.getCompletedRequests', error);
       throw error;
     }
   }
@@ -110,7 +111,7 @@ class TransferAPI {
       );
       return response.data;
     } catch (error) {
-      console.error('❌ Get transfer request detail error:', error);
+      logOrdersError('transfer.getRequestDetail', error);
       throw error;
     }
   }
@@ -127,7 +128,7 @@ class TransferAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Transfer teklif gönderme hatası:', error?.response?.data);
+      logOrdersError('transfer.submitOffer', error);
       throw error;
     }
   }
@@ -140,7 +141,7 @@ class TransferAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Transfer teklif geri çekme hatası:', error?.response?.data);
+      logOrdersError('transfer.withdrawOffer', error);
       throw error;
     }
   }
@@ -153,7 +154,7 @@ class TransferAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Transfer yola çıkış hatası:', error?.response?.data);
+      logOrdersError('transfer.depart', error);
       throw error;
     }
   }

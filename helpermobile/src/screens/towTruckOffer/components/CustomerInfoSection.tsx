@@ -11,6 +11,7 @@ import React from 'react';
 import { View, StyleSheet, Linking, Alert } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { logger } from '../../../utils/logger';
 
 interface CustomerInfoSectionProps {
   /** Müşteri adı soyadı */
@@ -34,7 +35,7 @@ export default function CustomerInfoSection({
 
     const phoneUrl = `tel:${customerPhone}`;
     Linking.openURL(phoneUrl).catch((err) => {
-      console.error('❌ Telefon açma hatası:', err);
+      logger.error('orders', 'Telefon ama hatas');
       Alert.alert('Hata', 'Telefon uygulaması açılamadı.');
     });
   };

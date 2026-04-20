@@ -6,6 +6,7 @@
  * Aynı anda birden fazla requestPermission çağrısı yapılmasını engeller.
  */
 import * as Location from 'expo-location';
+import { logger } from './logger';
 
 let permissionPromise: Promise<boolean> | null = null;
 
@@ -20,20 +21,18 @@ export async function requestLocationPermissions(): Promise<boolean> {
     try {
       const { status: fgStatus } = await Location.requestForegroundPermissionsAsync();
       if (fgStatus !== 'granted') {
-        console.error('❌ [LocationPermission] Foreground konum izni reddedildi');
+        logger.warn('location', 'locationPermission.foreground denied');
         return false;
       }
 
       const { status: bgStatus } = await Location.requestBackgroundPermissionsAsync();
       if (bgStatus !== 'granted') {
-        console.warn('⚠️ [LocationPermission] Background konum izni reddedildi');
-      } else {
-        console.log('✅ [LocationPermission] Background konum izni aktif');
+        logger.warn('location', 'locationPermission.background denied');
       }
 
       return true;
     } catch (error) {
-      console.error('❌ [LocationPermission] İzin isteme hatası:', error);
+      logger.error('location', 'locationPermission.request failure');
       return false;
     } finally {
       permissionPromise = null;

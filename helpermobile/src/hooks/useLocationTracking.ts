@@ -18,6 +18,7 @@ import { useAuthStore } from '../store/authStore';
 import { useActiveJobStore } from '../store/useActiveJobStore';
 import { useNakliyeLocationStore } from '../store/useNakliyeLocationStore';
 import { requestLocationPermissions } from '../utils/locationPermission';
+import { logger } from '../utils/logger';
 
 export function useLocationTracking() {
   const setCurrentLocation = useDriverStore((state) => state.setCurrentLocation);
@@ -45,7 +46,7 @@ export function useLocationTracking() {
         });
         setCurrentLocation(location);
       } catch (error) {
-        console.error('❌ [GPS Service] İlk konum alma hatası:', error);
+        logger.error('location', 'useLocationTracking.initialPosition failed');
       }
     };
 
@@ -59,7 +60,7 @@ export function useLocationTracking() {
     let subscription: Location.LocationSubscription | null = null;
 
     const startTracking = async () => {
-      console.log('🟢 [GPS Service] Aktif iş var, sürekli konum takibi başlatılıyor...');
+      logger.debug('location', 'useLocationTracking.watch started');
 
       subscription = await Location.watchPositionAsync(
         {
@@ -77,7 +78,7 @@ export function useLocationTracking() {
 
     return () => {
       if (subscription) {
-        console.log('🔴 [GPS Service] Sürekli konum takibi durduruluyor...');
+        logger.debug('location', 'useLocationTracking.watch stopped');
         subscription.remove();
       }
     };

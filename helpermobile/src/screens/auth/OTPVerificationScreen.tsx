@@ -16,6 +16,7 @@ import { useRegistrationDataStore } from '../../store/useRegistrationDataStore';
 import { authAPI } from '../../api';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OTPVerification'>;
 
@@ -116,15 +117,13 @@ export default function OTPVerificationScreen({ navigation }: Props) {
     setError('');
 
     try {
-      console.log('🔐 OTP doğrulanıyor:', otpCode);
-
       const response = await authAPI.verifyOTP(data.phoneNumber, otpCode);
 
       // Verification token'ı al (hem snake_case hem camelCase kontrol et)
       const token = response.verification_token || (response as any).verificationToken;
 
       if (!token) {
-        console.error('❌ verification_token bulunamadı');
+        logger.error('auth', 'OTPVerification.verify - token missing in response');
         setError('Doğrulama başarısız. Lütfen tekrar deneyin.');
         return;
       }
@@ -135,7 +134,7 @@ export default function OTPVerificationScreen({ navigation }: Props) {
       // Kişisel bilgiler ekranına git (token'ı param olarak da geç - store sync sorunu için yedek)
       navigation.navigate('PersonalInfoNew', { verificationToken: token });
     } catch (error: any) {
-      console.error('❌ OTP doğrulama hatası:', error);
+      logger.error('auth', 'OTPVerification.verify failure', { status: error?.response?.status });
 
       let errorMessage = 'Doğrulama kodu hatalı. Lütfen tekrar deneyin.';
 
@@ -172,8 +171,6 @@ export default function OTPVerificationScreen({ navigation }: Props) {
     setError('');
 
     try {
-      console.log('📱 OTP yeniden gönderiliyor...');
-
       await authAPI.sendOTP(data.phoneNumber);
 
       Alert.alert('Başarılı', 'Doğrulama kodu yeniden gönderildi.');
@@ -186,7 +183,7 @@ export default function OTPVerificationScreen({ navigation }: Props) {
       setOtpDigits(Array(OTP_LENGTH).fill(''));
       inputRefs.current[0]?.focus();
     } catch (error: any) {
-      console.error('❌ OTP yeniden gönderme hatası:', error);
+      logger.error('auth', 'OTPVerification.resend failure', { status: error?.response?.status });
 
       let errorMessage = 'Kod gönderilemedi. Lütfen tekrar deneyin.';
 

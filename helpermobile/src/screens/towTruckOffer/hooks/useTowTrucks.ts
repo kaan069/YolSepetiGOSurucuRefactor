@@ -14,6 +14,7 @@
  */
 import { useState, useEffect } from 'react';
 import { vehiclesAPI, TowTruck } from '../../../api';
+import { logger } from '../../../utils/logger';
 
 interface UseTowTrucksReturn {
   towTrucks: TowTruck[];
@@ -43,9 +44,9 @@ export function useTowTrucks(): UseTowTrucksReturn {
           setSelectedId(trucks[0].id ?? null);
         }
 
-        console.log('✅ Kullanıcının çekicileri yüklendi:', trucks.length, 'adet');
+        logger.debug('orders', 'Kullancnn ekicileri yklendi');
       } catch (err: any) {
-        console.error('❌ Çekici listesi yüklenemedi:', err);
+        logger.error('orders', 'ekici listesi yklenemedi');
         setError('Çekici listesi yüklenemedi');
       } finally {
         setLoading(false);

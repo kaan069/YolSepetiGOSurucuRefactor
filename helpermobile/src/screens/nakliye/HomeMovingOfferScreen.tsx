@@ -24,6 +24,7 @@ import { ProviderType } from '../../api/types';
 import { useNakliyeVehicles } from './hooks';
 import { calculateDistance, formatNumber } from './constants';
 import PhotosSection from '../../components/PhotosSection';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeMovingOffer'>;
 
@@ -115,7 +116,7 @@ export default function HomeMovingOfferScreen({ route, navigation }: Props) {
           }
         }
       } catch (error) {
-        console.error('Konum alınamadı:', error);
+        logger.error('orders', 'Konum alnamad');
       }
     };
 

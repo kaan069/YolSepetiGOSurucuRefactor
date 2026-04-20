@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logger } from '../utils/logger';
 
 // Service type definitions
 export type ServiceType = 'towTruck' | 'crane' | 'roadAssistance' | 'homeToHomeMoving' | 'cityToCity' | 'transfer';
@@ -204,26 +205,31 @@ export const useRegistrationDataStore = create<RegistrationDataStore>()(
         }
       } }),
       
+      /**
+       * Registration debug summary (dev-only, sanitized).
+       * PII (TC, address, birth date, phone number) log'lanmaz — sadece
+       * hangi adımların doldurulduğunu gösteren boolean metadata verilir.
+       */
       logAllData: () => {
         const data = get().data;
-        console.log('=== REGISTRATION DATA DEBUG ===');
-        console.log('Phone Number:', data.phoneNumber);
-        console.log('Selected Service Types:', data.selectedServiceTypes);
-        console.log('Personal Info:', {
-          firstName: data.personalInfo.firstName,
-          lastName: data.personalInfo.lastName,
-          tcNumber: data.personalInfo.tcNumber,
-          birthDate: data.personalInfo.birthDate,
-          address: data.personalInfo.address,
-          city: data.personalInfo.city,
-          district: data.personalInfo.district,
-          password: data.personalInfo.password ? '***' : '',
-          passwordConfirm: data.personalInfo.passwordConfirm ? '***' : '',
+        logger.debug('auth', 'registration debug snapshot', {
+          hasPhone: !!data.phoneNumber,
+          providerType: data.providerType,
+          selectedServiceCount: data.selectedServiceTypes.length,
+          personalInfoFilled: {
+            firstName: !!data.personalInfo.firstName,
+            lastName: !!data.personalInfo.lastName,
+            tcNumber: !!data.personalInfo.tcNumber,
+            birthDate: !!data.personalInfo.birthDate,
+            address: !!data.personalInfo.address,
+            city: !!data.personalInfo.city,
+            district: !!data.personalInfo.district,
+            password: !!data.personalInfo.password,
+          },
+          selectedVehicleCount: data.selectedVehicleTypes.length,
+          startedAt: data.registrationStartedAt,
+          completedAt: data.registrationCompletedAt,
         });
-        console.log('Selected Vehicle Types:', data.selectedVehicleTypes);
-        console.log('Registration Started At:', data.registrationStartedAt);
-        console.log('Registration Completed At:', data.registrationCompletedAt);
-        console.log('=== END REGISTRATION DATA ===');
       },
       
       getUserServiceTypes: () => {

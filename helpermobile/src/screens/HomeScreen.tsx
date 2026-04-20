@@ -11,6 +11,7 @@ import NewJobNotification from '../components/NewJobNotification';
 import { useDriverStore } from '../store/driverStore';
 import { useResponsive } from '../hooks/useResponsive';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { logger } from '../utils/logger';
 
 
 export default function HomeScreen() {
@@ -60,7 +61,7 @@ export default function HomeScreen() {
         mapRef.current.animateToRegion(userRegion, 1000);
       }
     } catch (error) {
-      console.error('❌ Güncel konum alma hatası:', error);
+      logger.error('location', 'HomeScreen.findMyLocation failure');
 
       // Hata durumunda store'daki konumu kullan
       if (currentLocation && mapRef.current) {
@@ -71,8 +72,6 @@ export default function HomeScreen() {
           longitudeDelta: 0.01,
         };
         mapRef.current.animateToRegion(userRegion, 1000);
-      } else {
-        console.warn('⚠️ Konum bilgisi bulunamadı');
       }
     }
   };
@@ -93,34 +92,12 @@ export default function HomeScreen() {
           }, 500);
         }
       } catch (error) {
-        console.error('❌ [HomeScreen] Otomatik konum navigasyonu hatası:', error);
+        logger.error('location', 'HomeScreen.autoNavigate failure');
       }
     };
 
     autoNavigateToLocation();
   }, []); // Sadece component mount olduğunda çalışır
-
-  // Mock job simulation removed - real jobs will come from backend via Firebase FCM
-  // Mock iş simülasyonu kaldırıldı - gerçek işler backend'den Firebase FCM ile gelecek
-  // useEffect(() => {
-  //   const jobTimer = setInterval(() => {
-  //     console.log('Simulating new job...');
-  //     const newJob = {
-  //       id: `mock-${Date.now()}`,
-  //       userId: 'user-mock-1',
-  //       pickupLocation: { id: 'loc-1', address: 'Yeni Talep - Levent', latitude: 41.079, longitude: 29.01 },
-  //       dropoffLocation: { id: 'loc-2', address: 'Maslak, İstanbul', latitude: 41.11, longitude: 29.02 },
-  //       vehicle: { id: 'v-1', type: 'car', model: 'sedan', plate: '34ABC34', color: 'red', year: 2020 },
-  //       status: 'pending' as const,
-  //       price: 250,
-  //       createdAt: new Date().toISOString(),
-  //       updatedAt: new Date().toISOString(),
-  //     };
-  //     addJob(newJob);
-  //     setNewJobVisible(true);
-  //   }, 30000);
-  //   return () => clearInterval(jobTimer);
-  // }, [addJob]);
 
   // Responsive styles - her render'da güncel değerlerle
   const dynamicStyles = {

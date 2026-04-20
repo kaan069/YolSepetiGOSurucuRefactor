@@ -13,6 +13,7 @@ import { useAuthStore } from '../../store/authStore';
 import AppBar from '../../components/common/AppBar';
 import CreditCardSection from '../../components/payment/CreditCardSection';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CompanyInfo'>;
 
@@ -95,7 +96,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
         }
       }
     } catch (error: any) {
-      console.error('Load data error:', error);
+      logger.error('general', 'Load data error');
       const errorMessage = error?.response?.data?.error ||
                           error?.response?.data?.message ||
                           'Veriler yüklenirken bir hata oluştu';
@@ -248,7 +249,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
         setCompanyInfo(companyResult);
         companySuccess = true;
       } catch (error: any) {
-        console.error('Save company info error:', error);
+        logger.error('general', 'Save company info error');
         const errorMessage = error?.response?.data?.error ||
                             error?.response?.data?.message ||
                             'Şirket bilgileri kaydedilirken bir hata oluştu';
@@ -271,7 +272,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
         setPaymentMethod(paymentResult);
         paymentSuccess = true;
       } catch (error: any) {
-        console.error('Save payment method error:', error);
+        logger.error('general', 'Save payment method error');
         const errorMessage = error?.response?.data?.error ||
                             error?.response?.data?.message ||
                             'Ödeme yöntemi kaydedilirken bir hata oluştu';
@@ -529,7 +530,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
                     ]
                   );
                 } catch (error: any) {
-                  console.error('Save error:', error);
+                  logger.error('general', 'Save error');
                   const errorMessage = error?.response?.data?.error ||
                                       error?.response?.data?.message ||
                                       error?.message ||

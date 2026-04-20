@@ -13,6 +13,7 @@
 import { useState, useEffect } from 'react';
 import * as Location from 'expo-location';
 import { ensureForegroundPermission } from '../../../utils/locationPermission';
+import { logger } from '../../../utils/logger';
 
 interface Coordinates {
   latitude: number;
@@ -36,33 +37,25 @@ export function useCurrentLocation(): UseCurrentLocationReturn {
         setLoading(true);
         setError(null);
 
-        console.log('[Location] Konum izni kontrol ediliyor...');
         const granted = await ensureForegroundPermission();
 
         if (!granted) {
-          console.log('[Location] ❌ Konum izni verilmedi!');
+          logger.warn('location', 'useCurrentLocation - permission denied');
           setError('Konum izni verilmedi');
           setLoading(false);
           return;
         }
 
-        console.log('[Location] Konum alınıyor...');
         const currentLocation = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
-
-        console.log(
-          '[Location] ✅ Konum alındı:',
-          currentLocation.coords.latitude,
-          currentLocation.coords.longitude
-        );
 
         setLocation({
           latitude: currentLocation.coords.latitude,
           longitude: currentLocation.coords.longitude,
         });
       } catch (err: any) {
-        console.error('[Location] ❌ Konum alma hatası:', err);
+        logger.error('location', 'useCurrentLocation.get failure');
         setError(err?.message || 'Konum alınamadı');
       } finally {
         setLoading(false);

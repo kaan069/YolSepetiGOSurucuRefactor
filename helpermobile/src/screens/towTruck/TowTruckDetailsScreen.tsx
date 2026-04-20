@@ -17,6 +17,7 @@ import {
   AddedTowTruckCard,
   TowTruckLoadingOverlay,
 } from './components';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TowTruckDetails'>;
 
@@ -105,14 +106,14 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
         availibility_vehicles_types: currentVehicle.supportedVehicleTypes,
       });
 
-      console.log('Cekici olusturuldu:', towTruckData);
+      logger.debug('orders', 'Cekici olusturuldu');
 
       if ((vehiclePhoto || insurancePhoto) && towTruckData.id) {
         try {
           await vehiclesAPI.uploadTowTruckPhoto(towTruckData.id, vehiclePhoto || undefined, insurancePhoto || undefined);
-          console.log('Fotograf yuklendi');
+          logger.debug('orders', 'Fotograf yuklendi');
         } catch (photoError: any) {
-          console.error('Fotograf yukleme hatasi:', photoError);
+          logger.error('orders', 'Fotograf yukleme hatasi');
           const photoErrorMessage = photoError?.response?.data?.error ||
                                     photoError?.response?.data?.message ||
                                     photoError?.message ||
@@ -131,7 +132,7 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
       try {
         await vehiclesAPI.loadUserVehicles();
       } catch (e) {
-        console.warn('Araç listesi yenilenirken hata:', e);
+        logger.warn('orders', 'Ara listesi yenilenirken hata');
       }
 
       // Kayıt akışındaysa otomatik devam et
@@ -145,7 +146,7 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
         const { getNextVehicleType } = useRegistrationDataStore.getState();
         const nextVehicleType = getNextVehicleType();
 
-        console.log('Cekici kaydi tamamlandi, sonraki tip:', nextVehicleType);
+        logger.debug('orders', 'Cekici kaydi tamamlandi sonraki tip');
 
         if (nextVehicleType === 'crane') {
           navigation.navigate('CraneDetails', { fromRegistration: true });
@@ -166,7 +167,7 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
       setCurrentVehicle(initialFormState);
       setVehiclePhoto(null);
     } catch (error: any) {
-      console.error('Create tow truck error:', error);
+      logger.error('orders', 'Create tow truck error');
       const errorMessage = error?.response?.data?.message ||
                           error?.response?.data?.error ||
                           'Cekici eklenirken bir hata olustu. Lutfen tekrar deneyin.';
@@ -201,7 +202,7 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
     const { getNextVehicleType } = useRegistrationDataStore.getState();
     const nextVehicleType = getNextVehicleType();
 
-    console.log('Cekici kaydi tamamlandi, sonraki tip:', nextVehicleType);
+    logger.debug('orders', 'Cekici kaydi tamamlandi sonraki tip');
 
     if (nextVehicleType === 'crane') {
       navigation.navigate('CraneDetails', { fromRegistration: true });

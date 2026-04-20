@@ -4,6 +4,7 @@
  */
 import { axiosInstance } from './base';
 import { Employee, CreateEmployeeRequest, UpdateEmployeeRequest } from '../types';
+import { logOrdersError } from './_helpers';
 
 class EmployeeAPI {
     // Eleman listesini getir
@@ -12,7 +13,7 @@ class EmployeeAPI {
             const response = await axiosInstance.get<Employee[]>('/employee/employees/');
             return response.data;
         } catch (error: any) {
-            console.error('Get employees error:', error?.response?.data);
+            logOrdersError('employees.getEmployees', error);
             throw error;
         }
     }
@@ -24,7 +25,7 @@ class EmployeeAPI {
             // Backend wrapped response: { message, employee: {...} }
             return response.data.employee || response.data;
         } catch (error: any) {
-            console.error('Create employee error:', error?.response?.data);
+            logOrdersError('employees.createEmployee', error);
             throw error;
         }
     }
@@ -36,7 +37,7 @@ class EmployeeAPI {
             // Backend wrapped response: { message, employee: {...} }
             return response.data.employee || response.data;
         } catch (error: any) {
-            console.error('Update employee error:', error?.response?.data);
+            logOrdersError('employees.updateEmployee', error);
             throw error;
         }
     }
@@ -49,7 +50,7 @@ class EmployeeAPI {
                 : `/employee/employees/${id}/delete/`;
             await axiosInstance.delete(url);
         } catch (error: any) {
-            console.error('Delete employee error:', error?.response?.data);
+            logOrdersError('employees.deleteEmployee', error);
             throw error;
         }
     }
@@ -60,7 +61,7 @@ class EmployeeAPI {
             const response = await axiosInstance.get<Employee>(`/employee/employees/${id}/`);
             return response.data;
         } catch (error: any) {
-            console.error('Get employee detail error:', error?.response?.data);
+            logOrdersError('employees.getEmployee', error);
             throw error;
         }
     }

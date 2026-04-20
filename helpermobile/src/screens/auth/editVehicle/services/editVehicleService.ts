@@ -11,6 +11,7 @@ import {
 } from '../../../../store/useVehicleStore';
 import { isLocalUri } from '../../../../utils/fileHelpers';
 import { EditVehicleFormData } from '../types';
+import { logger } from '../../../../utils/logger';
 
 interface PhotoState {
   vehiclePhoto: string | null;
@@ -46,7 +47,7 @@ async function uploadStandardPhotosIfChanged(
     await uploader(vehicleId, uploadVP, newIP);
     return true;
   } catch (error) {
-    console.error('Photo upload error:', error);
+    logger.error('auth', 'Photo upload error');
     return false;
   }
 }
@@ -234,7 +235,7 @@ export async function updateTransferVehicleService(
       });
       await vehiclesAPI.uploadTransferVehicleDocuments(vehicleId, uploadFormData);
     } catch (error) {
-      console.error('Transfer photo upload error:', error);
+      logger.error('auth', 'Transfer photo upload error');
       photoUploadFailed = true;
     }
   }

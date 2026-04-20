@@ -64,6 +64,7 @@ import {
 
 // Utils
 import { calculateDistance, parseRouteDistance, getRequestId } from './utils';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TowTruckOffer'>;
 
@@ -149,10 +150,10 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
           }
         );
 
-        console.log('💰 Fiyat hesaplandı:', pricingResult.driverEarnings, 'TL');
+        logger.debug('orders', 'Fiyat hesapland');
         setPricing(pricingResult);
       } catch (error: any) {
-        console.error('❌ Fiyat hesaplama hatası:', error);
+        logger.error('orders', 'Fiyat hesaplama hatas');
         showNotification('error', error?.response?.data?.error || 'Fiyat hesaplanamadı');
       }
     };
@@ -216,7 +217,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         return;
       }
     } catch (error) {
-      console.error('❌ Profil kontrolü hatası:', error);
+      logger.error('orders', 'Profil kontrol hatas');
     }
 
     // Validasyonlar
@@ -276,7 +277,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         selectedEmployeeId || undefined
       );
 
-      console.log('✅ Teklif gönderildi:', response);
+      logger.debug('orders', 'Teklif gnderildi');
 
       // Başarı mesajı
       const offerPrice = response.driver_earnings || response.estimated_price || pricing?.driverEarnings || 0;
@@ -301,7 +302,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         }, 100);
       }, 1000);
     } catch (error: any) {
-      console.error('❌ Teklif gönderme hatası:', error);
+      logger.error('orders', 'Teklif gnderme hatas');
 
       const backendError = error?.response?.data?.error || error?.response?.data?.message || '';
 

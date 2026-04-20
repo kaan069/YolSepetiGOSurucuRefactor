@@ -4,6 +4,7 @@
  * Bu dosya backend ile frontend arasında bildirim data formatını standardize eder.
  * Backend'den gelen tüm bildirimler bu formatı takip etmelidir.
  */
+import { logger } from '../utils/logger';
 
 /**
  * Bildirim Tipleri
@@ -144,7 +145,7 @@ export const BACKEND_NOTIFICATION_EXAMPLE = {
  */
 export function validateNotificationData(data: any): data is NotificationDataPayload {
   if (!data) {
-    console.error('❌ Notification data is null/undefined');
+    logger.warn('fcm', 'validateNotificationData - null/undefined');
     return false;
   }
 
@@ -157,15 +158,16 @@ export function validateNotificationData(data: any): data is NotificationDataPay
 
   for (const field of requiredFields) {
     if (!data[field]) {
-      console.error(`❌ Missing required field: ${field}`);
+      logger.warn('fcm', 'validateNotificationData - missing field', { field });
       return false;
     }
   }
 
   // request_details_id sayıya çevrilebilir olmalı
   if (isNaN(parseInt(data.request_details_id))) {
-    console.error(`❌ Invalid request_details_id: ${data.request_details_id}`);
-    console.error('Expected a numeric string, got:', typeof data.request_details_id);
+    logger.warn('fcm', 'validateNotificationData - invalid request_details_id type', {
+      got: typeof data.request_details_id,
+    });
     return false;
   }
 

@@ -30,6 +30,7 @@ import {
   HomeMovingLoadingOverlay,
   VehiclePhotoSection,
 } from './components';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeMovingDetails'>;
 
@@ -106,18 +107,18 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
         has_helper: false,
       });
 
-      console.log('✅ Nakliye aracı oluşturuldu:', nakliyeData);
+      logger.debug('orders', 'Nakliye arac oluturuldu');
 
       // Fotoğraf yükleme
       let photoUploadSuccess = false;
       if ((vehiclePhoto || insurancePhoto) && nakliyeData.id) {
         try {
-          console.log('📷 NAKLİYE FOTOĞRAF YÜKLEME İŞLEMİ BAŞLIYOR...');
+          logger.debug('orders', 'NAKLYE FOTORAF YKLEME LEM BALIYOR...');
           await vehiclesAPI.uploadNakliyeVehiclePhoto(nakliyeData.id, vehiclePhoto || undefined, insurancePhoto || undefined);
-          console.log('✅ NAKLİYE FOTOĞRAF BAŞARIYLA YÜKLENDİ!');
+          logger.debug('orders', 'NAKLYE FOTORAF BAARIYLA YKLEND');
           photoUploadSuccess = true;
         } catch (photoError: any) {
-          console.error('❌ NAKLİYE FOTOĞRAF YÜKLEME HATASI!', photoError);
+          logger.error('orders', 'NAKLYE FOTORAF YKLEME HATASI');
           const photoErrorMessage = photoError?.response?.data?.error ||
                                     photoError?.response?.data?.message ||
                                     photoError?.message ||
@@ -142,7 +143,7 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
       try {
         await vehiclesAPI.loadUserVehicles();
       } catch (e) {
-        console.warn('Araç listesi yenilenirken hata:', e);
+        logger.warn('orders', 'Ara listesi yenilenirken hata');
       }
 
       // Formu sıfırla - birden fazla araç eklenebilsin
@@ -150,7 +151,7 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
       setVehiclePhoto(null);
       setInsurancePhoto(null);
     } catch (error: any) {
-      console.error('Create nakliye vehicle error:', error);
+      logger.error('orders', 'Create nakliye vehicle error');
       const errorMessage = error?.response?.data?.message ||
                           error?.response?.data?.error ||
                           'Araç eklenirken bir hata oluştu. Lütfen tekrar deneyin.';

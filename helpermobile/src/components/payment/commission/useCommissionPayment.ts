@@ -11,6 +11,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Animated, Easing } from 'react-native';
 import { paymentAPI, SavedCard } from '../../../api/payment';
 import { getReadablePaymentError } from './paymentUtils';
+import { logger } from '../../../utils/logger';
 
 export type PaymentStep = 'select' | 'processing' | 'threeds' | 'success' | 'failed';
 
@@ -128,8 +129,8 @@ export function useCommissionPayment({
       if (cards.length === 0) {
         setShowNewCardForm(true);
       }
-    } catch (error) {
-      console.error('Kartlar yüklenemedi:', error);
+    } catch (error: any) {
+      logger.error('payment', 'useCommissionPayment.fetchSavedCards failure', { status: error?.response?.status });
       setSavedCards([]);
       setShowNewCardForm(true);
     } finally {
@@ -193,7 +194,7 @@ export function useCommissionPayment({
         }, 1500);
       }
     } catch (error: any) {
-      console.error('❌ Ödeme hatası:', error);
+      logger.error('payment', 'useCommissionPayment.handlePayment failure', { status: error?.response?.status });
 
       let message = 'Ödeme işlemi başarısız oldu';
 
@@ -279,7 +280,7 @@ export function useCommissionPayment({
         setTimeout(() => checkPaymentStatus(), 2000);
       }
     } catch (error: any) {
-      console.error('❌ Ödeme durumu kontrol hatası:', error);
+      logger.error('payment', 'useCommissionPayment.checkPaymentStatus failure', { status: error?.response?.status });
 
       if (error?.response?.status === 404) {
         pollingCountRef.current = 0;

@@ -15,6 +15,7 @@ import DistanceMetrics from '../components/offer/DistanceMetrics';
 import VehicleStatusGrid from '../components/offer/VehicleStatusGrid';
 import LocationAddresses from '../components/offer/LocationAddresses';
 import MapWithRoute from '../components/offer/MapWithRoute';
+import { logger } from '../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Offer'>;
 
@@ -44,7 +45,7 @@ const getAddressDetails = async (latitude: number, longitude: number) => {
       };
     }
   } catch (error) {
-    console.error('Reverse geocoding error:', error);
+    logger.error('orders', 'Reverse geocoding error');
   }
   return { district: '', neighborhood: '' };
 };
@@ -71,16 +72,16 @@ export default function OfferScreen({ route, navigation }: Props) {
           const craneReq = await requestsAPI.getCraneRequestDetail(parseInt(orderId));
           setCraneRequest(craneReq);
           setIsCraneRequest(true);
-          console.log('Fetched crane request detail:', craneReq);
+          logger.debug('orders', 'Fetched crane request detail');
         } catch (craneError) {
           // If crane request fails, try tow truck request
           try {
             const towReq = await requestsAPI.getTowTruckRequestDetail(parseInt(orderId));
             setTowTruckRequest(towReq);
             setIsTowTruckRequest(true);
-            console.log('Fetched tow truck request detail:', towReq);
+            logger.debug('orders', 'Fetched tow truck request detail');
           } catch (towError) {
-            console.error('Failed to fetch both crane and tow truck request:', { craneError, towError });
+            logger.error('orders', 'Failed to fetch both crane and tow truck request');
           }
         }
       } finally {
@@ -97,7 +98,7 @@ export default function OfferScreen({ route, navigation }: Props) {
       try {
         const granted = await ensureForegroundPermission();
         if (!granted) {
-          console.log('Location permission not granted');
+          logger.debug('orders', 'Location permission not granted');
           return;
         }
 
@@ -107,7 +108,7 @@ export default function OfferScreen({ route, navigation }: Props) {
           longitude: location.coords.longitude,
         });
       } catch (error) {
-        console.error('Error getting location:', error);
+        logger.error('orders', 'Error getting location');
       }
     };
 
@@ -199,7 +200,7 @@ export default function OfferScreen({ route, navigation }: Props) {
           Linking.openURL(webUrl);
         }
       }).catch((err) => {
-        console.error('Error opening maps:', err);
+        logger.error('orders', 'Error opening maps');
         Alert.alert('Hata', 'Harita açılırken bir hata oluştu');
       });
     }

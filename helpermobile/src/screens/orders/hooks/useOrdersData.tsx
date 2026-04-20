@@ -7,6 +7,7 @@ import { useActiveJobStore } from '../../../store/useActiveJobStore';
 import { useJobCountsStore } from '../../../store/useJobCountsStore';
 import { OrdersJob } from '../types';
 import type { ServiceType } from '../../../constants/serviceTypes';
+import { logger } from '../../../utils/logger';
 
 // Service filter types - artık yol yardım ve nakliye de destekleniyor
 // nakliye = evden eve + şehirler arası (birleşik olarak gösterilir)
@@ -52,7 +53,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
         return parts.length > 0 ? parts.join(', ') : `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
       }
     } catch (error) {
-      console.error('Reverse geocoding failed:', error);
+      logger.error('orders', 'Reverse geocoding failed');
     }
     return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
   };
@@ -85,7 +86,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
       setCraneRequests(requests);
     } catch (error) {
-      console.error('❌ VINÇ TALEPLERİ HATA:', error);
+      logger.error('orders', 'VIN TALEPLER HATA');
     } finally {
       setLoading(false);
     }
@@ -120,7 +121,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
       setTowTruckRequests(requests);
     } catch (error) {
-      console.error('❌ ÇEKİCİ TALEPLERİ HATA:', error);
+      logger.error('orders', 'EKC TALEPLER HATA');
     } finally {
       setLoading(false);
     }
@@ -177,7 +178,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
       const combined: MovingRequest[] = [...homeWithType, ...cityWithType];
       setNakliyeRequests(combined);
     } catch (error) {
-      console.error('❌ NAKLİYE TALEPLERİ HATA:', error);
+      logger.error('orders', 'NAKLYE TALEPLER HATA');
     } finally {
       setLoading(false);
     }
@@ -212,7 +213,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
       setRoadAssistanceRequests(requests);
     } catch (error) {
-      console.error('❌ YOL YARDIM TALEPLERİ HATA:', error);
+      logger.error('orders', 'YOL YARDIM TALEPLER HATA');
     } finally {
       setLoading(false);
     }
@@ -246,7 +247,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
       setTransferRequests(requests);
     } catch (error) {
-      console.error('❌ TRANSFER TALEPLERİ HATA:', error);
+      logger.error('orders', 'TRANSFER TALEPLER HATA');
     } finally {
       setLoading(false);
     }
@@ -278,7 +279,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
       updateServiceCounts('roadAssistance', allCounts['road-assistance'] || zeroCounts);
       updateServiceCounts('transfer', allCounts['transfer'] || zeroCounts);
     } catch (error) {
-      console.error('❌ Tüm servislerin iş sayıları alınamadı:', error);
+      logger.error('orders', 'Tm servislerin i saylar alnamad');
     }
   }, [updateServiceCounts]);
 
@@ -760,7 +761,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
       }
 
     } catch (error) {
-      console.error('❌ Yenileme hatası:', error);
+      logger.error('orders', 'Yenileme hatas');
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -13,6 +13,7 @@ import { validateTCNumber } from '../../utils/tcValidation';
 import { CONTRACTS, Contract } from '../../constants/contracts';
 import ContractModal from '../../components/ContractModal';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PersonalInfoNew'>;
 
@@ -140,7 +141,6 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
   // Kayıt sonrası yönlendirme helper fonksiyonu
   // Her zaman VehicleTypeSelectionScreen'e yönlendir (provider_type seçimi için)
   const navigateAfterRegistration = () => {
-    console.log('🎯 Kayıt başarılı, VehicleTypeSelection ekranına yönlendiriliyor...');
     navigation.reset({
       index: 0,
       routes: [{ name: 'VehicleTypeSelection' }],
@@ -194,7 +194,7 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
 
       // Verification token kontrolü
       if (!verificationToken) {
-        console.error('❌ Verification token yok');
+        logger.error('auth', 'PersonalInfoNew.handleContinue - verificationToken missing');
         Alert.alert('Hata', 'Telefon doğrulaması yapılmamış. Lütfen kayıt işlemini baştan başlatın.');
         navigation.navigate('PhoneNumber');
         return;
@@ -202,15 +202,12 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
 
       // Eğer route'dan token aldıysak ve store'da yoksa, store'a da kaydet
       if (!data.verificationToken && routeToken) {
-        console.log('📝 Token route param\'dan alındı, store\'a kaydediliyor...');
         setVerificationToken(routeToken);
       }
 
-      console.log('✅ Verification token mevcut, kayıt işlemi başlıyor...');
-
       // API'ye kayıt isteği gönder (user_type liste olarak)
       // Not: birth_date ve contracts_accepted backend'de yok, email de yok
-      const response = await authAPI.register({
+      await authAPI.register({
         first_name: formData.firstName,
         last_name: formData.lastName,
         phone_number: data.phoneNumber,
@@ -224,8 +221,6 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
         provider_type: data.providerType || 'individual',  // Şahıs / Firma seçimi
         verification_token: verificationToken,  // OTP doğrulama sonrası alınan token (store veya route param'dan)
       });
-
-      console.log('✅ Kayıt başarılı - user_type:', data.vehicleTypes);
 
       // Store'a kaydet
       setPersonalInfo({
@@ -246,7 +241,7 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
       // Seçilen hizmete göre yönlendirme (helper fonksiyonu kullan)
       navigateAfterRegistration();
     } catch (error: any) {
-      console.error('Registration error:', error);
+      logger.error('auth', 'PersonalInfoNew.register failure', { status: error?.response?.status });
 
       // Timeout hatası kontrolü - kayıt başarılı olmuş olabilir
       // 504: Nginx gateway timeout, 502: Bad gateway, 408: Request timeout
@@ -258,18 +253,16 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
                              error.response?.status === 408;
 
       if (isTimeoutError) {
-        console.log('⏱️ Timeout/Gateway hatası tespit edildi (status:', error.response?.status || 'N/A', '), kayıt durumu kontrol ediliyor...');
+        logger.warn('auth', 'PersonalInfoNew.register timeout, trying login fallback', { status: error?.response?.status });
 
         // Kayıt başarılı olmuş olabilir, login deneyelim
         try {
-          console.log('🔐 Login denemesi yapılıyor...');
           const loginResponse = await authAPI.login({
             phone_number: data.phoneNumber,
             password: formData.password,
           });
 
           if (loginResponse && loginResponse.user) {
-            console.log('✅ Login başarılı - kayıt tamamlanmış, yönlendirme yapılıyor');
 
             // Store'a kaydet
             setPersonalInfo({
@@ -291,7 +284,7 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
             return; // finally'den önce çık
           }
         } catch (loginError: any) {
-          console.error('❌ Login denemesi başarısız:', loginError);
+          logger.error('auth', 'PersonalInfoNew.login fallback failure', { status: loginError?.response?.status });
           // Login başarısız - gerçekten kayıt olmamış demek
         }
 

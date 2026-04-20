@@ -1,5 +1,17 @@
 import axiosInstance from './axiosConfig';
 import { ProfileCompletenessResponse } from './types';
+import { logger } from '../utils/logger';
+
+// Documents katmanı için güvenli error sanitizer.
+// Backend error response body'sini ASLA loglamaz (kullanıcı adı/telefonu,
+// signed document URL, rejection_reason, filename echo gibi alanlar
+// içerebilir). Sadece HTTP status ve statik action adı loglanır.
+// NOTE: Documents, sürücü + araç doğrulama akışının parçası olduğu için
+// `vehicles` kategorisi altında loglanır (bkz. vehicles.ts helper pattern).
+const logDocumentsError = (action: string, error: any): void => {
+    const status = error?.response?.status;
+    logger.error('vehicles', `${action} failed`, status ? { status } : undefined);
+};
 
 // Document response interface
 export interface DocumentResponse {
@@ -51,7 +63,7 @@ class DocumentsAPI {
             const response = await axiosInstance.get<DocumentResponse>('/auth/documents/license/');
             return response.data;
         } catch (error) {
-            console.error('Get documents error:', error);
+            logDocumentsError('getDocuments', error);
             throw error;
         }
     }
@@ -63,31 +75,27 @@ class DocumentsAPI {
         kDocumentPhotoUri: string | null = null
     ): Promise<DocumentResponse> {
         try {
-            console.log('📤 [DocumentsAPI] Upload başlıyor...');
-            console.log('   • License URI:', licensePhotoUri);
-            console.log('   • Tax Plate URI:', taxPlatePhotoUri);
-            console.log('   • K Document URI:', kDocumentPhotoUri);
+            // NOTE: Upload URI / filename / mimeType loglanmıyor — local cache path
+            // ve dosya descriptor'ı hassas kabul ediliyor.
+            logger.debug('vehicles', 'Document upload started');
 
             const formData = new FormData();
 
             // Ehliyet fotoğrafı/dosyası ekle
             if (licensePhotoUri) {
                 const { filename, mimeType } = getMimeTypeFromUri(licensePhotoUri);
-                console.log('📸 [DocumentsAPI] License dosyası:', { uri: licensePhotoUri, name: filename, type: mimeType });
                 formData.append('license_photo', { uri: licensePhotoUri, name: filename, type: mimeType } as any);
             }
 
             // Vergi levhası fotoğrafı/dosyası ekle
             if (taxPlatePhotoUri) {
                 const { filename, mimeType } = getMimeTypeFromUri(taxPlatePhotoUri);
-                console.log('📸 [DocumentsAPI] Tax plate dosyası:', { uri: taxPlatePhotoUri, name: filename, type: mimeType });
                 formData.append('tax_plate_photo', { uri: taxPlatePhotoUri, name: filename, type: mimeType } as any);
             }
 
             // K belgesi fotoğrafı/dosyası ekle (opsiyonel)
             if (kDocumentPhotoUri) {
                 const { filename, mimeType } = getMimeTypeFromUri(kDocumentPhotoUri);
-                console.log('📸 [DocumentsAPI] K document dosyası:', { uri: kDocumentPhotoUri, name: filename, type: mimeType });
                 formData.append('k_document_photo', { uri: kDocumentPhotoUri, name: filename, type: mimeType } as any);
             }
 
@@ -103,7 +111,7 @@ class DocumentsAPI {
 
             return response.data.data;
         } catch (error) {
-            console.error('Upload documents error:', error);
+            logDocumentsError('uploadDocuments', error);
             throw error;
         }
     }
@@ -113,7 +121,7 @@ class DocumentsAPI {
         try {
             await axiosInstance.delete('/auth/documents/license/delete/');
         } catch (error) {
-            console.error('Delete documents error:', error);
+            logDocumentsError('deleteDocuments', error);
             throw error;
         }
     }
@@ -152,7 +160,7 @@ class DocumentsAPI {
             const response = await axiosInstance.get<ProfileCompletenessResponse>('/profile/completeness/');
             return response.data;
         } catch (error) {
-            console.error('Check profile completeness error:', error);
+            logDocumentsError('checkProfileCompleteness', error);
             throw error;
         }
     }

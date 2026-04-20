@@ -14,6 +14,7 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 import { documentsAPI } from '../../api';
 import { ProfileCompletenessResponse, ProviderType } from '../../api/types';
 import { useFocusEffect } from '@react-navigation/native';
+import { logger } from '../../utils/logger';
 
 // ProfileMenuScreen hem normal kullanıcı hem Employee tab navigator'ında kullanılıyor.
 // ProfileMenuScreen is used in both regular user and Employee tab navigators.
@@ -44,7 +45,7 @@ export default function ProfileMenuScreen({ navigation }: Props) {
       const response = await documentsAPI.checkProfileCompleteness();
       setCompleteness(response);
     } catch (error) {
-      console.error('❌ Profil tamamlama durumu yüklenemedi:', error);
+      logger.error('general', 'Profil tamamlama durumu yklenemedi');
     } finally {
       setLoadingCompleteness(false);
     }

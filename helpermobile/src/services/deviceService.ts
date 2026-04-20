@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Application from 'expo-application';
 import { Platform } from 'react-native';
 import AuthAPI from '../api/auth';
+import { logger } from '../utils/logger';
 
 const DEVICE_ID_KEY = 'device_id';
 const FCM_TOKEN_KEY = 'fcm_token';
@@ -28,7 +29,7 @@ class DeviceService {
             nativeId = await Application.getIosIdForVendorAsync();
           }
         } catch (nativeErr) {
-          console.warn('⚠️ Native device ID alınamadı, fallback kullanılacak:', nativeErr);
+          logger.warn('general', 'deviceService.getDeviceId - native ID failed, using fallback');
           nativeId = null;
         }
 
@@ -45,7 +46,7 @@ class DeviceService {
 
       return deviceId;
     } catch (error) {
-      console.error('❌ Device ID alma hatası:', error);
+      logger.error('general', 'deviceService.getDeviceId failure');
       // Fallback
       return `${Platform.OS}_${Date.now()}`;
     }
@@ -77,7 +78,7 @@ class DeviceService {
       // Local storage'a kaydet
       await AsyncStorage.setItem(FCM_TOKEN_KEY, fcmToken);
     } catch (error) {
-      console.error('❌ FCM Token kaydetme hatası:', error);
+      logger.error('fcm', 'deviceService.registerFCMToken failure');
       throw error;
     }
   }
@@ -96,7 +97,7 @@ class DeviceService {
       // Local storage'dan sil
       await AsyncStorage.removeItem(FCM_TOKEN_KEY);
     } catch (error) {
-      console.error('❌ FCM Token silme hatası:', error);
+      logger.warn('fcm', 'deviceService.unregisterFCMToken failure (ignored)');
       // Hata olsa bile local storage'dan sil
       await AsyncStorage.removeItem(FCM_TOKEN_KEY);
     }
@@ -109,7 +110,7 @@ class DeviceService {
     try {
       return await AsyncStorage.getItem(FCM_TOKEN_KEY);
     } catch (error) {
-      console.error('❌ FCM Token alma hatası:', error);
+      logger.error('fcm', 'deviceService.getSavedFCMToken failure');
       return null;
     }
   }
@@ -121,9 +122,9 @@ class DeviceService {
     try {
       await AsyncStorage.removeItem(FCM_TOKEN_KEY);
       // Device ID'yi silme - uygulama yüklemesi boyunca aynı kalmalı
-      console.log('🧹 Device data temizlendi (Device ID korundu)');
+      logger.debug('fcm', 'deviceService.clearDeviceData');
     } catch (error) {
-      console.error('❌ Device data temizleme hatası:', error);
+      logger.error('fcm', 'deviceService.clearDeviceData failure');
     }
   }
 

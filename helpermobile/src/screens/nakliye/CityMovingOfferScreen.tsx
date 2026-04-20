@@ -20,6 +20,7 @@ import { ProviderType } from '../../api/types';
 import { useNakliyeVehicles } from './hooks';
 import { calculateDistance } from './constants';
 import PhotosSection from '../../components/PhotosSection';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CityMovingOffer'>;
 
@@ -100,7 +101,7 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
           );
         }
       } catch (error) {
-        console.error('Konum alınamadı:', error);
+        logger.error('orders', 'Konum alnamad');
       }
     };
     getLocation();

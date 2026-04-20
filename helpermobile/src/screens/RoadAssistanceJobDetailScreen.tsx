@@ -22,6 +22,7 @@ import { getServiceTypeLabel, getProblemLabel, getProblemIcon, getVehicleTypeLab
 import PhotosSection from '../components/PhotosSection';
 import DriverPhotoUpload from '../components/DriverPhotoUpload';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { logger } from '../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RoadAssistanceJobDetail'>;
 
@@ -74,9 +75,9 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
       setLoading(true);
       const data = await requestsAPI.getRoadAssistanceRequestDetail(parseInt(jobId));
       setRequest(data);
-      console.log('✅ Yol yardım iş detayı:', data);
+      logger.debug('orders', 'Yol yardm i detay');
     } catch (error) {
-      console.error('❌ Yol yardım detay hatası:', error);
+      logger.error('orders', 'Yol yardm detay hatas');
       Alert.alert('Hata', 'Yol yardım iş detayları yüklenemedi');
     } finally {
       setLoading(false);
@@ -169,7 +170,7 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
           longitude: location.coords.longitude,
         });
       } catch (error) {
-        console.error('Konum hatası:', error);
+        logger.error('orders', 'Konum hatas');
       }
     };
     getCurrentLocation();
@@ -231,19 +232,19 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
   // Ödeme başarılı
   const handlePaymentSuccess = async () => {
     setShowPaymentModal(false);
-    console.log('✅ Komisyon ödeme başarılı');
+    logger.debug('orders', 'Komisyon deme baarl');
     try {
       const updatedRequest = await requestsAPI.getRoadAssistanceRequestDetail(parseInt(jobId));
       setRequest(updatedRequest);
     } catch (error) {
-      console.error('Yenileme hatası:', error);
+      logger.error('orders', 'Yenileme hatas');
     }
     Alert.alert('Ödeme Başarılı', 'Komisyon ödemesi tamamlandı. İş artık devam ediyor.', [{ text: 'Tamam' }]);
   };
 
   // Ödeme başarısız
   const handlePaymentFailed = (errorMessage: string) => {
-    console.error('❌ Ödeme hatası:', errorMessage);
+    logger.error('orders', 'deme hatas');
     Alert.alert('Ödeme Hatası', errorMessage);
   };
 

@@ -13,6 +13,7 @@ import { useAuthStore } from '../../store/authStore';
 import { requestsAPI, TowTruckRequestDetail, CraneRequest, PeriodEarningsResponse, EarningsPeriod } from '../../api';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ReportsAndHistory'>;
 
@@ -48,13 +49,9 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
     try {
       setEarningsLoading(true);
       const result = await requestsAPI.getTotalEarnings();
-      console.log('💰 Reports: Toplam kazanç API response:', result);
-      console.log('💰 Reports: Toplam kazanç değeri:', result.total_earnings);
       setTotalEarnings(parseFloat(result.total_earnings) || 0);
     } catch (error: any) {
-      console.error('❌ Toplam kazanç yüklenirken hata:', error);
-      console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Error status:', error.response?.status);
+      logger.error('orders', 'Reports.loadTotalEarnings failure', { status: error?.response?.status });
       setTotalEarnings(0);
     } finally {
       setEarningsLoading(false);
@@ -66,13 +63,9 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
     try {
       setPeriodLoading(true);
       const data = await requestsAPI.getPeriodEarnings(range);
-      console.log('📊 Reports: Dönemsel kazanç API response:', data);
-      console.log('📊 Reports: Period:', range);
       setPeriodEarnings(data);
     } catch (error: any) {
-      console.error('❌ Dönemsel kazanç yüklenirken hata:', error);
-      console.error('❌ Error response:', error.response?.data);
-      console.error('❌ Error status:', error.response?.status);
+      logger.error('orders', 'Reports.loadPeriodEarnings failure', { status: error?.response?.status });
       setPeriodEarnings(null);
     } finally {
       setPeriodLoading(false);
@@ -90,9 +83,6 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
         requestsAPI.getCompletedCraneRequests(),
       ]);
 
-      console.log('📊 Reports: Çekici işleri:', towTruckJobs.length);
-      console.log('📊 Reports: Vinç işleri:', craneJobs.length);
-
       // Çekici işlerini transaction formatına çevir
       const towTransactions: Transaction[] = towTruckJobs.map((job) => {
         // Request ID'den müşteri bilgilerini çıkar
@@ -101,7 +91,6 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
 
         // Final price yoksa 0 kullan
         const price = job.final_price || 0;
-        console.log(`💰 Çekici iş #${job.id}: final_price=${job.final_price}, kullanılan=${price}`);
 
         return {
           id: job.id.toString(),
@@ -124,7 +113,6 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
 
         // Final price yoksa 0 kullan
         const price = job.final_price || 0;
-        console.log(`💰 Vinç iş #${job.id}: final_price=${job.final_price}, kullanılan=${price}`);
 
         return {
           id: job.id.toString(),
@@ -143,7 +131,7 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
 
       setTransactions(allTransactions);
     } catch (error: any) {
-      console.error('❌ Tamamlanan işler yüklenirken hata:', error);
+      logger.error('orders', 'Reports.loadCompletedJobs failure', { status: error?.response?.status });
     } finally {
       setLoading(false);
       setRefreshing(false);

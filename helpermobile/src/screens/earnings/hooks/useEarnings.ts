@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { requestsAPI, authAPI, PeriodEarningsResponse, EarningsListItem, EarningsServiceType } from '../../../api';
 import { PeriodRange, CompletedJob, PAGE_SIZE } from '../constants';
+import { logger } from '../../../utils/logger';
 
 // Backend user_type → EarningsServiceType mapping
 const USER_TYPE_TO_EARNINGS: Record<string, EarningsServiceType[]> = {
@@ -35,7 +36,7 @@ export default function useEarnings() {
       const result = await requestsAPI.getTotalEarnings();
       setTotalEarnings(parseFloat(result.total_earnings) || 0);
     } catch (error) {
-      console.error('Toplam kazanç yüklenirken hata:', error);
+      logger.error('orders', 'Toplam kazan yklenirken hata');
       setTotalEarnings(0);
     } finally {
       setEarningsLoading(false);
@@ -49,7 +50,7 @@ export default function useEarnings() {
       const result = await requestsAPI.getPeriodEarnings(range, undefined, undefined, serviceTypes);
       setPeriodEarnings(result);
     } catch (error) {
-      console.error('Dönemsel kazanç yüklenirken hata:', error);
+      logger.error('orders', 'Dnemsel kazan yklenirken hata');
       setPeriodEarnings(null);
     } finally {
       setPeriodLoading(false);
@@ -82,7 +83,7 @@ export default function useEarnings() {
       setEarningsListPage(page);
       setHasMoreEarnings(result.next !== null);
     } catch (error: any) {
-      console.error('Kazanç listesi yüklenirken hata:', error);
+      logger.error('orders', 'Kazan listesi yklenirken hata');
       if (error?.response?.status !== 401) {
         Alert.alert('Hata', 'Kazanç listesi yüklenirken bir hata oluştu.');
       }
@@ -137,7 +138,7 @@ export default function useEarnings() {
         setUserServiceTypes(types);
       }
     } catch (error) {
-      console.error('Kullanıcı hizmet tipleri yüklenemedi:', error);
+      logger.error('orders', 'Kullanc hizmet tipleri yklenemedi');
     }
   };
 

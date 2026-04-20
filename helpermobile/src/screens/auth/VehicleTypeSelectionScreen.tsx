@@ -6,6 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useRegistrationDataStore, RegistrationProviderType } from '../../store/useRegistrationDataStore';
 import { authAPI } from '../../api';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VehicleTypeSelection'>;
 
@@ -22,9 +23,9 @@ export default function VehicleTypeSelectionScreen({ navigation }: Props) {
     try {
       // Backend'e provider_type'ı PATCH ile gönder
       await authAPI.updateProfile({ provider_type: providerType } as any);
-      console.log('Provider type güncellendi:', providerType);
+      logger.debug('auth', 'Provider type gncellendi');
     } catch (error) {
-      console.error('Provider type güncellenemedi:', error);
+      logger.error('auth', 'Provider type gncellenemedi');
     }
     setLoading(false);
 

@@ -17,8 +17,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import * as Location from 'expo-location';
 import { locationWebSocket } from '../services/locationWebSocket';
-import { useDriverStore } from '../store/driverStore';
 import { backgroundLocationService } from '../services/backgroundLocationService';
+import { logger } from '../utils/logger';
 
 export interface UseLocationWebSocketOptions {
   trackingToken: string | null;  // ⚠️ TRACKING TOKEN BAZLI - requestId yerine trackingToken
@@ -73,13 +73,13 @@ export function useLocationWebSocket(options: UseLocationWebSocketOptions) {
         // Arka plan konum takibini başlat (WebSocket bağlandığında)
         if (!backgroundStarted.current) {
           backgroundStarted.current = true;
-          backgroundLocationService.requestStart().catch((err) => {
-            console.error('❌ [useLocationWebSocket] Background location başlatma hatası:', err);
+          backgroundLocationService.requestStart().catch(() => {
+            logger.error('location', 'useLocationWebSocket.background.start failed');
           });
         }
       },
       onError: (error) => {
-        console.error('❌ WebSocket hatası:', error);
+        logger.error('websocket', 'useLocationWebSocket.onError');
         isConnecting.current = false;
         setWsConnected(false);
         onError?.(error);
@@ -116,8 +116,8 @@ export function useLocationWebSocket(options: UseLocationWebSocketOptions) {
       // Arka plan konum takibini durdur (WebSocket kapandığında)
       if (backgroundStarted.current) {
         backgroundStarted.current = false;
-        backgroundLocationService.requestStop().catch((err) => {
-          console.error('❌ [useLocationWebSocket] Background location durdurma hatası:', err);
+        backgroundLocationService.requestStop().catch(() => {
+          logger.error('location', 'useLocationWebSocket.background.stop failed');
         });
       }
     };
@@ -145,7 +145,7 @@ export function useLocationWebSocket(options: UseLocationWebSocketOptions) {
         lastSentLocation.current = { lat, lng };
 
       } catch (error) {
-        console.error('❌ GPS konum okuma hatası:', error);
+        logger.error('location', 'useLocationWebSocket.tick getPosition failed');
       }
 
     }, 5000);
@@ -155,23 +155,4 @@ export function useLocationWebSocket(options: UseLocationWebSocketOptions) {
     };
 
   }, [enabled, wsConnected]);
-}
-
-/**
- * İki koordinat arasındaki mesafeyi hesaplar (km)
- */
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Dünya yarıçapı (km)
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-function toRad(value: number): number {
-  return (value * Math.PI) / 180;
 }

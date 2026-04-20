@@ -7,6 +7,21 @@ import {
     CreatePaymentMethodRequest,
     UpdatePaymentMethodRequest,
 } from './types';
+import { logger } from '../utils/logger';
+
+// Profile katmanı için güvenli error sanitizer.
+// Backend error response body'sini ASLA loglamaz. Bu katmandaki istek gövdeleri
+// yüksek hassasiyetli alanlar taşır (şirket adı, vergi numarası, adres, IBAN,
+// banka adı, hesap sahibi). Validation hatalarında backend bu alanları echo
+// edebildiği için error objesinin tamamı loglanmaz — sadece HTTP status ve
+// statik action adı loglanır.
+// Kategori: `auth` — profile/company/payment-method akışı sürücü onboarding
+// (kimlik tamamlama) kapsamında; kart transaction'larına özel `payment`
+// kategorisinden ayrı tutulur (bkz. payment.ts helper pattern).
+const logProfileError = (action: string, error: any): void => {
+    const status = error?.response?.status;
+    logger.error('auth', `${action} failed`, status ? { status } : undefined);
+};
 
 class ProfileAPI {
     // ==================== Şirket Bilgileri (Company Info) ====================
@@ -17,7 +32,7 @@ class ProfileAPI {
             const response = await axiosInstance.get<CompanyInfo>('/profile/company-info/');
             return response.data;
         } catch (error: any) {
-            console.error('Get company info error:', error);
+            logProfileError('getCompanyInfo', error);
             // Tüm hataları fırlat (404 dahil), UI'da yakalanacak
             throw error;
         }
@@ -29,7 +44,7 @@ class ProfileAPI {
             const response = await axiosInstance.post<CompanyInfo>('/profile/company-info/create/', data);
             return response.data;
         } catch (error) {
-            console.error('Create company info error:', error);
+            logProfileError('createCompanyInfo', error);
             throw error;
         }
     }
@@ -40,7 +55,7 @@ class ProfileAPI {
             const response = await axiosInstance.patch<CompanyInfo>('/profile/company-info/update/', data);
             return response.data;
         } catch (error) {
-            console.error('Update company info error:', error);
+            logProfileError('updateCompanyInfo', error);
             throw error;
         }
     }
@@ -50,7 +65,7 @@ class ProfileAPI {
         try {
             await axiosInstance.delete('/profile/company-info/delete/');
         } catch (error) {
-            console.error('Delete company info error:', error);
+            logProfileError('deleteCompanyInfo', error);
             throw error;
         }
     }
@@ -63,7 +78,7 @@ class ProfileAPI {
             const response = await axiosInstance.get<PaymentMethod>('/profile/payment-method/');
             return response.data;
         } catch (error: any) {
-            console.error('Get payment method error:', error);
+            logProfileError('getPaymentMethod', error);
             // Tüm hataları fırlat (404 dahil), UI'da yakalanacak
             throw error;
         }
@@ -75,7 +90,7 @@ class ProfileAPI {
             const response = await axiosInstance.post<PaymentMethod>('/profile/payment-method/create/', data);
             return response.data;
         } catch (error) {
-            console.error('Create payment method error:', error);
+            logProfileError('createPaymentMethod', error);
             throw error;
         }
     }
@@ -86,7 +101,7 @@ class ProfileAPI {
             const response = await axiosInstance.patch<PaymentMethod>('/profile/payment-method/update/', data);
             return response.data;
         } catch (error) {
-            console.error('Update payment method error:', error);
+            logProfileError('updatePaymentMethod', error);
             throw error;
         }
     }
@@ -96,7 +111,7 @@ class ProfileAPI {
         try {
             await axiosInstance.delete('/profile/payment-method/delete/');
         } catch (error) {
-            console.error('Delete payment method error:', error);
+            logProfileError('deletePaymentMethod', error);
             throw error;
         }
     }

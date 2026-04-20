@@ -34,6 +34,7 @@ import {
 import { calculateDistance, getStatus } from './constants';
 import PhotosSection from '../../components/PhotosSection';
 import DriverPhotoUpload from '../../components/DriverPhotoUpload';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NakliyeJobDetail'>;
 
@@ -239,7 +240,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
           longitude: location.coords.longitude,
         });
       } catch (error) {
-        console.error('Konum hatası:', error);
+        logger.error('orders', 'Konum hatas');
       }
     };
     getCurrentLocation();
@@ -269,7 +270,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
       }
       setRequest(updatedRequest);
     } catch (error) {
-      console.error('Yenileme hatası:', error);
+      logger.error('orders', 'Yenileme hatas');
     }
     Alert.alert('Ödeme Başarılı', 'Komisyon ödemesi tamamlandı. İş artık devam ediyor.', [{ text: 'Tamam' }]);
   };

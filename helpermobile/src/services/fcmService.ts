@@ -2,6 +2,7 @@ import messaging from '@react-native-firebase/messaging';
 import { Platform } from 'react-native';
 import authAPI from '../api/auth';
 import { deviceService } from './deviceService';
+import { logger } from '../utils/logger';
 
 /**
  * Firebase Messaging `RemoteMessage.data` tipi artık
@@ -26,6 +27,10 @@ const readString = (value: string | object | undefined): string | undefined =>
  * - FCM token'ı alır ve backend'e kaydeder
  * - Foreground ve background bildirimleri işler
  * - Multi-device desteği sağlar
+ *
+ * LOG GÜVENLİĞİ: Bu servis FCM token, remoteMessage payload veya data
+ * objesini asla log'lamaz (token/PII sızıntısı riski). Yalnız type
+ * string'i ve hafif durum metadata'sı log'lanır.
  */
 class FCMService {
     private fcmToken: string | null = null;
@@ -37,17 +42,15 @@ class FCMService {
      */
     async initialize(): Promise<void> {
         if (this.isInitialized) {
-            console.log('⚠️ FCM servisi zaten başlatılmış');
+            logger.debug('fcm', 'FCMService zaten başlatılmış');
             return;
         }
 
         try {
-            console.log('🔔 FCM servisi başlatılıyor...');
-
             // 1. Notification izinlerini kontrol et ve iste
             const hasPermission = await this.requestPermissions();
             if (!hasPermission) {
-                console.warn('⚠️ Notification izni reddedildi');
+                logger.warn('fcm', 'Notification izni reddedildi');
                 return;
             }
 
@@ -61,9 +64,9 @@ class FCMService {
             this.setupTokenRefreshListener();
 
             this.isInitialized = true;
-            console.log('✅ FCM servisi başarıyla başlatıldı');
+            logger.debug('fcm', 'FCMService başlatıldı');
         } catch (error) {
-            console.error('❌ FCM servisi başlatma hatası:', error);
+            logger.error('fcm', 'FCMService başlatma hatası');
             throw error;
         }
     }
@@ -73,22 +76,14 @@ class FCMService {
      */
     async requestPermissions(): Promise<boolean> {
         try {
-            console.log('🔔 Notification izinleri kontrol ediliyor...');
-
             const authStatus = await messaging().requestPermission();
             const enabled =
                 authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
                 authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-            if (enabled) {
-                console.log('✅ Notification izni verildi:', authStatus);
-            } else {
-                console.warn('⚠️ Notification izni reddedildi:', authStatus);
-            }
-
             return enabled;
         } catch (error) {
-            console.error('❌ Notification izni alma hatası:', error);
+            logger.error('fcm', 'Notification izni alma hatası');
             return false;
         }
     }
@@ -107,7 +102,7 @@ class FCMService {
 
             return token;
         } catch (error) {
-            console.error('❌ FCM token alma hatası:', error);
+            logger.error('fcm', 'FCM token alma hatası');
             return null;
         }
     }
@@ -117,8 +112,6 @@ class FCMService {
      */
     async registerTokenToBackend(token: string): Promise<void> {
         try {
-            console.log('🔔 FCM token backend\'e kaydediliyor...');
-
             const deviceId = await deviceService.getDeviceId();
             const deviceType = Platform.OS as 'ios' | 'android';
 
@@ -127,10 +120,8 @@ class FCMService {
                 device_id: deviceId,
                 device_type: deviceType,
             });
-
-            console.log('✅ FCM token backend\'e kaydedildi');
         } catch (error) {
-            console.error('❌ FCM token backend\'e kaydetme hatası:', error);
+            logger.warn('fcm', 'FCM token backend kayıt hatası (kritik değil)');
             // Token kaydetme hatası kritik değil, uygulama çalışmaya devam edebilir
         }
     }
@@ -140,7 +131,7 @@ class FCMService {
      */
     private setupTokenRefreshListener(): void {
         messaging().onTokenRefresh(async (newToken) => {
-            console.log('🔔 FCM token yenilendi');
+            logger.debug('fcm', 'FCM token yenilendi');
             this.fcmToken = newToken;
             await this.registerTokenToBackend(newToken);
         });
@@ -152,16 +143,6 @@ class FCMService {
     private setupNotificationHandlers(): void {
         // Foreground mesajları (uygulama açıkken)
         messaging().onMessage(async (remoteMessage) => {
-            console.log('🔔 Foreground notification alındı:', remoteMessage);
-
-            // Bildirimi göster
-            if (remoteMessage.notification) {
-                // Custom notification handler'ı buraya eklenebilir
-                // Örneğin: Toast göster, local notification tetikle, vb.
-                console.log('   Başlık:', remoteMessage.notification.title);
-                console.log('   Mesaj:', remoteMessage.notification.body);
-            }
-
             // Data payload varsa işle
             if (remoteMessage.data) {
                 this.handleNotificationData(remoteMessage.data);
@@ -170,8 +151,6 @@ class FCMService {
 
         // Background mesajları (uygulama kapalıyken veya arka planda)
         messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-            console.log('🔔 Background notification alındı:', remoteMessage);
-
             if (remoteMessage.data) {
                 this.handleNotificationData(remoteMessage.data);
             }
@@ -179,8 +158,6 @@ class FCMService {
 
         // Bildirime tıklanma (uygulama kapalıyken açılır)
         messaging().onNotificationOpenedApp((remoteMessage) => {
-            console.log('🔔 Notification açıldı (background):', remoteMessage);
-
             if (remoteMessage.data) {
                 this.handleNotificationClick(remoteMessage.data);
             }
@@ -190,12 +167,8 @@ class FCMService {
         messaging()
             .getInitialNotification()
             .then((remoteMessage) => {
-                if (remoteMessage) {
-                    console.log('🔔 Notification açıldı (quit state):', remoteMessage);
-
-                    if (remoteMessage.data) {
-                        this.handleNotificationClick(remoteMessage.data);
-                    }
+                if (remoteMessage && remoteMessage.data) {
+                    this.handleNotificationClick(remoteMessage.data);
                 }
             });
     }
@@ -209,54 +182,32 @@ class FCMService {
      * ediyoruz ve her okunan alan için `readString` ile narrow ediyoruz.
      */
     private handleNotificationData(data: FCMDataRecord): void {
-        console.log('📦 Notification data işleniyor:', data);
-
-        // Notification tipine göre işlem yap
+        // Sadece type alanını log'la — payload'un tamamını değil.
         const type = readString(data.type);
+        logger.debug('fcm', 'Notification received', { type });
 
+        // Notification tipine göre işlem yap (navigation/store update hook'ları
+        // ileride buraya eklenir; şu an tip-bazlı tüketim route layer'da.)
         switch (type) {
             case 'new_request':
-                console.log('   Yeni talep bildirimi');
-                // Yeni talep geldiğinde yapılacaklar
-                // Örn: Zustand store güncelle, navigation tetikle
-                break;
-
             case 'request_accepted':
-                console.log('   Talep kabul edildi bildirimi');
-                break;
-
             case 'request_completed':
-                console.log('   Talep tamamlandı bildirimi');
-                break;
-
             case 'message':
-                console.log('   Mesaj bildirimi');
-                break;
-
             case 'job_assigned':
-                console.log('   Eleman iş ataması bildirimi');
-                // Employee panel store'u refresh etmeye gerek yok
-                // Navigation handleNotificationClick'te yapılacak
                 break;
-
             default:
-                console.log('   Bilinmeyen bildirim tipi:', type);
+                break;
         }
     }
 
     /**
      * Bildirime tıklanma işle (navigation)
      *
-     * Şu an sadece log atılıyor; navigation tetikleme ileride eklendiğinde
-     * alanlar `readString(data.request_details_id)` gibi güvenli okuma ile
-     * alınmalıdır.
+     * Navigation tetikleme `useNotifications` hook tarafından yapılır.
+     * Burada yalnız tip bilgisi log'lanır.
      */
     private handleNotificationClick(data: FCMDataRecord): void {
-        console.log('👆 Notification tıklandı, navigation başlatılıyor...');
-        console.log('   Data:', data);
-
-        // Navigation logic buraya eklenecek
-        // Örn: NavigationService.navigate('JobDetail', { requestId: readString(data.request_id) })
+        logger.debug('fcm', 'Notification clicked', { type: readString(data.type) });
     }
 
     /**
@@ -264,8 +215,6 @@ class FCMService {
      */
     async deleteToken(): Promise<void> {
         try {
-            console.log('🗑️ FCM token siliniyor...');
-
             // Backend'den sil
             const deviceId = await deviceService.getDeviceId();
             await authAPI.deleteFCMToken(deviceId);
@@ -274,9 +223,9 @@ class FCMService {
             await messaging().deleteToken();
 
             this.fcmToken = null;
-            console.log('✅ FCM token silindi');
+            logger.debug('fcm', 'FCM token silindi');
         } catch (error) {
-            console.error('❌ FCM token silme hatası:', error);
+            logger.error('fcm', 'FCM token silme hatası');
         }
     }
 

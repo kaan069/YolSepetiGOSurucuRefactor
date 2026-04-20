@@ -8,6 +8,7 @@ import { useRegistrationDataStore, ServiceType } from '../../store/useRegistrati
 import { authAPI } from '../../api';
 import PhoneInput from '../../components/PhoneInput';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PhoneNumber'>;
 
@@ -93,23 +94,17 @@ export default function PhoneNumberScreen({ navigation }: Props) {
     });
     setSelectedVehicleTypes(vehicleTypesForStore);
 
-    console.log('📞 Kayıt için telefon numarası:', fullNumber);
-    console.log('🚗 Seçilen hizmetler (UI):', selectedServices);
-    console.log('🚗 Seçilen hizmetler (Backend):', vehicleTypesForStore);
-
     // OTP gönder
     setLoading(true);
     setError('');
 
     try {
-      console.log('📱 OTP gönderiliyor...');
       await authAPI.sendOTP(fullNumber);
-      console.log('✅ OTP başarıyla gönderildi');
 
       // OTP doğrulama ekranına git
       navigation.navigate('OTPVerification');
     } catch (error: any) {
-      console.error('❌ OTP gönderme hatası:', error);
+      logger.error('auth', 'PhoneNumber.sendOTP failure', { status: error?.response?.status });
 
       let errorMessage = 'SMS gönderilemedi. Lütfen tekrar deneyin.';
 

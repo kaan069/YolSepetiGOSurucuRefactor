@@ -4,6 +4,7 @@
  */
 import { axiosInstance, PaginatedResponse } from './base';
 import { TowTruckRequestDetail, AcceptTowTruckResponse } from '../types';
+import { logOrdersError } from './_helpers';
 
 class TowTruckAPI {
   // Bekleyen çekici taleplerini getir
@@ -14,7 +15,7 @@ class TowTruckAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get pending tow truck requests error:', error);
+      logOrdersError('towTruck.getPendingRequests', error);
       throw error;
     }
   }
@@ -40,7 +41,7 @@ class TowTruckAPI {
 
       return availableRequests;
     } catch (error) {
-      console.error('❌ Get available tow truck requests error:', error);
+      logOrdersError('towTruck.getAvailableRequests', error);
       throw error;
     }
   }
@@ -53,7 +54,7 @@ class TowTruckAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting approval tow truck requests error:', error);
+      logOrdersError('towTruck.getAwaitingApprovalRequests', error);
       throw error;
     }
   }
@@ -66,7 +67,7 @@ class TowTruckAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting payment tow truck requests error:', error);
+      logOrdersError('towTruck.getAwaitingPaymentRequests', error);
       return [];
     }
   }
@@ -79,7 +80,7 @@ class TowTruckAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get in progress tow truck requests error:', error);
+      logOrdersError('towTruck.getInProgressRequests', error);
       throw error;
     }
   }
@@ -92,7 +93,7 @@ class TowTruckAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get completed tow truck requests error:', error);
+      logOrdersError('towTruck.getCompletedRequests', error);
       throw error;
     }
   }
@@ -103,7 +104,7 @@ class TowTruckAPI {
       const response = await axiosInstance.get<TowTruckRequestDetail>(`/requests/tow-truck/details/${id}/`);
       return response.data;
     } catch (error) {
-      console.error('Get tow truck request detail error:', error);
+      logOrdersError('towTruck.getRequestDetail', error);
       throw error;
     }
   }
@@ -135,7 +136,7 @@ class TowTruckAPI {
       const response = await axiosInstance.post(`/requests/tow-truck/${trackingToken}/calculate-price/`, requestBody);
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Fiyat hesaplama hatası:', error?.response?.data);
+      logOrdersError('towTruck.calculatePrice', error);
       throw error;
     }
   }
@@ -157,7 +158,7 @@ class TowTruckAPI {
       });
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Talep kabul etme hatası:', error?.response?.data);
+      logOrdersError('towTruck.acceptRequest', error);
       throw error;
     }
   }
@@ -192,7 +193,7 @@ class TowTruckAPI {
       const response = await axiosInstance.post(`/requests/tow-truck/${trackingToken}/submit-offer/`, payload);
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Çekici teklif gönderme hatası:', error?.response?.data);
+      logOrdersError('towTruck.submitOffer', error);
       throw error;
     }
   }
@@ -202,7 +203,7 @@ class TowTruckAPI {
       const response = await axiosInstance.delete(`/requests/tow-truck/${trackingToken}/withdraw-offer/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Çekici teklif geri çekme hatası:', error?.response?.data);
+      logOrdersError('towTruck.withdrawOffer', error);
       throw error;
     }
   }

@@ -25,6 +25,7 @@ import { useNakliyeLocationStore } from './store/useNakliyeLocationStore';
 import { authAPI, requestsAPI } from './api';
 import { navigateToAcceptedJob, navigateToOfferScreen } from './utils/notificationNavigation';
 import { backgroundLocationService } from './services/backgroundLocationService';
+import { logger } from './utils/logger';
 
 export default function App() {
   const [fontsLoaded, setFontsLoaded] = React.useState(false);
@@ -58,7 +59,7 @@ export default function App() {
           } catch (error: any) {
             // Network hatası ise (internet yok) kullanıcıyı çıkış yaptırma, cached data ile devam et
             if (!error.response && error.request) {
-              console.log('🌐 [App Start] İnternet yok, cached verilerle devam ediliyor');
+              logger.warn('auth', 'App.checkAuth - offline, using cached session');
               const cachedUser = JSON.parse(userData);
               setCurrentUser(cachedUser);
               setIsAuthenticated(true);
@@ -68,8 +69,8 @@ export default function App() {
             }
           }
         }
-      } catch (error) {
-        console.error('❌ Error checking auth status:', error);
+      } catch (error: any) {
+        logger.error('auth', 'App.checkAuth failure', { status: error?.response?.status });
       } finally {
         setAuthChecked(true);
       }
@@ -86,7 +87,7 @@ export default function App() {
         });
         setFontsLoaded(true);
       } catch (error) {
-        console.error('Error loading fonts:', error);
+        logger.error('general', 'App.loadFonts failure');
         setFontsLoaded(true);
       }
     }
@@ -144,13 +145,13 @@ export default function App() {
 
         const status = detail?.status || detail?.request_id?.status;
         if (status === 'completed' || status === 'cancelled') {
-          console.log('🧹 [App] Aktif iş artık geçerli değil, temizleniyor...');
+          logger.debug('orders', 'App.validateActiveJob - cleared (completed/cancelled)');
           clearActiveJob();
           await backgroundLocationService.forceStop();
         }
       } catch (error: any) {
         if (error?.response?.status === 404) {
-          console.log('🧹 [App] Aktif iş bulunamadı (404), temizleniyor...');
+          logger.debug('orders', 'App.validateActiveJob - cleared (404)');
           clearActiveJob();
           await backgroundLocationService.forceStop();
         }
@@ -186,8 +187,8 @@ export default function App() {
     trackingToken: activeJobTrackingToken,
     enabled: isAuthenticated && !!shouldEnableWebSocket,
     onConnected: () => { },
-    onError: async (error) => {
-      console.error('❌ [App] Global WebSocket hatası:', error);
+    onError: async () => {
+      logger.error('websocket', 'App.globalLocation.onError');
     },
     onDisconnected: () => { },
     onStatusUpdate: (data: any) => {
@@ -211,8 +212,8 @@ export default function App() {
     trackingToken: nakliyeLocationState.trackingToken,
     enabled: isAuthenticated && nakliyeLocationState.isLocationSharing && !!nakliyeLocationState.trackingToken,
     onConnected: () => { },
-    onError: (error) => {
-      console.error('❌ [App] Nakliye WebSocket hatası:', error);
+    onError: () => {
+      logger.error('websocket', 'App.nakliyeLocation.onError');
       // Hata durumunda konum paylaşımını durdur
       nakliyeLocationState.stopLocationSharing();
       Alert.alert('Hata', 'Konum paylaşımı başlatılamadı. Lütfen tekrar deneyin.');

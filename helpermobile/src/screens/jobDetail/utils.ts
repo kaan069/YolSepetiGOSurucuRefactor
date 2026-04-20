@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 import { TowTruckRequestDetail } from '../../api';
+import { logger } from '../../utils/logger';
 
 // Utility function to calculate distance between two coordinates
 // İki koordinat arasındaki mesafeyi hesaplayan utility fonksiyonu
@@ -29,7 +30,7 @@ export const getAddressDetails = async (latitude: number, longitude: number) => 
       };
     }
   } catch (error) {
-    console.error('Reverse geocoding error:', error);
+    logger.error('orders', 'Reverse geocoding error');
   }
   return { district: '', neighborhood: '' };
 };
@@ -37,7 +38,7 @@ export const getAddressDetails = async (latitude: number, longitude: number) => 
 // Helper function to get request ID - handles both object and number formats
 export const getRequestId = (request: TowTruckRequestDetail): number => {
   if (!request.request_id) {
-    console.error('getRequestId: request_id is null or undefined');
+    logger.error('orders', 'getRequestId: request_id is null or undefined');
     return 0;
   }
 

@@ -12,6 +12,7 @@ import {
   TRANSFER_DOCUMENT_FIELDS,
 } from './constants';
 import { VehicleKind } from './types';
+import { logger } from '../../../utils/logger';
 
 type PickTarget = 'vehicle' | 'insurance';
 
@@ -140,7 +141,7 @@ export function useVehiclePhotos(vehicleId: string | undefined, vehicleType: Veh
       }
     } catch (error: any) {
       if (error?.response?.status !== 404) {
-        console.error('Fotoğraf yükleme hatası:', error);
+        logger.error('auth', 'Fotoraf ykleme hatas');
       }
     } finally {
       setLoadingPhoto(false);

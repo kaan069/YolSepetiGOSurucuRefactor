@@ -9,6 +9,7 @@ import {
     EmployeeJobsResponse,
     EmployeeJobDetail,
 } from '../types';
+import { logOrdersError } from './_helpers';
 
 interface GetJobsParams {
     status?: 'active' | 'completed';
@@ -23,7 +24,7 @@ class EmployeePanelAPI {
             const response = await axiosInstance.get<EmployeeDashboardResponse>('/employee/dashboard/');
             return response.data;
         } catch (error: any) {
-            console.error('Get employee dashboard error:', error?.response?.data);
+            logOrdersError('employeePanel.getDashboard', error);
             throw error;
         }
     }
@@ -34,7 +35,7 @@ class EmployeePanelAPI {
             const response = await axiosInstance.get<EmployeeJobsResponse>('/employee/jobs/', { params });
             return response.data;
         } catch (error: any) {
-            console.error('Get employee jobs error:', error?.response?.data);
+            logOrdersError('employeePanel.getJobs', error);
             throw error;
         }
     }
@@ -45,7 +46,7 @@ class EmployeePanelAPI {
             const response = await axiosInstance.get<EmployeeJobDetail>(`/employee/jobs/${requestId}/`);
             return response.data;
         } catch (error: any) {
-            console.error('Get employee job detail error:', error?.response?.data);
+            logOrdersError('employeePanel.getJobDetail', error);
             throw error;
         }
     }

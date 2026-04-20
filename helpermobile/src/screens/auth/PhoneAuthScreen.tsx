@@ -11,6 +11,7 @@ import { useAuthStore } from '../../store/authStore';
 import { authAPI, documentsAPI } from '../../api';
 import PhoneInput from '../../components/PhoneInput';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 // Navigation props type tanımı - Navigation props type definition
 type Props = NativeStackScreenProps<RootStackParamList, 'PhoneAuth'>;
@@ -54,8 +55,6 @@ export default function PhoneAuthScreen({ navigation }: Props) {
   // Giriş yap
   const handleLogin = async () => {
     try {
-      console.log('🔐 [PhoneAuth] Adım 1: handleLogin başladı');
-
       // Validasyon: Türkiye için 10 haneli numara
       if (phoneNumber.length < 10) {
         setError('Telefon numarası 10 haneli olmalıdır.');
@@ -73,8 +72,6 @@ export default function PhoneAuthScreen({ navigation }: Props) {
         return;
       }
 
-      console.log('🔐 [PhoneAuth] Adım 2: Validasyon geçti');
-
       setIsLoading(true);
       setError('');
 
@@ -86,8 +83,6 @@ export default function PhoneAuthScreen({ navigation }: Props) {
         password: password,
         device_type: Platform.OS === 'ios' ? 'ios' : 'android',
       });
-
-      console.log('✅ [PhoneAuth] API başarılı');
 
       // Başarılı giriş - telefon kaydet
       savePhoneNumber(phoneNumber);
@@ -137,16 +132,15 @@ export default function PhoneAuthScreen({ navigation }: Props) {
             await AsyncStorage.removeItem('profile_completion_percentage');
             await AsyncStorage.removeItem('profile_missing_fields');
           }
-        } catch (err) {
-          console.error('❌ [PhoneAuth] Profil kontrolü hatası:', err);
+        } catch (err: any) {
+          logger.error('auth', 'PhoneAuth.profileCompleteness failure', { status: err?.response?.status });
         }
       }
 
       setIsAuthenticated(true);
-      console.log('✅ [PhoneAuth] GİRİŞ BAŞARILI!');
 
     } catch (error: any) {
-      console.error('❌ [PhoneAuth] HATA:', error);
+      logger.error('auth', 'PhoneAuth.handleLogin failure', { status: error?.response?.status });
 
       // Network hatası kontrolü (internet yok veya sunucuya ulaşılamıyor)
       if (!error.response && error.request) {
@@ -178,7 +172,7 @@ export default function PhoneAuthScreen({ navigation }: Props) {
 
       setForgotSuccess(true);
     } catch (error: any) {
-      console.error('❌ Şifremi unuttum hatası:', error);
+      logger.error('auth', 'PhoneAuth.forgotPassword failure', { status: error?.response?.status });
 
       if (!error.response && error.request) {
         setForgotError('İnternet bağlantınız yok. Lütfen bağlantınızı kontrol edin.');

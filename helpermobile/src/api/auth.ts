@@ -3,6 +3,25 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthResponse, RegisterRequest, LoginRequest, SendOTPRequest, SendOTPResponse, VerifyOTPRequest, VerifyOTPResponse, AccountReadinessResponse } from './types';
 import { logger } from '../utils/logger';
 
+// Auth katmanı için güvenli error sanitizer.
+// Backend error response body'sini ASLA loglamaz. Auth/OTP/profile akışı
+// telefon numarası, TC, OTP kodu, doğrulama token'ı, user payload gibi
+// yüksek hassasiyetli alanlar içerir; validation hatalarında backend bu
+// alanları echo edebileceğinden error objesinin tamamı loglanmaz — sadece
+// HTTP status ve statik action adı loglanır.
+const logAuthError = (action: string, error: any): void => {
+    const status = error?.response?.status;
+    logger.error('auth', `${action} failed`, status ? { status } : undefined);
+};
+
+// FCM token yönetimi için güvenli error sanitizer.
+// FCM token'ları hassas kabul edilir; backend error body'si `fcm_token`,
+// `device_id` veya `user_id` echo edebilir. Sadece HTTP status loglanır.
+const logFcmError = (action: string, error: any): void => {
+    const status = error?.response?.status;
+    logger.error('fcm', `${action} failed`, status ? { status } : undefined);
+};
+
 class AuthAPI {
     // ==================== OTP İşlemleri ====================
 
@@ -37,7 +56,7 @@ class AuthAPI {
             logger.debug('auth', 'OTP sent');
             return response.data;
         } catch (error: any) {
-            logger.error('auth', 'OTP send failed', error);
+            logAuthError('sendOTP', error);
             throw error;
         }
     }
@@ -74,7 +93,7 @@ class AuthAPI {
 
             return response.data;
         } catch (error: any) {
-            logger.error('auth', 'OTP verify failed', error);
+            logAuthError('verifyOTP', error);
             throw error;
         }
     }
@@ -138,7 +157,7 @@ class AuthAPI {
             logger.info('auth', 'Register completed');
             return response.data;
         } catch (error) {
-            logger.error('auth', 'Register failed', error);
+            logAuthError('register', error);
             throw error;
         }
     }
@@ -154,11 +173,7 @@ class AuthAPI {
 
             logger.debug('auth', 'Login response received', { status: response.status });
         } catch (error: any) {
-            logger.error('auth', 'Login failed', {
-                message: error?.message,
-                status: error?.response?.status,
-            });
-
+            logAuthError('login', error);
             throw error;
         }
 
@@ -205,7 +220,7 @@ class AuthAPI {
 
             return response.data;
         } catch (error) {
-            logger.error('auth', 'Refresh token failed', error);
+            logAuthError('refreshToken', error);
             await this.logout();
             throw error;
         }
@@ -224,7 +239,7 @@ class AuthAPI {
             const userString = await AsyncStorage.getItem('user');
             return userString ? JSON.parse(userString) : null;
         } catch (error) {
-            logger.error('auth', 'Get user failed', error);
+            logAuthError('getUser', error);
             return null;
         }
     }
@@ -241,7 +256,7 @@ class AuthAPI {
 
             return response.data;
         } catch (error) {
-            logger.error('auth', 'Get profile failed', error);
+            logAuthError('getProfile', error);
             throw error;
         }
     }
@@ -269,7 +284,7 @@ class AuthAPI {
 
             return response.data;
         } catch (error) {
-            logger.error('auth', 'Update profile failed', error);
+            logAuthError('updateProfile', error);
             throw error;
         }
     }
@@ -288,7 +303,7 @@ class AuthAPI {
 
             return response.data;
         } catch (error) {
-            logger.error('auth', 'Update user type failed', error);
+            logAuthError('updateUserType', error);
             throw error;
         }
     }
@@ -322,7 +337,7 @@ class AuthAPI {
             logger.info('auth', 'Forgot password sent');
             return response.data;
         } catch (error: any) {
-            logger.error('auth', 'Forgot password failed', error);
+            logAuthError('forgotPassword', error);
             throw error;
         }
     }
@@ -333,7 +348,7 @@ class AuthAPI {
             const response = await axiosInstance.get<{ user_is_online: boolean; status_text: string }>('/auth/status/online/');
             return response.data;
         } catch (error) {
-            logger.error('auth', 'Get online status failed', error);
+            logAuthError('getOnlineStatus', error);
             throw error;
         }
     }
@@ -344,7 +359,7 @@ class AuthAPI {
             const response = await axiosInstance.get<AccountReadinessResponse>('/auth/account-ready/');
             return response.data;
         } catch (error) {
-            logger.error('auth', 'Account readiness check failed', error);
+            logAuthError('checkAccountReadiness', error);
             throw error;
         }
     }
@@ -357,7 +372,7 @@ class AuthAPI {
             });
             return response.data;
         } catch (error) {
-            logger.error('auth', 'Update online status failed', error);
+            logAuthError('updateOnlineStatus', error);
             throw error;
         }
     }
@@ -394,7 +409,7 @@ class AuthAPI {
                 };
             }
 
-            logger.error('fcm', 'FCM token register failed', error);
+            logFcmError('registerFCMToken', error);
             throw error;
         }
     }
@@ -423,7 +438,7 @@ class AuthAPI {
                 };
             }
 
-            logger.error('fcm', 'FCM token delete failed', error);
+            logFcmError('deleteFCMToken', error);
             throw error;
         }
     }

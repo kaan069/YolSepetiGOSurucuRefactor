@@ -12,6 +12,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VehiclesScreen'>;
 
@@ -81,71 +82,24 @@ export default function VehiclesScreen({ navigation }: Props) {
       const loadVehicles = async () => {
         try {
           setLoading(true);
-          console.log('');
-          console.log('═══════════════════════════════════════════════');
-          console.log('🚗 [VehiclesScreen] ARAÇ YÜKLEME BAŞLIYOR');
-          console.log('═══════════════════════════════════════════════');
 
           // Token kontrolü - eğer token yoksa loading'i durdur (logout sonrası olabilir)
           const accessToken = await AsyncStorage.getItem('access_token');
           if (!accessToken) {
-            console.log('⚠️ [VehiclesScreen] Token yok, araç yükleme atlanıyor (logout sonrası olabilir)');
             setLoading(false);
             return;
           }
 
           // AsyncStorage'dan kullanıcı bilgisini yükle
           const userJson = await AsyncStorage.getItem('user');
-          let loadedUserTypes: string[] = [];
           if (userJson) {
             const user: User = JSON.parse(userJson);
-            loadedUserTypes = user.user_type || [];
-            setUserServiceTypes(loadedUserTypes);
-            console.log('👤 [VehiclesScreen] Kullanıcı servisleri:', user.user_type);
+            setUserServiceTypes(user.user_type || []);
           }
 
-          // Service types'ı kontrol et (yüklenen değerler ile)
-          console.log('🔍 [VehiclesScreen] Service types kontrolü:');
-          console.log('   • Tow (towTruck):', loadedUserTypes.includes('towTruck'));
-          console.log('   • Crane:', loadedUserTypes.includes('crane'));
-          console.log('   • Transport:', loadedUserTypes.includes('transport'));
-          console.log('   • Nakliye:', loadedUserTypes.includes('nakliye'));
-          console.log('   • RoadAssistance:', loadedUserTypes.includes('roadAssistance'));
-
-          // Mevcut araçları logla
-          console.log('📦 [VehiclesScreen] Mevcut araçlar (store):');
-          console.log('   • Tow trucks:', towTrucks?.length || 0);
-          console.log('   • Cranes:', cranes?.length || 0);
-          console.log('   • Transports:', transports?.length || 0);
-          console.log('   • HomeMoving:', homeMoving?.length || 0);
-          console.log('   • RoadAssistance:', roadAssistance?.length || 0);
-
-          console.log("🌐 [VehiclesScreen] Backend\\'den araçlar yükleniyor...");
           await vehiclesAPI.loadUserVehicles();
-          console.log('✅ [VehiclesScreen] Backend yükleme başarılı');
-
-          // Yükleme sonrası araçları logla
-          const state = useVehicleStore.getState();
-          console.log('📦 [VehiclesScreen] Yükleme sonrası araçlar:');
-          console.log('   • Tow trucks:', state.towTrucks?.length || 0);
-          console.log('   • Cranes:', state.cranes?.length || 0);
-          console.log('   • Transports:', state.transports?.length || 0);
-          console.log('   • HomeMoving:', state.homeMoving?.length || 0);
-          console.log('   • RoadAssistance:', state.roadAssistance?.length || 0);
-
-          console.log('═══════════════════════════════════════════════');
-          console.log('');
         } catch (error: any) {
-          console.error('');
-          console.error('═══════════════════════════════════════════════');
-          console.error('❌ [VehiclesScreen] ARAÇ YÜKLEME HATASI');
-          console.error('═══════════════════════════════════════════════');
-          console.error('   • Error:', error);
-          console.error('   • Message:', error?.message);
-          console.error('   • Response status:', error?.response?.status);
-          console.error('   • Response data:', error?.response?.data);
-          console.error('═══════════════════════════════════════════════');
-          console.error('');
+          logger.error('vehicles', 'VehiclesScreen.loadVehicles failure', { status: error?.response?.status });
 
           // Sadece authentication hatası değilse kullanıcıya göster
           if (error?.response?.status !== 401) {
@@ -183,7 +137,7 @@ export default function VehiclesScreen({ navigation }: Props) {
 
               Alert.alert('Başarılı', 'Çekici aracı başarıyla silindi.');
             } catch (error: any) {
-              console.error('Delete tow truck error:', error);
+              logger.error('vehicles', 'VehiclesScreen.deleteTowTruck failure', { status: error?.response?.status });
               const errorMessage = error?.response?.data?.message ||
                                   error?.response?.data?.error ||
                                   'Çekici silinirken bir hata oluştu.';
@@ -217,7 +171,7 @@ export default function VehiclesScreen({ navigation }: Props) {
 
               Alert.alert('Başarılı', 'Vinç aracı başarıyla silindi.');
             } catch (error: any) {
-              console.error('Delete crane error:', error);
+              logger.error('vehicles', 'VehiclesScreen.deleteCrane failure', { status: error?.response?.status });
               const errorMessage = error?.response?.data?.message ||
                                   error?.response?.data?.error ||
                                   'Vinç silinirken bir hata oluştu.';
@@ -265,7 +219,7 @@ export default function VehiclesScreen({ navigation }: Props) {
               removeHomeMoving(vehicleId);
               Alert.alert('Başarılı', 'Nakliye aracı başarıyla silindi.');
             } catch (error: any) {
-              console.error('Delete nakliye vehicle error:', error);
+              logger.error('vehicles', 'VehiclesScreen.deleteHomeMoving failure', { status: error?.response?.status });
               const errorMessage = error?.response?.data?.message ||
                                   error?.response?.data?.error ||
                                   'Nakliye aracı silinirken bir hata oluştu.';
@@ -295,7 +249,7 @@ export default function VehiclesScreen({ navigation }: Props) {
               removeRoadAssistance(vehicleId);
               Alert.alert('Başarılı', 'Yol yardım hizmeti başarıyla silindi.');
             } catch (error: any) {
-              console.error('Delete road assistance error:', error);
+              logger.error('vehicles', 'VehiclesScreen.deleteRoadAssistance failure', { status: error?.response?.status });
               const errorMessage = error?.response?.data?.message ||
                                   error?.response?.data?.error ||
                                   'Yol yardım hizmeti silinirken bir hata oluştu.';
@@ -325,7 +279,7 @@ export default function VehiclesScreen({ navigation }: Props) {
               removeTransfer(vehicleId);
               Alert.alert('Başarılı', 'Transfer aracı başarıyla silindi.');
             } catch (error: any) {
-              console.error('Delete transfer error:', error);
+              logger.error('vehicles', 'VehiclesScreen.deleteTransfer failure', { status: error?.response?.status });
               const errorMessage = error?.response?.data?.message ||
                                   error?.response?.data?.error ||
                                   'Transfer aracı silinirken bir hata oluştu.';

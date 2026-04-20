@@ -3,13 +3,13 @@ import { AuthUser, AuthState, HelperRole, ProviderVehicle } from '../lib/types';
 import { nanoid } from 'nanoid/non-secure';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance, { setLoggingOut } from '../api/axiosConfig';
-import fcmService from '../services/fcmService';
 import { useActiveJobStore } from './useActiveJobStore';
 import { useNakliyeLocationStore } from './useNakliyeLocationStore';
 import { useNotificationStore } from './useNotificationStore';
 import { useEmployeeStore } from './useEmployeeStore';
 import { useEmployeePanelStore } from './useEmployeePanelStore';
 import { backgroundLocationService } from '../services/backgroundLocationService';
+import { logger } from '../utils/logger';
 
 // Type definition for the store's actions.
 // Store eylemleri için tip tanımı.
@@ -123,7 +123,7 @@ export const useAuthStore = create<Store>((set, get) => ({
 
   // Çıkış yap - Logout user
   logout: async () => {
-    console.log('🚪 Logout başlatılıyor...');
+    logger.debug('auth', 'logout started');
 
     // Logout bayrağını set et - 401 bildirimleri gösterilmeyecek
     setLoggingOut(true);
@@ -145,11 +145,9 @@ export const useAuthStore = create<Store>((set, get) => ({
         }
       } catch (logoutError: any) {
         // Token geçersiz veya zaten blacklist'te olabilir - önemli değil, devam et
-        console.warn('⚠️ Token blacklist edilemedi (göz ardı ediliyor)');
-
-        if (logoutError?.response?.status === 400) {
-          console.warn('   → Token zaten blacklist\'te veya geçersiz olabilir');
-        }
+        logger.warn('auth', 'logout.blacklistToken failed (ignored)', {
+          status: logoutError?.response?.status,
+        });
       }
 
       // 2. Backend'den FCM token'ı sil
@@ -163,15 +161,13 @@ export const useAuthStore = create<Store>((set, get) => ({
         }
       } catch (fcmError: any) {
         // 404 = Token bulunamadı (normal), 400+ = Başka hata
-        if (fcmError?.response?.status === 404) {
-          console.log('⏭️  FCM token zaten yok (404)');
-        } else {
-          console.warn('⚠️ FCM token silinemedi (göz ardı ediliyor)');
+        const status = fcmError?.response?.status;
+        if (status !== 404) {
+          logger.warn('fcm', 'logout.deleteFcmToken failed (ignored)', { status });
         }
       }
 
       // 3. Tüm local storage'ı temizle - Make account "bakire" (clean/fresh)
-      console.log('🧹 Local storage temizleniyor...');
       await AsyncStorage.multiRemove([
         'registration-storage',  // useRegistrationDataStore
         'vehicle-storage',       // useVehicleStore
@@ -181,39 +177,19 @@ export const useAuthStore = create<Store>((set, get) => ({
         'fcm_token',             // FCM token (local)
         'device_id'             // Device ID
       ]);
-      console.log('✅ AsyncStorage temizlendi - Hesap bakire durumda');
 
       // 4. Zustand store'ları temizle - Bellekteki verileri sıfırla
-      console.log('🧹 Zustand store\'ları temizleniyor...');
-
-      // Aktif iş store - WebSocket konum paylaşımı için
       useActiveJobStore.getState().clearActiveJob();
-      console.log('   ✅ useActiveJobStore temizlendi');
-
-      // Nakliye konum paylaşımı store
       useNakliyeLocationStore.getState().stopLocationSharing();
-      console.log('   ✅ useNakliyeLocationStore temizlendi');
-
-      // Notification store
       useNotificationStore.getState().clearAll();
-      console.log('   ✅ useNotificationStore temizlendi');
-
-      // Employee store
       useEmployeeStore.getState().clearEmployees();
-      console.log('   ✅ useEmployeeStore temizlendi');
-
-      // Employee panel store
       useEmployeePanelStore.getState().clearAll();
-      console.log('   ✅ useEmployeePanelStore temizlendi');
 
       // Arka plan konum takibini durdur
       await backgroundLocationService.forceStop();
-      console.log('   ✅ Background konum takibi durduruldu');
-
-      console.log('✅ Tüm Zustand store\'ları temizlendi');
 
     } catch (error: any) {
-      console.error('❌ Logout sırasında genel hata:', error?.message || error);
+      logger.error('auth', 'logout failure', { message: error?.message });
       // Hata olsa bile storage'ı ve store'ları temizle ve çıkış yap
       try {
         await AsyncStorage.multiRemove([
@@ -234,7 +210,7 @@ export const useAuthStore = create<Store>((set, get) => ({
         useEmployeePanelStore.getState().clearAll();
         await backgroundLocationService.forceStop();
       } catch (cleanupError) {
-        console.error('❌ Storage/Store temizleme hatası:', cleanupError);
+        logger.error('auth', 'logout.cleanup failure');
       }
     }
 
@@ -244,7 +220,7 @@ export const useAuthStore = create<Store>((set, get) => ({
     // Logout bayrağını sıfırla
     setLoggingOut(false);
 
-    console.log('✅ Logout tamamlandı - Kullanıcı çıkış yaptı');
+    logger.debug('auth', 'logout completed');
   },
 
   // Yeni kullanıcı kaydı - Register new user

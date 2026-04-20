@@ -9,6 +9,7 @@ import type {
   RoadAssistanceOfferPayload,
   RoadAssistanceActionResponse,
 } from '../types';
+import { logOrdersError } from './_helpers';
 
 class RoadAssistanceAPI {
   // Bekleyen yol yardım taleplerini getir
@@ -19,7 +20,7 @@ class RoadAssistanceAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get pending road assistance requests error:', error);
+      logOrdersError('roadAssistance.getPendingRequests', error);
       return [];
     }
   }
@@ -45,7 +46,7 @@ class RoadAssistanceAPI {
 
       return availableRequests;
     } catch (error) {
-      console.error('❌ Get available road assistance requests error:', error);
+      logOrdersError('roadAssistance.getAvailableRequests', error);
       return [];
     }
   }
@@ -58,7 +59,7 @@ class RoadAssistanceAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting approval road assistance requests error:', error);
+      logOrdersError('roadAssistance.getAwaitingApprovalRequests', error);
       return [];
     }
   }
@@ -71,7 +72,7 @@ class RoadAssistanceAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting payment road assistance requests error:', error);
+      logOrdersError('roadAssistance.getAwaitingPaymentRequests', error);
       return [];
     }
   }
@@ -84,7 +85,7 @@ class RoadAssistanceAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get in-progress road assistance requests error:', error);
+      logOrdersError('roadAssistance.getInProgressRequests', error);
       return [];
     }
   }
@@ -97,7 +98,7 @@ class RoadAssistanceAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get completed road assistance requests error:', error);
+      logOrdersError('roadAssistance.getCompletedRequests', error);
       return [];
     }
   }
@@ -110,7 +111,7 @@ class RoadAssistanceAPI {
       );
       return response.data;
     } catch (error) {
-      console.error('❌ Get road assistance request detail error:', error);
+      logOrdersError('roadAssistance.getRequestDetail', error);
       throw error;
     }
   }
@@ -143,7 +144,7 @@ class RoadAssistanceAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ Submit road assistance offer error:', error?.response?.data);
+      logOrdersError('roadAssistance.submitOffer', error);
       throw error;
     }
   }
@@ -155,7 +156,7 @@ class RoadAssistanceAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Yol yardım teklif geri çekme hatası:', error?.response?.data);
+      logOrdersError('roadAssistance.withdrawOffer', error);
       throw error;
     }
   }

@@ -14,6 +14,7 @@ import {
   RequestPhoto,
 } from '../types';
 import { getMimeTypeFromUri } from '../vehicles';
+import { logOrdersError } from './_helpers';
 
 class CommonAPI {
   // ==================== SÜRÜCÜ FOTOĞRAF YÜKLEME ====================
@@ -39,7 +40,7 @@ class CommonAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ Upload driver photos error:', error?.response?.data);
+      logOrdersError('common.uploadDriverPhotos', error);
       throw error;
     }
   }
@@ -52,7 +53,7 @@ class CommonAPI {
       const response = await axiosInstance.get<TotalEarningsResponse>('/summary/earnings/total/');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Get total earnings error:', error);
+      logOrdersError('common.getTotalEarnings', error);
       throw error;
     }
   }
@@ -84,7 +85,7 @@ class CommonAPI {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Get period earnings error:', error);
+      logOrdersError('common.getPeriodEarnings', error);
       throw error;
     }
   }
@@ -120,7 +121,7 @@ class CommonAPI {
 
       return response.data;
     } catch (error: any) {
-      console.error('❌ Get earnings list error:', error);
+      logOrdersError('common.getEarningsList', error);
       throw error;
     }
   }
@@ -138,7 +139,7 @@ class CommonAPI {
       const response = await axiosInstance.post(`/request/location/${token}/complete/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Complete job by customer error:', error?.response?.data);
+      logOrdersError('common.completeJobByCustomer', error);
       throw error;
     }
   }
@@ -155,7 +156,7 @@ class CommonAPI {
       const response = await axiosInstance.post(`/request/location/${token}/approve/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Approve request by customer error:', error?.response?.data);
+      logOrdersError('common.approveRequestByCustomer', error);
       throw error;
     }
   }
@@ -172,7 +173,7 @@ class CommonAPI {
       });
       return response.data;
     } catch (error: any) {
-      console.error('❌ Reject request by customer error:', error?.response?.data);
+      logOrdersError('common.rejectRequestByCustomer', error);
       throw error;
     }
   }
@@ -192,7 +193,7 @@ class CommonAPI {
       const response = await axiosInstance.post(`/payment/requests/${requestId}/pay-commission/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Pay crane commission error:', error?.response?.data);
+      logOrdersError('common.payCraneCommission', error);
       throw error;
     }
   }
@@ -203,7 +204,7 @@ class CommonAPI {
       const response = await axiosInstance.post(`/requests/tow-truck/${requestId}/complete/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Complete tow truck request error:', error?.response?.data);
+      logOrdersError('common.completeTowTruckRequest', error);
       throw error;
     }
   }
@@ -214,7 +215,7 @@ class CommonAPI {
       const response = await axiosInstance.post(`/requests/crane/${requestId}/complete/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Complete crane request error:', error?.response?.data);
+      logOrdersError('common.completeCraneRequest', error);
       throw error;
     }
   }
@@ -227,7 +228,7 @@ class CommonAPI {
       const response = await axiosInstance.get<Record<string, JobCountsResponse>>('/requests/all-counts/');
       return response.data;
     } catch (error: any) {
-      console.error('❌ Get all services counts error:', error);
+      logOrdersError('common.getAllServicesCounts', error);
       throw error;
     }
   }
@@ -238,7 +239,7 @@ class CommonAPI {
       const response = await axiosInstance.get<JobCountsResponse>(`/requests/${serviceType}/counts/`);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Get service counts error:', error);
+      logOrdersError('common.getServiceCounts', error);
       throw error;
     }
   }

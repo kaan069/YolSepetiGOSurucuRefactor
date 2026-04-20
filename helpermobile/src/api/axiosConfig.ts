@@ -40,13 +40,23 @@ axiosInstance.interceptors.request.use(
             }
 
             return config;
-        } catch (err) {
-            logger.error('network', 'Request interceptor failure', err);
+        } catch (err: any) {
+            // Interceptor-internal try/catch — ham `err` axios config/XHR referansı
+            // içerebilir (header/url leak). Sadece mesajı logla.
+            logger.error('network', 'Request interceptor failure', {
+                message: err?.message,
+            });
             return config; // Hata olsa bile request'i gönder
         }
     },
     (error: AxiosError) => {
-        logger.error('network', 'Request error', error);
+        // Request gönderilmeden önce oluşan hata — axios instance ham error
+        // objesi tüm request config'ini (url/header) barındırabilir. Sanitize.
+        logger.error('network', 'Request error', {
+            message: error?.message,
+            method: error?.config?.method,
+            url: error?.config?.url,
+        });
         return Promise.reject(error);
     }
 );
@@ -101,8 +111,12 @@ axiosInstance.interceptors.response.use(
             }
 
             return Promise.reject(error);
-        } catch (err) {
-            logger.error('network', 'Response interceptor failure', err);
+        } catch (err: any) {
+            // Response interceptor-internal try/catch — ham `err` axios response
+            // objesi (data/headers) referansı tutabilir. Sadece mesajı logla.
+            logger.error('network', 'Response interceptor failure', {
+                message: err?.message,
+            });
             return Promise.reject(error);
         }
     }

@@ -1,6 +1,7 @@
 import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { logger } from '../utils/logger';
 
 /**
  * Notification handler configuration
@@ -49,7 +50,7 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
   try {
     token = await messaging().getToken();
   } catch (error) {
-    console.error('Error getting FCM token:', error);
+    logger.error('fcm', 'notifications.getFCMToken failure');
   }
 
   return token;
@@ -75,7 +76,7 @@ export function setupForegroundNotificationHandler() {
           trigger: null,
         });
       } catch (error) {
-        console.error('❌ Local notification gösterme hatası:', error);
+        logger.error('fcm', 'notifications.localDisplay failure');
       }
     }
   });
@@ -117,7 +118,7 @@ export function setupBackgroundNotificationHandler() {
 export async function getInitialNotification() {
   const remoteMessage = await messaging().getInitialNotification();
   if (remoteMessage) {
-    console.log('📬 Uygulama bildirimden açıldı:', remoteMessage);
+    logger.debug('fcm', 'notifications.getInitialNotification - present');
     return remoteMessage;
   }
   return null;
@@ -129,7 +130,7 @@ export async function getInitialNotification() {
  */
 export function onNotificationOpenedApp(callback: (remoteMessage: any) => void) {
   return messaging().onNotificationOpenedApp((remoteMessage) => {
-    console.log('👆 Bildirime tıklandı (app background):', remoteMessage);
+    logger.debug('fcm', 'notifications.onOpened (background)');
     callback(remoteMessage);
   });
 }
@@ -202,10 +203,6 @@ export async function showErrorNotification(
   errorTitle: string = '❌ Hata Oluştu'
 ) {
   try {
-    console.log('🔔 [Error Notification] Hata bildirimi gösteriliyor...');
-    console.log('   • Title:', errorTitle);
-    console.log('   • Message:', errorMessage);
-
     await Notifications.scheduleNotificationAsync({
       content: {
         title: errorTitle,
@@ -219,9 +216,8 @@ export async function showErrorNotification(
       trigger: null, // Hemen göster
     });
 
-    console.log('✅ [Error Notification] Hata bildirimi başarıyla gösterildi');
   } catch (error) {
-    console.error('❌ [Error Notification] Bildirim gösterme hatası:', error);
+    logger.error('fcm', 'notifications.showError failure');
   }
 }
 

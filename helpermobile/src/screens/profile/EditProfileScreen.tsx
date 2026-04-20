@@ -13,6 +13,7 @@ import { User } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
 import { validateTCNumber } from '../../utils/tcValidation';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
 
@@ -60,7 +61,7 @@ export default function EditProfileScreen({ navigation }: Props) {
           businessAddressIlce: response.user.business_address_ilce || '',
         });
       } catch (error) {
-        console.error('Error loading user profile:', error);
+        logger.error('general', 'Error loading user profile');
         Alert.alert('Hata', 'Profil bilgileri yüklenirken bir hata oluştu.');
       } finally {
         setLoading(false);
@@ -168,7 +169,7 @@ export default function EditProfileScreen({ navigation }: Props) {
         [{ text: 'Tamam', onPress: () => navigation.goBack() }]
       );
     } catch (error: any) {
-      console.error('Profil güncelleme hatası:', error);
+      logger.error('general', 'Profil gncelleme hatas');
       const errorMessage = error?.response?.data?.message ||
                           error?.response?.data?.error ||
                           'Profil güncellenirken bir hata oluştu.';

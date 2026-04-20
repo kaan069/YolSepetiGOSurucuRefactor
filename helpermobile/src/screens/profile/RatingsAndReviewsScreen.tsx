@@ -11,6 +11,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import ratingsAPI, { RatingStats } from '../../api/ratings';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RatingsAndReviews'>;
 
@@ -39,21 +40,19 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
   const loadData = async () => {
     try {
       setLoading(true);
-      console.log('🌟 [RatingsScreen] Puanlama verileri yükleniyor...');
-
       const response = await ratingsAPI.getMyRatings();
 
-      console.log('✅ [RatingsScreen] Puanlama verileri yüklendi:', {
+      logger.debug('orders', 'RatingsScreen.load ok', {
         average: response.stats.average_rating,
         total: response.stats.total_ratings,
-        reviewCount: response.count
+        reviewCount: response.count,
       });
 
       setStats(response.stats);
       setReviews(response.results);
       setTotalCount(response.count);
     } catch (error: any) {
-      console.error('❌ [RatingsScreen] Puanlama verileri yüklenirken hata:', error);
+      logger.error('orders', 'RatingsScreen.load failure', { status: error?.response?.status });
       // Hata axios interceptor tarafından yönetiliyor (bildirim gösterilecek)
     } finally {
       setLoading(false);

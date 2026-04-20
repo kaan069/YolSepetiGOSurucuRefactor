@@ -9,6 +9,7 @@ import { useAuthStore } from '../../store/authStore';
 import { vehiclesAPI } from '../../api';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CityToCityDetails'>;
 
@@ -222,7 +223,7 @@ export default function CityToCityDetailsScreen({ navigation }: Props) {
         setIsAuthenticated(true);
         Alert.alert('Başarılı', 'Kayıt başarıyla tamamlandı!');
       } catch (error: any) {
-        console.error('Load vehicles error:', error);
+        logger.error('auth', 'Load vehicles error');
         Alert.alert('Hata', 'Kayıt tamamlanırken bir hata oluştu.');
       } finally {
         setLoading(false);

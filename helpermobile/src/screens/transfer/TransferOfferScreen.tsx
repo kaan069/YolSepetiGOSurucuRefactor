@@ -26,6 +26,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import { VehicleSelector, EmployeeSelector } from '../../components/common';
 import PhotosSection from '../../components/PhotosSection';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferOffer'>;
 
@@ -144,7 +145,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
           longitude: location.coords.longitude,
         });
       } catch (error) {
-        console.error('Konum alinamadi:', error);
+        logger.error('orders', 'Konum alinamadi');
       }
     };
     getCurrentLocation();
@@ -200,7 +201,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
         return;
       }
     } catch (error) {
-      console.error('Profil kontrolu hatasi:', error);
+      logger.error('orders', 'Profil kontrolu hatasi');
     }
 
     if (!selectedVehicleId) {

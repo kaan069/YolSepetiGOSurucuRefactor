@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEmployeeStore } from '../../store/useEmployeeStore';
 import { EmployeeSelector } from '../../components/common';
 import { ProviderType } from '../../api/types';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneOffer'>;
 
@@ -103,7 +104,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
           longitude: location.coords.longitude,
         });
       } catch (error) {
-        console.error('Konum alınamadı:', error);
+        logger.error('orders', 'Konum alnamad');
       }
     };
     getCurrentLocation();
@@ -159,7 +160,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
         return;
       }
     } catch (error) {
-      console.error('Profil kontrolü hatası:', error);
+      logger.error('orders', 'Profil kontrol hatas');
     }
 
     if (!selectedCraneId) {

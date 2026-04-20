@@ -12,6 +12,7 @@
  */
 import * as Location from 'expo-location';
 import { BACKGROUND_LOCATION_TASK } from '../tasks/backgroundLocation';
+import { logger } from '../utils/logger';
 
 class BackgroundLocationService {
   private activeConsumerCount = 0;
@@ -22,10 +23,9 @@ class BackgroundLocationService {
    */
   async requestStart(): Promise<void> {
     this.activeConsumerCount++;
-    console.log(`📍 [BackgroundLocation] requestStart - consumer: ${this.activeConsumerCount}`);
+    logger.debug('location', 'background.requestStart', { consumers: this.activeConsumerCount });
 
     if (this.activeConsumerCount > 1) {
-      console.log('📍 [BackgroundLocation] Zaten çalışıyor, sadece consumer eklendi');
       return;
     }
 
@@ -38,10 +38,9 @@ class BackgroundLocationService {
    */
   async requestStop(): Promise<void> {
     this.activeConsumerCount = Math.max(0, this.activeConsumerCount - 1);
-    console.log(`📍 [BackgroundLocation] requestStop - consumer: ${this.activeConsumerCount}`);
+    logger.debug('location', 'background.requestStop', { consumers: this.activeConsumerCount });
 
     if (this.activeConsumerCount > 0) {
-      console.log('📍 [BackgroundLocation] Hala aktif consumer var, durdurmuyorum');
       return;
     }
 
@@ -56,12 +55,11 @@ class BackgroundLocationService {
     try {
       const isStarted = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
       if (isStarted && this.activeConsumerCount === 0) {
-        console.log('🧹 [BackgroundLocation] Orphaned task bulundu, temizleniyor...');
+        logger.debug('location', 'background.cleanupOrphanedTask - cleaning');
         await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
-        console.log('✅ [BackgroundLocation] Orphaned task temizlendi');
       }
     } catch (error) {
-      console.error('❌ [BackgroundLocation] Orphaned task temizleme hatası:', error);
+      logger.error('location', 'background.cleanupOrphanedTask failure');
     }
   }
 
@@ -69,7 +67,7 @@ class BackgroundLocationService {
    * Zorla durdur (logout gibi durumlar için)
    */
   async forceStop(): Promise<void> {
-    console.log('📍 [BackgroundLocation] forceStop çağrıldı');
+    logger.debug('location', 'background.forceStop');
     this.activeConsumerCount = 0;
     await this.stopBackgroundLocation();
   }
@@ -82,14 +80,13 @@ class BackgroundLocationService {
       // Zaten çalışıyor mu kontrol et
       const isStarted = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
       if (isStarted) {
-        console.log('📍 [BackgroundLocation] Task zaten çalışıyor');
         return;
       }
 
       // Background permission kontrolü
       const { status } = await Location.getBackgroundPermissionsAsync();
       if (status !== 'granted') {
-        console.warn('⚠️ [BackgroundLocation] Background konum izni yok, task başlatılamadı');
+        logger.warn('location', 'background.start skipped - permission not granted');
         return;
       }
 
@@ -108,9 +105,9 @@ class BackgroundLocationService {
         },
       });
 
-      console.log('✅ [BackgroundLocation] Arka plan konum takibi başlatıldı');
+      logger.debug('location', 'background.start success');
     } catch (error) {
-      console.error('❌ [BackgroundLocation] Başlatma hatası:', error);
+      logger.error('location', 'background.start failure');
     }
   }
 
@@ -121,14 +118,13 @@ class BackgroundLocationService {
     try {
       const isStarted = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
       if (!isStarted) {
-        console.log('📍 [BackgroundLocation] Task zaten durmuş');
         return;
       }
 
       await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
-      console.log('✅ [BackgroundLocation] Arka plan konum takibi durduruldu');
+      logger.debug('location', 'background.stop success');
     } catch (error) {
-      console.error('❌ [BackgroundLocation] Durdurma hatası:', error);
+      logger.error('location', 'background.stop failure');
     }
   }
 }

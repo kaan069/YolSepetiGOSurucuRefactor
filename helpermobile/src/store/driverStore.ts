@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { LocationObject } from 'expo-location';
 import authAPI from '../api/auth';
+import { logger } from '../utils/logger';
 
 // Type definition for the driver's state.
 // Sürücü state'i için tip tanımı.
@@ -35,8 +36,8 @@ export const useDriverStore = create<DriverState>((set, get) => ({
       set({ isLoadingStatus: true });
       const response = await authAPI.getOnlineStatus();
       set({ isAvailable: response.user_is_online });
-    } catch (error) {
-      console.error('❌ Online status yüklenemedi:', error);
+    } catch (error: any) {
+      logger.error('auth', 'driverStore.loadOnlineStatus failure', { status: error?.response?.status });
     } finally {
       set({ isLoadingStatus: false });
     }
@@ -46,9 +47,8 @@ export const useDriverStore = create<DriverState>((set, get) => ({
     try {
       const response = await authAPI.updateOnlineStatus(isOnline);
       set({ isAvailable: response.user_is_online });
-      console.log('✅ Online status güncellendi:', response.message);
-    } catch (error) {
-      console.error('❌ Online status güncellenemedi:', error);
+    } catch (error: any) {
+      logger.error('auth', 'driverStore.updateOnlineStatus failure', { status: error?.response?.status });
       set({ isAvailable: !isOnline });
     }
   },

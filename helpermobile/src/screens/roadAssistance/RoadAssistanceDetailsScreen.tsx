@@ -14,6 +14,7 @@ import {
   LoadingOverlay,
   VehiclePhotoSection,
 } from './components';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RoadAssistanceDetails'>;
 
@@ -89,18 +90,18 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
         plate_number: vehicleForm.plate.toUpperCase(),
       });
 
-      console.log('✅ Yol yardım aracı oluşturuldu:', roadAssistanceData);
+      logger.debug('orders', 'Yol yardm arac oluturuldu');
 
       // Fotoğraf yükleme
       let photoUploadSuccess = false;
       if ((vehiclePhoto || insurancePhoto) && roadAssistanceData.id) {
         try {
-          console.log('📷 YOL YARDIM FOTOĞRAF YÜKLEME İŞLEMİ BAŞLIYOR...');
+          logger.debug('orders', 'YOL YARDIM FOTORAF YKLEME LEM BALIYOR...');
           await vehiclesAPI.uploadRoadAssistanceVehiclePhoto(roadAssistanceData.id, vehiclePhoto || undefined, insurancePhoto || undefined);
-          console.log('✅ YOL YARDIM FOTOĞRAF BAŞARIYLA YÜKLENDİ!');
+          logger.debug('orders', 'YOL YARDIM FOTORAF BAARIYLA YKLEND');
           photoUploadSuccess = true;
         } catch (photoError: any) {
-          console.error('❌ YOL YARDIM FOTOĞRAF YÜKLEME HATASI!', photoError);
+          logger.error('orders', 'YOL YARDIM FOTORAF YKLEME HATASI');
           const photoErrorMessage = photoError?.response?.data?.error ||
                                     photoError?.response?.data?.message ||
                                     photoError?.message ||
@@ -116,7 +117,7 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
       try {
         await vehiclesAPI.loadUserVehicles();
       } catch (e) {
-        console.warn('Araç listesi yenilenirken hata:', e);
+        logger.warn('orders', 'Ara listesi yenilenirken hata');
       }
 
       // Kayıt akışındaysa otomatik devam et
@@ -130,7 +131,7 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
         completeVehicleType('roadAssistance');
         const nextServiceType = getNextVehicleType();
 
-        console.log('✅ Yol yardım kaydı tamamlandı, sonraki tip:', nextServiceType);
+        logger.debug('orders', 'Yol yardm kayd tamamland sonraki tip');
 
         if (nextServiceType) {
           navigateToNextScreen(nextServiceType);
@@ -154,7 +155,7 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
       setVehicleForm(initialVehicleFormState);
       setVehiclePhoto(null);
     } catch (error: any) {
-      console.error('Create road assistance vehicle error:', error);
+      logger.error('orders', 'Create road assistance vehicle error');
       const errorMessage = error?.response?.data?.message ||
                           error?.response?.data?.error ||
                           'Araç eklenirken bir hata oluştu. Lütfen tekrar deneyin.';
@@ -200,7 +201,7 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
       navigateToNextScreen(nextServiceType);
     } else {
       // Tüm araç tipleri tamamlandı, belgelere git
-      console.log('✅ Yol yardım kaydı tamamlandı, belgelere yönlendiriliyor...');
+      logger.debug('orders', 'Yol yardm kayd tamamland belgelere ynlendiriliyor...');
       navigation.navigate('DocumentsScreen', { fromRegistration: true });
     }
   };

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { NotificationDto } from '../lib/types';
+import { logger } from '../utils/logger';
 
 /**
  * Notification Store
@@ -66,7 +67,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       unreadCount: get().unreadCount + (notification.isRead ? 0 : 1),
     });
 
-    console.log('📬 Yeni bildirim eklendi:', notification.title);
+    logger.debug('fcm', 'notificationStore.addNotification', { id: notification.id });
   },
 
   markAsRead: (notificationId: string) => {
@@ -94,7 +95,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       unreadCount: 0,
     });
 
-    console.log('✅ Tüm bildirimler okundu olarak işaretlendi');
+    logger.debug('fcm', 'notificationStore.markAllAsRead');
   },
 
   removeNotification: (notificationId: string) => {
@@ -119,7 +120,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       unreadCount: 0,
     });
 
-    console.log('🗑️ Tüm bildirimler temizlendi');
+    logger.debug('fcm', 'notificationStore.clearAllNotifications');
   },
 
   loadNotifications: (notifications: NotificationDto[]) => {
@@ -130,6 +131,6 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       unreadCount,
     });
 
-    console.log(`📥 ${notifications.length} bildirim yüklendi (${unreadCount} okunmamış)`);
+    logger.debug('fcm', 'notificationStore.loadNotifications', { total: notifications.length, unreadCount });
   },
 }));

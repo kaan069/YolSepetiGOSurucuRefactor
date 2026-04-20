@@ -7,6 +7,7 @@ import { useNotificationStore } from '../../store/useNotificationStore';
 import { paymentAPI, SavedCard } from '../../api';
 import { getReadablePaymentError } from './commission/paymentUtils';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 interface CreditCardSectionProps {
   refreshTrigger?: number;
@@ -88,7 +89,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
         setShowAddCard(true);
       }
     } catch (error: any) {
-      console.error('Load saved cards error:', error);
+      logger.error('payment', 'CreditCardSection.loadSavedCards failure', { status: error?.response?.status });
       setSavedCards([]);
       setShowAddCard(true);
     } finally {
@@ -195,7 +196,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
       setWebViewLoading(true);
       setShow3DS(true);
     } catch (error: any) {
-      console.error('Card verification initiate error:', error);
+      logger.error('payment', 'CreditCardSection.initiateCardVerification failure', { status: error?.response?.status });
       const errorData = error?.response?.data;
       let errorMessage = 'Kart dogrulama baslatilirken bir hata olustu.';
 

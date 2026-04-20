@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { jobsWebSocket } from '../services/jobsWebSocket';
 import { ServiceType, isServiceType } from '../constants/serviceTypes';
 import { User } from '../api/types';
+import { logger } from '../utils/logger';
 
 interface UseJobsWebSocketProps {
   onNewJob?: (serviceType: ServiceType, data: any) => void;
@@ -67,7 +68,7 @@ export function useJobsWebSocket({
 
       return serviceTypes;
     } catch (error) {
-      console.error('[useJobsWS] Error getting user service types:', error);
+      logger.error('websocket', 'useJobsWebSocket.getUserServiceTypes failure');
       return [];
     }
   }, []);
@@ -113,7 +114,7 @@ export function useJobsWebSocket({
         onError: () => {},
       });
     } catch (error) {
-      console.error('[useJobsWS] Connection error:', error);
+      logger.error('websocket', 'useJobsWebSocket.connect failure');
     } finally {
       isConnecting.current = false;
     }

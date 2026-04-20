@@ -11,6 +11,7 @@ import { paymentAPI, SavedCard } from '../../api';
 import { getReadablePaymentError } from '../../components/payment/commission/paymentUtils';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreditCardInfo'>;
 
@@ -91,7 +92,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
         setShowAddCard(true);
       }
     } catch (error: any) {
-      console.error('Load saved cards error:', error);
+      logger.error('general', 'Load saved cards error');
       setSavedCards([]);
       setShowAddCard(true);
     } finally {
@@ -198,7 +199,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
       setWebViewLoading(true);
       setShow3DS(true);
     } catch (error: any) {
-      console.error('Card verification initiate error:', error);
+      logger.error('general', 'Card verification initiate error');
       const errorData = error?.response?.data;
       let errorMessage = 'Kart dogrulama baslatilirken bir hata olustu.';
 

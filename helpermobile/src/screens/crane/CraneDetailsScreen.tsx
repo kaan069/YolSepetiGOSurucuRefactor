@@ -20,6 +20,7 @@ import {
   AddedCraneCard,
   CraneLoadingOverlay,
 } from './components';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneDetails'>;
 
@@ -107,19 +108,19 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
         max_height: parseInt(currentCrane.maxHeight),
       });
 
-      console.log('✅ Vinç oluşturuldu:', craneData);
+      logger.debug('orders', 'Vin oluturuldu');
 
       // Fotoğraf yükleme durumu
       let photoUploadSuccess = false;
 
       if ((vehiclePhoto || insurancePhoto) && craneData.id) {
         try {
-          console.log('📷 VINÇ FOTOĞRAF YÜKLEME İŞLEMİ BAŞLIYOR...');
+          logger.debug('orders', 'VIN FOTORAF YKLEME LEM BALIYOR...');
           await vehiclesAPI.uploadCranePhoto(craneData.id, vehiclePhoto || undefined, insurancePhoto || undefined);
-          console.log('✅ VINÇ FOTOĞRAF BAŞARIYLA YÜKLENDİ!');
+          logger.debug('orders', 'VIN FOTORAF BAARIYLA YKLEND');
           photoUploadSuccess = true;
         } catch (photoError: any) {
-          console.error('❌ VINÇ FOTOĞRAF YÜKLEME HATASI!', photoError);
+          logger.error('orders', 'VIN FOTORAF YKLEME HATASI');
           const photoErrorMessage = photoError?.response?.data?.error ||
                                     photoError?.response?.data?.message ||
                                     photoError?.message ||
@@ -138,7 +139,7 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
       try {
         await vehiclesAPI.loadUserVehicles();
       } catch (e) {
-        console.warn('Araç listesi yenilenirken hata:', e);
+        logger.warn('orders', 'Ara listesi yenilenirken hata');
       }
 
       // Kayıt akışındaysa otomatik devam et
@@ -151,7 +152,7 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
         completeVehicleType('crane');
         const nextVehicleType = getNextVehicleType();
 
-        console.log('✅ Vinç kaydı tamamlandı, sonraki tip:', nextVehicleType);
+        logger.debug('orders', 'Vin kayd tamamland sonraki tip');
 
         if (nextVehicleType === 'towTruck') {
           navigation.navigate('TowTruckDetails', { fromRegistration: true });
@@ -181,7 +182,7 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
       setVehiclePhoto(null);
       setInsurancePhoto(null);
     } catch (error: any) {
-      console.error('Create crane error:', error);
+      logger.error('orders', 'Create crane error');
       const errorMessage = error?.response?.data?.message ||
                           error?.response?.data?.error ||
                           'Vinç eklenirken bir hata oluştu. Lütfen tekrar deneyin.';
@@ -224,7 +225,7 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
       navigation.navigate('TransferVehicleDetails', { fromRegistration: true });
     } else {
       // Tüm araç tipleri tamamlandı, belgelere git
-      console.log('✅ Vinç kaydı tamamlandı, belgelere yönlendiriliyor...');
+      logger.debug('orders', 'Vin kayd tamamland belgelere ynlendiriliyor...');
       navigation.navigate('DocumentsScreen', { fromRegistration: true });
     }
   };

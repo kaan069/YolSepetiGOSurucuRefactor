@@ -33,6 +33,7 @@ import DriverPhotoUpload from '../../components/DriverPhotoUpload';
 import VehicleStatusSection from '../towTruckOffer/components/VehicleStatusSection';
 import { calculateDistance, getStatus, getRequestId } from './utils';
 import { LocationCoords } from './types';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetail'>;
 
@@ -64,7 +65,7 @@ export default function JobDetailScreen({ route, navigation }: Props) {
       const request = await requestsAPI.getTowTruckRequestDetail(parseInt(jobId));
       setTowTruckRequest(request);
     } catch (error) {
-      console.error('Failed to fetch job detail:', error);
+      logger.error('orders', 'Failed to fetch job detail');
       Alert.alert('Hata', 'İş detayları yüklenemedi');
     } finally {
       setLoading(false);
@@ -246,7 +247,7 @@ export default function JobDetailScreen({ route, navigation }: Props) {
           longitude: location.coords.longitude,
         });
       } catch (error) {
-        console.error('Error getting location:', error);
+        logger.error('orders', 'Error getting location');
       }
     };
     getCurrentLocation();
@@ -292,7 +293,7 @@ export default function JobDetailScreen({ route, navigation }: Props) {
           );
           setPricing(pricingResult);
         } catch (error) {
-          console.error('Fiyat hesaplama hatası:', error);
+          logger.error('orders', 'Fiyat hesaplama hatas');
         } finally {
           setPricingLoading(false);
         }

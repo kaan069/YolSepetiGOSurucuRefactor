@@ -9,6 +9,7 @@ import type {
   MovingOfferPayload,
   MovingActionResponse,
 } from '../types';
+import { logOrdersError } from './_helpers';
 
 // ==================== EVDEN EVE NAKLİYE (HOME MOVING) ====================
 
@@ -21,7 +22,7 @@ class HomeMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get pending home moving requests error:', error);
+      logOrdersError('homeMoving.getPendingRequests', error);
       throw error;
     }
   }
@@ -34,7 +35,7 @@ class HomeMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting approval home moving requests error:', error);
+      logOrdersError('homeMoving.getAwaitingApprovalRequests', error);
       throw error;
     }
   }
@@ -47,7 +48,7 @@ class HomeMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting payment home moving requests error:', error);
+      logOrdersError('homeMoving.getAwaitingPaymentRequests', error);
       return [];
     }
   }
@@ -60,7 +61,7 @@ class HomeMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get in-progress home moving requests error:', error);
+      logOrdersError('homeMoving.getInProgressRequests', error);
       throw error;
     }
   }
@@ -73,7 +74,7 @@ class HomeMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get completed home moving requests error:', error);
+      logOrdersError('homeMoving.getCompletedRequests', error);
       throw error;
     }
   }
@@ -84,7 +85,7 @@ class HomeMovingAPI {
       const response = await axiosInstance.get<MovingRequestDetail>(`/requests/home-moving/details/${id}/`);
       return response.data;
     } catch (error) {
-      console.error('❌ Get home moving request detail error:', error);
+      logOrdersError('homeMoving.getRequestDetail', error);
       throw error;
     }
   }
@@ -117,7 +118,7 @@ class HomeMovingAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ Submit home moving offer error:', error?.response?.data);
+      logOrdersError('homeMoving.submitOffer', error);
       throw error;
     }
   }
@@ -129,7 +130,7 @@ class HomeMovingAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Evden eve nakliye teklif geri çekme hatası:', error?.response?.data);
+      logOrdersError('homeMoving.withdrawOffer', error);
       throw error;
     }
   }
@@ -141,7 +142,7 @@ class HomeMovingAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Evden eve nakliye yola çıkış hatası:', error?.response?.data);
+      logOrdersError('homeMoving.depart', error);
       throw error;
     }
   }
@@ -158,7 +159,7 @@ class CityMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get pending city moving requests error:', error);
+      logOrdersError('cityMoving.getPendingRequests', error);
       throw error;
     }
   }
@@ -171,7 +172,7 @@ class CityMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting approval city moving requests error:', error);
+      logOrdersError('cityMoving.getAwaitingApprovalRequests', error);
       throw error;
     }
   }
@@ -184,7 +185,7 @@ class CityMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get awaiting payment city moving requests error:', error);
+      logOrdersError('cityMoving.getAwaitingPaymentRequests', error);
       return [];
     }
   }
@@ -197,7 +198,7 @@ class CityMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get in-progress city moving requests error:', error);
+      logOrdersError('cityMoving.getInProgressRequests', error);
       throw error;
     }
   }
@@ -210,7 +211,7 @@ class CityMovingAPI {
       );
       return response.data.results;
     } catch (error) {
-      console.error('❌ Get completed city moving requests error:', error);
+      logOrdersError('cityMoving.getCompletedRequests', error);
       throw error;
     }
   }
@@ -221,7 +222,7 @@ class CityMovingAPI {
       const response = await axiosInstance.get<MovingRequestDetail>(`/requests/city-moving/details/${id}/`);
       return response.data;
     } catch (error) {
-      console.error('❌ Get city moving request detail error:', error);
+      logOrdersError('cityMoving.getRequestDetail', error);
       throw error;
     }
   }
@@ -254,7 +255,7 @@ class CityMovingAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ Submit city moving offer error:', error?.response?.data);
+      logOrdersError('cityMoving.submitOffer', error);
       throw error;
     }
   }
@@ -266,7 +267,7 @@ class CityMovingAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Şehirler arası nakliye teklif geri çekme hatası:', error?.response?.data);
+      logOrdersError('cityMoving.withdrawOffer', error);
       throw error;
     }
   }
@@ -278,7 +279,7 @@ class CityMovingAPI {
       );
       return response.data;
     } catch (error: any) {
-      console.error('❌ API: Şehirler arası nakliye yola çıkış hatası:', error?.response?.data);
+      logOrdersError('cityMoving.depart', error);
       throw error;
     }
   }

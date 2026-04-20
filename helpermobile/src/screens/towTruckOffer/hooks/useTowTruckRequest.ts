@@ -13,6 +13,7 @@
  */
 import { useState, useEffect } from 'react';
 import { requestsAPI, TowTruckRequestDetail } from '../../../api';
+import { logger } from '../../../utils/logger';
 
 interface UseTowTruckRequestReturn {
   request: TowTruckRequestDetail | null;
@@ -31,21 +32,15 @@ export function useTowTruckRequest(orderId: string): UseTowTruckRequestReturn {
         setLoading(true);
         setError(null);
 
-        console.log('═══════════════════════════════════════════════');
-        console.log('📍 TOW TRUCK OFFER - API İSTEĞİ BAŞLIYOR');
-        console.log('═══════════════════════════════════════════════');
-        console.log('🔑 orderId:', orderId);
-
         let fetchedRequest: TowTruckRequestDetail;
 
         try {
           // Önce direkt ID ile dene (request_details_id olabilir)
-          console.log('📡 Deneme 1: /requests/tow-truck/details/' + parseInt(orderId) + '/');
           fetchedRequest = await requestsAPI.getTowTruckRequestDetail(parseInt(orderId));
-          console.log('✅ Direkt ID ile bulundu');
         } catch (firstError: any) {
-          console.warn('⚠️ Direkt ID ile bulunamadı:', firstError?.response?.status);
-          console.log('🔄 Deneme 2: Tüm listelerden arama yapılıyor...');
+          logger.warn('orders', 'useTowTruckRequest direct-id miss, falling back to list scan', {
+            status: firstError?.response?.status,
+          });
 
           // Tüm job listelerini çek
           const [pendingJobs, awaitingJobs, inProgressJobs] = await Promise.all([
@@ -55,7 +50,6 @@ export function useTowTruckRequest(orderId: string): UseTowTruckRequestReturn {
           ]);
 
           const allJobs = [...pendingJobs, ...awaitingJobs, ...inProgressJobs];
-          console.log('📋 Toplam job sayısı:', allJobs.length);
 
           // request_id ile eşleşen job'ı bul
           const matchedJob = allJobs.find((job: any) => {
@@ -64,17 +58,15 @@ export function useTowTruckRequest(orderId: string): UseTowTruckRequestReturn {
           });
 
           if (matchedJob) {
-            console.log('✅ Job bulundu! Details_id:', matchedJob.id);
             fetchedRequest = await requestsAPI.getTowTruckRequestDetail(matchedJob.id);
           } else {
             throw new Error('İş talebi bulunamadı');
           }
         }
 
-        console.log('✅ Talep yüklendi:', fetchedRequest.id);
         setRequest(fetchedRequest);
       } catch (err: any) {
-        console.error('❌ Talep yükleme hatası:', err);
+        logger.error('orders', 'useTowTruckRequest.fetch failure', { status: err?.response?.status });
         setError(err?.message || 'Talep detayları yüklenemedi');
       } finally {
         setLoading(false);

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logger } from '../utils/logger';
 
 const THEME_STORAGE_KEY = 'theme_preference';
 
@@ -25,7 +26,7 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
         set({ isDarkMode: JSON.parse(stored) });
       }
     } catch (error) {
-      console.error('Tema tercihi yüklenemedi:', error);
+      logger.error('general', 'useThemeStore.load failure');
     }
   },
 }));

@@ -10,6 +10,7 @@ import { documentsAPI } from '../../api';
 import { ProfileCompletenessResponse } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MissingDocuments'>;
 
@@ -32,7 +33,7 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
       const response = await documentsAPI.checkProfileCompleteness();
       setCompleteness(response);
     } catch (error) {
-      console.error('❌ Profil tamamlama durumu yüklenirken hata:', error);
+      logger.error('general', 'Profil tamamlama durumu yklenirken hata');
     } finally {
       setLoading(false);
     }

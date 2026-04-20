@@ -21,6 +21,7 @@ import { useAuthStore } from '../store/authStore';
 import { REQUIRE_ACCOUNT_READINESS } from '../constants/appConfig';
 import { authAPI } from '../api';
 import { AccountReadinessResponse } from '../api/types';
+import { logger } from '../utils/logger';
 
 interface Props {
   navigationRef: React.RefObject<any>;
@@ -48,8 +49,8 @@ export default function AccountReadinessGate({ navigationRef }: Props) {
       if (response.is_ready) {
         setIsNavigatingToFix(false);
       }
-    } catch (error) {
-      console.error('Account readiness check failed:', error);
+    } catch (error: any) {
+      logger.error('auth', 'AccountReadinessGate.check failure', { status: error?.response?.status });
       // Hata durumunda kullanıcıyı engelleme (fail-open)
       setIsReady(true);
     } finally {

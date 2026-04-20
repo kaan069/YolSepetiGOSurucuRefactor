@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { logger } from '../utils/logger';
 
 const GUIDE_STORAGE_KEY = 'has_seen_guide';
 const TOTAL_STEPS = 5;
@@ -53,7 +54,7 @@ export const useGuideStore = create<GuideState>((set, get) => ({
         isGuideLoaded: true,
       });
     } catch (error) {
-      console.error('Rehber durumu yuklenemedi:', error);
+      logger.error('general', 'useGuideStore.load failure');
       set({ isGuideLoaded: true });
     }
   },

@@ -10,6 +10,7 @@ import {
   updateTransportVehicleLocal,
 } from './services/editVehicleService';
 import { EditVehicleFormData, VehicleKind, VehicleRecord } from './types';
+import { logger } from '../../../utils/logger';
 
 interface UseUpdateVehicleParams {
   vehicle: VehicleRecord | undefined;
@@ -87,7 +88,7 @@ export function useUpdateVehicle({
       Alert.alert('Başarılı', result.message);
       onSuccess();
     } catch (error: any) {
-      console.error('Error updating vehicle:', error);
+      logger.error('auth', 'Error updating vehicle');
       const errorMessage =
         error?.response?.data?.message ||
         error?.response?.data?.error ||

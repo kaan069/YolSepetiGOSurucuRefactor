@@ -4,6 +4,7 @@ import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { TowTruckRequestDetail } from '../../../api';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { logger } from '../../../utils/logger';
 
 interface QuickActionsProps {
   towTruckRequest: TowTruckRequestDetail;
@@ -44,7 +45,7 @@ export default function QuickActions({
 
       await Linking.openURL(phoneUrl);
     } catch (error) {
-      console.error('Telefon arama hatası:', error);
+      logger.error('orders', 'Telefon arama hatas');
       Alert.alert(
         'Hata',
         'Telefon uygulaması açılamadı. Lütfen telefon numarasını manuel olarak arayın: ' + towTruckRequest.requestOwnerPhone,

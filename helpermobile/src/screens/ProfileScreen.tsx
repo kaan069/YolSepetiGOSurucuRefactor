@@ -10,6 +10,7 @@ import { RootStackParamList } from '../navigation';
 import { useNotificationStore } from '../store/notificationStore';
 import { scheduleLocalNotification } from '../lib/notifications';
 import * as Notifications from 'expo-notifications';
+import { logger } from '../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileTab'>;
 
@@ -31,16 +32,16 @@ export default function ProfileScreen({ navigation }: Props) {
   };
 
   const handleDebugData = () => {
-    console.log('=== DEBUG: ALL DATA FOR BACKEND ===');
+    // Sanitized dev-only snapshot — PII dump etmez.
     logAllData();
-    console.log('Vehicle Store Data:', {
-      towTrucks: towTrucks,
-      cranes: cranes,
-      totalVehicles: towTrucks.length + cranes.length
+    logger.debug('general', 'ProfileScreen.debugSnapshot', {
+      vehicleCounts: {
+        towTrucks: towTrucks.length,
+        cranes: cranes.length,
+      },
+      hasCurrentUser: !!currentUser,
     });
-    console.log('Current User Data:', currentUser);
-    console.log('=== END DEBUG DATA ===');
-    alert('Tüm veriler console\'a yazdırıldı! Developer Tools\'u aç ve konsolu kontrol et.');
+    alert('Geliştirme modunda log çıktısı yazıldı.');
   };
 
   // Local bildirim gönder (uygulama içi)
@@ -54,7 +55,7 @@ export default function ProfileScreen({ navigation }: Props) {
       );
       Alert.alert('Başarılı', 'Local bildirim 2 saniye içinde gelecek!');
     } catch (error) {
-      console.error('Local notification error:', error);
+      logger.error('fcm', 'ProfileScreen.localNotification failure');
       Alert.alert('Hata', 'Local bildirim gönderilemedi.');
     }
   };
@@ -78,7 +79,7 @@ export default function ProfileScreen({ navigation }: Props) {
       });
       Alert.alert('Başarılı', 'Push notification simülasyonu 2 saniye içinde gelecek!');
     } catch (error) {
-      console.error('Push notification simulation error:', error);
+      logger.error('fcm', 'ProfileScreen.pushSimulation failure');
       Alert.alert('Hata', 'Push notification simülasyonu gönderilemedi.');
     }
   };

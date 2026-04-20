@@ -16,6 +16,7 @@
  */
 import { useState, useEffect } from 'react';
 import { requestsAPI } from '../../../api';
+import { logger } from '../../../utils/logger';
 
 interface VehicleConditions {
   isOnRoad?: boolean;
@@ -82,7 +83,7 @@ export function usePricing(
 
         setPricing(result);
       } catch (err: any) {
-        console.error('❌ Fiyat hesaplama hatası:', err);
+        logger.error('orders', 'Fiyat hesaplama hatas');
         setError(err?.response?.data?.error || err?.message || 'Fiyat hesaplanamadı');
       } finally {
         setLoading(false);

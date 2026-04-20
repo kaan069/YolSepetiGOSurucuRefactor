@@ -18,6 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import { WS_BASE_URL } from '../constants/network';
 import { ServiceType, SERVICE_WS_CHANNEL } from '../constants/serviceTypes';
+import { logger } from '../utils/logger';
 
 // Backward-compatible re-export — legacy caller'lar `import { ServiceType } from '../services/jobsWebSocket'` yaptıysa kırılmasın.
 export type { ServiceType };
@@ -137,7 +138,7 @@ class JobsWebSocketService {
       const token = await AsyncStorage.getItem('access_token');
 
       if (!token) {
-        console.error(`[JobsWS] ${serviceType} - JWT token bulunamadı`);
+        logger.error('websocket', 'jobs.connectService JWT missing', { serviceType });
         return;
       }
 
@@ -155,7 +156,7 @@ class JobsWebSocketService {
       this.connections.set(serviceType, connection);
 
       ws.onopen = () => {
-        console.log(`[JobsWS] ✅ ${serviceType} WebSocket bağlantısı kuruldu`);
+        logger.debug('websocket', 'jobs.onopen', { serviceType });
         connection.reconnectAttempts = 0;
         this.config?.onConnected?.(serviceType);
       };
@@ -166,7 +167,7 @@ class JobsWebSocketService {
             ? JSON.parse(event.data)
             : event.data;
 
-          console.log(`[JobsWS] 📩 ${serviceType} mesaj geldi:`, data.type, data);
+          logger.debug('websocket', 'jobs.onmessage', { serviceType, type: data.type });
 
           switch (data.type) {
             case 'new_job':
@@ -180,7 +181,7 @@ class JobsWebSocketService {
               break;
           }
         } catch (error) {
-          console.error(`[JobsWS] ${serviceType} message parse error:`, error);
+          logger.error('websocket', 'jobs.onmessage parse error', { serviceType });
         }
       };
 
@@ -204,7 +205,7 @@ class JobsWebSocketService {
         }
       };
     } catch (error) {
-      console.error(`[JobsWS] ${serviceType} connection error:`, error);
+      logger.error('websocket', 'jobs.connectService failure', { serviceType });
       this.config?.onError?.(serviceType, error);
     }
   }

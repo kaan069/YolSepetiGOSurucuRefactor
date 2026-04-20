@@ -1,6 +1,7 @@
 // Vinç sabitleri ve yardımcı fonksiyonlar
 import * as Location from 'expo-location';
 import { CraneRequest } from '../../api';
+import { logger } from '../../utils/logger';
 
 // Mesafe hesaplama (Haversine formula)
 export const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -27,7 +28,7 @@ export const getAddressDetails = async (latitude: number, longitude: number) => 
       };
     }
   } catch (error) {
-    console.error('Reverse geocoding error:', error);
+    logger.error('orders', 'Reverse geocoding error');
   }
   return { district: '', neighborhood: '' };
 };

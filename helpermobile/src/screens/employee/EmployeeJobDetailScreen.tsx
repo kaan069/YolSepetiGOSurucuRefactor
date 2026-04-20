@@ -20,6 +20,7 @@ import { useEmployeePanelStore } from '../../store/useEmployeePanelStore';
 import { AppBar } from '../../components/common';
 import PhotosSection from '../../components/PhotosSection';
 import VehicleStatusSection from '../towTruckOffer/components/VehicleStatusSection';
+import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmployeeJobDetail'>;
 
@@ -108,8 +109,8 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
 
     // ── Fetch on mount, cleanup on unmount ──
     useEffect(() => {
-        fetchJobDetail(requestId).catch((err) =>
-            console.error('[EmployeeJobDetail] fetchJobDetail error:', err)
+        fetchJobDetail(requestId).catch((err: any) =>
+            logger.error('orders', 'EmployeeJobDetail.fetch failure', { status: err?.response?.status })
         );
         return () => {
             clearJobDetail();
@@ -119,11 +120,11 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
     // ── WebSocket location sharing ──
     // Auto-starts when job is in_progress. No toggle per API docs.
     const handleWsConnected = useCallback(() => {
-        console.log('[EmployeeJobDetail] Employee location sharing started');
+        logger.debug('orders', 'EmployeeJobDetail Employee location sharing started');
     }, []);
 
     const handleWsError = useCallback((err: any) => {
-        console.error('[EmployeeJobDetail] Employee WebSocket error:', err);
+        logger.error('orders', 'EmployeeJobDetail Employee WebSocket error');
     }, []);
 
     useLocationWebSocket({
@@ -137,8 +138,8 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
     });
 
     const handleRetry = useCallback(() => {
-        fetchJobDetail(requestId).catch((err) =>
-            console.error('[EmployeeJobDetail] retry error:', err)
+        fetchJobDetail(requestId).catch((err: any) =>
+            logger.error('orders', 'EmployeeJobDetail.retry failure', { status: err?.response?.status })
         );
     }, [requestId]);
 

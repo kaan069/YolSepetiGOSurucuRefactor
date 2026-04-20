@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useGuideStore } from './useGuideStore';
+import { logger } from '../utils/logger';
 
 const ONBOARDING_STORAGE_KEY = 'has_seen_onboarding';
 
@@ -32,7 +33,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
         isOnboardingLoaded: true,
       });
     } catch (error) {
-      console.error('Onboarding durumu yuklenemedi:', error);
+      logger.error('general', 'useOnboardingStore.load failure');
       set({ isOnboardingLoaded: true });
     }
   },
