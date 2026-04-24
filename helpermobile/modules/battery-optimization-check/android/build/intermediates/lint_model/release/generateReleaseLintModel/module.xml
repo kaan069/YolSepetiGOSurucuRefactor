@@ -1,6 +1,6 @@
 <lint-module
     format="1"
-    dir="/Users/furkankaansaka/Desktop/YolSepetiGOSurucu/helpermobile/modules/battery-optimization-check/android"
+    dir="/Users/furkankaansaka/Desktop/YolSepetiGOSurucuRefactor/helpermobile/modules/battery-optimization-check/android"
     name=":battery-optimization-check"
     type="LIBRARY"
     maven="expo.modules.batteryoptimizationcheck:battery-optimization-check:1.0.0"
