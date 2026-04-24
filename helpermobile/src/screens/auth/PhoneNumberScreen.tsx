@@ -35,7 +35,9 @@ const serviceTypes = [
 export default function PhoneNumberScreen({ navigation }: Props) {
   const theme = useTheme();
   const { isDarkMode, appColors, screenBg, cardBg } = useAppTheme();
-  const { setPhoneNumber: savePhoneNumber, setSelectedVehicleTypes } = useRegistrationDataStore();
+  // Selective selector — gereksiz re-render'ı engeller
+  const savePhoneNumber = useRegistrationDataStore((s) => s.setPhoneNumber);
+  const setSelectedVehicleTypes = useRegistrationDataStore((s) => s.setSelectedVehicleTypes);
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<Country>({

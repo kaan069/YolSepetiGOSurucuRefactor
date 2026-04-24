@@ -28,9 +28,10 @@ export default function PhoneAuthScreen({ navigation }: Props) {
   const theme = useTheme();
   const { isDarkMode, appColors, screenBg, cardBg } = useAppTheme();
 
-  // Store hook'ları
-  const { setPhoneNumber: savePhoneNumber } = useRegistrationDataStore();
-  const { setIsAuthenticated, setCurrentUser } = useAuthStore();
+  // Store hook'ları — selective selector (gereksiz re-render'ı engeller)
+  const savePhoneNumber = useRegistrationDataStore((s) => s.setPhoneNumber);
+  const setIsAuthenticated = useAuthStore((s) => s.setIsAuthenticated);
+  const setCurrentUser = useAuthStore((s) => s.setCurrentUser);
 
   // Component state'leri
   const [phoneNumber, setPhoneNumber] = useState('');

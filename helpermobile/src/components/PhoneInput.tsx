@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Modal } from 'react-native';
 import { TextInput, Text, Searchbar } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -63,7 +63,7 @@ const formatPhoneNumber = (value: string): string => {
   return `${digits.slice(0, 3)} ${digits.slice(3, 6)} ${digits.slice(6, 8)} ${digits.slice(8, 10)}`;
 };
 
-export default function PhoneInput({
+function PhoneInput({
   value,
   onChangeText,
   onChangeCountry,
@@ -76,47 +76,40 @@ export default function PhoneInput({
   const [selectedCountry, setSelectedCountry] = useState<Country>(COUNTRIES[0]); // Default: Türkiye
   const [modalVisible, setModalVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
 
-  const filteredCountries = searchQuery
-    ? COUNTRIES.filter(
-        (country) =>
-          country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          country.dialCode.includes(searchQuery)
-      )
-    : COUNTRIES;
+  const filteredCountries = useMemo(() => {
+    if (!searchQuery) return COUNTRIES;
+    const q = searchQuery.toLowerCase();
+    return COUNTRIES.filter(
+      (country) =>
+        country.name.toLowerCase().includes(q) ||
+        country.dialCode.includes(searchQuery)
+    );
+  }, [searchQuery]);
 
-  const handleSelectCountry = (country: Country) => {
+  const formattedValue = useMemo(() => formatPhoneNumber(value), [value]);
+
+  const handleSelectCountry = useCallback((country: Country) => {
     setSelectedCountry(country);
     setModalVisible(false);
     setSearchQuery('');
-    if (onChangeCountry) {
-      onChangeCountry(country);
-    }
-  };
+    onChangeCountry?.(country);
+  }, [onChangeCountry]);
 
-  const handleChangeText = (text: string) => {
-    // Boşlukları ve diğer karakterleri kaldır, sadece rakamları al
+  const handleChangeText = useCallback((text: string) => {
     const numbersOnly = text.replace(/[^0-9]/g, '');
-
-    // Başında 0 varsa reddet
-    if (numbersOnly.startsWith('0')) {
-      return;
-    }
-
-    // Maksimum 10 haneli numara (Türkiye için)
-    if (numbersOnly.length > 10) {
-      return;
-    }
-
-    // Ham değeri parent'a gönder (formatlanmamış)
+    if (numbersOnly.startsWith('0')) return;
+    if (numbersOnly.length > 10) return;
     onChangeText(numbersOnly);
-  };
+  }, [onChangeText]);
 
-  const getFormattedNumber = () => {
-    return value ? `${selectedCountry.dialCode}${value}` : '';
-  };
-
-  const [isFocused, setIsFocused] = useState(false);
+  const handleFocus = useCallback(() => setIsFocused(true), []);
+  const handleBlur = useCallback(() => setIsFocused(false), []);
+  const openModal = useCallback(() => {
+    if (!disabled) setModalVisible(true);
+  }, [disabled]);
+  const closeModal = useCallback(() => setModalVisible(false), []);
 
   return (
     <View style={styles.container}>
@@ -126,7 +119,7 @@ export default function PhoneInput({
         {/* Ülke Kodu Seçici - Bayrak yok, sadece alan kodu */}
         <TouchableOpacity
           style={styles.countrySelector}
-          onPress={() => !disabled && setModalVisible(true)}
+          onPress={openModal}
           disabled={disabled}
         >
           <Text style={styles.dialCode}>{selectedCountry.dialCode}</Text>
@@ -135,7 +128,7 @@ export default function PhoneInput({
 
         {/* Telefon Numarası Input */}
         <TextInput
-          value={formatPhoneNumber(value)}
+          value={formattedValue}
           onChangeText={handleChangeText}
           placeholder="Telefon numaranızı giriniz"
           keyboardType="phone-pad"
@@ -146,8 +139,8 @@ export default function PhoneInput({
           disabled={disabled}
           dense
           maxLength={13}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
         />
       </View>
 
@@ -156,12 +149,12 @@ export default function PhoneInput({
         visible={modalVisible}
         transparent
         animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
+        onRequestClose={closeModal}
       >
         <TouchableOpacity
           style={styles.modalOverlay}
           activeOpacity={1}
-          onPress={() => setModalVisible(false)}
+          onPress={closeModal}
         >
           <TouchableOpacity activeOpacity={1} style={[styles.modalContent, { backgroundColor: cardBg }]}>
             {/* Header */}
@@ -376,3 +369,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+
+export default React.memo(PhoneInput);
