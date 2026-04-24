@@ -1,6 +1,6 @@
 // This screen displays the details of a job. It can handle both active (accepted) and completed jobs.
 // Bu ekran bir işin detaylarını görüntüler. Hem aktif (kabul edilmiş) hem de tamamlanmış işleri yönetebilir.
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { StyleSheet, ScrollView, Linking, Platform, Alert, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Button } from 'react-native-paper';
@@ -159,9 +159,13 @@ export default function JobDetailScreen({ route, navigation }: Props) {
 
   // WebSocket iş güncelleme event'ini dinle (ödeme yapıldığında vs.)
   const { lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus } = useJobUpdateEventStore();
+  const lastShownUpdateKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (lastUpdatedJobId && String(lastUpdatedJobId) === jobId) {
       if (lastUpdatedStatus) {
+        const eventKey = `${lastUpdatedJobId}-${lastUpdatedStatus}`;
+        if (lastShownUpdateKeyRef.current === eventKey) return;
+        lastShownUpdateKeyRef.current = eventKey;
         const statusLabels: Record<string, string> = {
           'awaiting_approval': 'Onay Bekleniyor',
           'awaiting_payment': 'Ödeme Bekleniyor',

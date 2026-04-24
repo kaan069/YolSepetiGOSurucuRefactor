@@ -1,5 +1,5 @@
 // Yol yardım iş detayı ekranı - sürücü komisyon ödeyecek
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, StyleSheet, ScrollView, Linking, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Text, Button } from 'react-native-paper';
@@ -100,9 +100,13 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
 
   // WebSocket iş güncelleme event'ini dinle (ödeme yapıldığında vs.)
   const { lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus } = useJobUpdateEventStore();
+  const lastShownUpdateKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (lastUpdatedJobId && String(lastUpdatedJobId) === jobId) {
       if (lastUpdatedStatus) {
+        const eventKey = `${lastUpdatedJobId}-${lastUpdatedStatus}`;
+        if (lastShownUpdateKeyRef.current === eventKey) return;
+        lastShownUpdateKeyRef.current = eventKey;
         const statusLabels: Record<string, string> = {
           'awaiting_approval': 'Onay Bekleniyor',
           'awaiting_payment': 'Ödeme Bekleniyor',

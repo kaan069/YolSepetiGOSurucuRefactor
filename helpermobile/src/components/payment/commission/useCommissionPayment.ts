@@ -187,6 +187,8 @@ export function useCommissionPayment({
         setThreeDSHtml(response.html_content);
         setStep('threeds');
       } else {
+        if (callbackProcessedRef.current) return;
+        callbackProcessedRef.current = true;
         setStep('success');
         setTimeout(() => {
           onPaymentSuccess();
@@ -228,6 +230,8 @@ export function useCommissionPayment({
     try {
       const data = JSON.parse(event.nativeEvent.data);
       if (data.status === 'success') {
+        if (callbackProcessedRef.current) return;
+        callbackProcessedRef.current = true;
         setStep('success');
         setTimeout(() => {
           onPaymentSuccess();
@@ -259,6 +263,8 @@ export function useCommissionPayment({
       const paymentStatus: string = response.status;
 
       if (paymentStatus === 'completed') {
+        if (callbackProcessedRef.current) return;
+        callbackProcessedRef.current = true;
         pollingCountRef.current = 0;
         setStep('success');
         setTimeout(() => {
