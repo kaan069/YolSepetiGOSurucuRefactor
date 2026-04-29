@@ -2,7 +2,7 @@
     "expo": {
         "name": "Yol SepetiGo Sürücü",
         "slug": "yolsepeti",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "orientation": "portrait",
         "icon": "./assets/gosiyahbeyazlogo.png",
         "userInterfaceStyle": "light",
@@ -13,7 +13,7 @@
             "backgroundColor": "#ffffff"
         },
         "ios": {
-            "buildNumber": "5",
+            "buildNumber": "6",
             "supportsTablet": true,
             "bundleIdentifier": "com.devkaans.yolpaketi",
             "googleServicesFile": "./GoogleService-Info.plist",
