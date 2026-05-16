@@ -115,6 +115,13 @@ export default function ProfileMenuScreen({ navigation }: Props) {
       icon: 'account-cog',
       onPress: () => navigation.navigate('AccountManagement'),
     }] : []),
+    // Hizmet Alanı - eleman kullanıcılara gösterilmez (talep filtresi için iş aldığı şehir)
+    ...(userProviderType !== 'employee' ? [{
+      title: 'Hizmet Alanı',
+      subtitle: 'İş aldığınız şehri seçin',
+      icon: 'map-marker-radius',
+      onPress: () => navigation.navigate('ServiceCity'),
+    }] : []),
     // Belgeler - eleman kullanıcılara gösterilmez
     ...(userProviderType !== 'employee' ? [{
       title: getDocumentsMenuTitle(),

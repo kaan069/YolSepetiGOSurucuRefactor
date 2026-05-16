@@ -226,7 +226,7 @@ export default function HomeScreen() {
               <Button
                 mode="contained"
                 compact
-                onPress={() => navigation.navigate('EditProfile')}
+                onPress={() => navigation.navigate('ServiceCity')}
                 style={styles.serviceCityBannerButton}
                 buttonColor="#f57c00"
               >

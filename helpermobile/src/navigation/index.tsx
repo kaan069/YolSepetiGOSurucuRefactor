@@ -25,6 +25,7 @@ import CompanyInfoScreen from '../screens/profile/CompanyInfoScreen';
 import CreditCardInfoScreen from '../screens/profile/CreditCardInfoScreen';
 import AppSettingsScreen from '../screens/profile/AppSettingsScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
+import ServiceCityScreen from '../screens/profile/ServiceCityScreen';
 import ReportsAndHistoryScreen from '../screens/profile/ReportsAndHistoryScreen';
 import RatingsAndReviewsScreen from '../screens/profile/RatingsAndReviewsScreen';
 import MissingDocumentsScreen from '../screens/profile/MissingDocumentsScreen';
@@ -103,6 +104,7 @@ export type RootStackParamList = {
   VehiclesScreen: undefined;
   AccountManagement: undefined;
   EditProfile: undefined;
+  ServiceCity: undefined;
   ReportsAndHistory: undefined;
   RatingsAndReviews: undefined;
   DocumentsAndContracts: undefined;
@@ -318,6 +320,7 @@ function EmployeeAppStack() {
       {/* Employee erişebileceği profil ekranları */}
       <Stack.Screen name="AccountManagement" component={AccountManagementScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="ServiceCity" component={ServiceCityScreen} />
       <Stack.Screen name="AppSettings" component={AppSettingsScreen} />
       <Stack.Screen name="Permissions" component={PermissionsScreen} />
       <Stack.Screen name="Feedback" component={FeedbackScreen} />
@@ -368,6 +371,7 @@ function AppStack() {
       <Stack.Screen name="VehiclesScreen" component={VehiclesScreen} />
       <Stack.Screen name="AccountManagement" component={AccountManagementScreen} />
       <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+      <Stack.Screen name="ServiceCity" component={ServiceCityScreen} />
       <Stack.Screen name="ReportsAndHistory" component={ReportsAndHistoryScreen} />
       <Stack.Screen name="RatingsAndReviews" component={RatingsAndReviewsScreen} />
       <Stack.Screen name="DocumentsAndContracts" component={DocumentsAndContractsScreen} />

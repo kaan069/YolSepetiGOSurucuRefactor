@@ -2,10 +2,9 @@
 // Bu ekran kullanıcının kişisel bilgilerini düzenlemesini sağlar
 // This screen allows users to edit their personal information
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, View, Modal, TouchableOpacity } from 'react-native';
+import { StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, TextInput, useTheme, IconButton, Searchbar } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { Button, Card, Text, TextInput, useTheme } from 'react-native-paper';
 import { useAuthStore } from '../../store/authStore';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
@@ -14,7 +13,6 @@ import { User } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
 import { validateTCNumber } from '../../utils/tcValidation';
 import { useAppTheme } from '../../hooks/useAppTheme';
-import { getCityNames } from '../../data/turkeyLocations';
 import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
@@ -22,7 +20,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
 export default function EditProfileScreen({ navigation }: Props) {
   const theme = useTheme();
   const { screenBg, cardBg, isDarkMode, appColors } = useAppTheme();
-  const { currentUser, updateUserProfile, setCurrentUser } = useAuthStore();
+  const { currentUser, updateUserProfile } = useAuthStore();
 
   // State'ler - States
   const [apiUser, setApiUser] = useState<User | null>(null);
@@ -37,16 +35,7 @@ export default function EditProfileScreen({ navigation }: Props) {
     businessAddress: '',
     businessAddressIl: '',
     businessAddressIlce: '',
-    serviceCity: '',
   });
-
-  // Hizmet şehri modal state'i - Service city modal state
-  const [serviceCityModalVisible, setServiceCityModalVisible] = useState(false);
-  const [serviceCitySearch, setServiceCitySearch] = useState('');
-  const allCities = getCityNames();
-  const filteredServiceCities = serviceCitySearch
-    ? allCities.filter(c => c.toLowerCase().includes(serviceCitySearch.toLowerCase()))
-    : allCities;
 
   // Validation error state'leri - Validation error states
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -70,8 +59,6 @@ export default function EditProfileScreen({ navigation }: Props) {
           businessAddress: response.user.business_address || '',
           businessAddressIl: response.user.business_address_il || '',
           businessAddressIlce: response.user.business_address_ilce || '',
-          // service_city boşsa iş ilini default olarak öner (kullanıcı görür ve onaylar/değiştirir)
-          serviceCity: response.user.service_city || response.user.business_address_il || '',
         });
       } catch (error) {
         logger.error('general', 'Error loading user profile');
@@ -152,23 +139,8 @@ export default function EditProfileScreen({ navigation }: Props) {
       }
     }
 
-    // Hizmet şehri zorunlu - boşsa hiçbir iş talebi listelenmez/bildirilmez
-    if (!formData.serviceCity.trim()) {
-      newErrors.serviceCity = 'Hizmet şehri seçimi zorunludur — iş bildirimleri için gerekli';
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  // Hizmet şehri seçim handler'ı - Service city select handler
-  const handleServiceCitySelect = (city: string) => {
-    setFormData(prev => ({ ...prev, serviceCity: city }));
-    if (errors.serviceCity) {
-      setErrors(prev => ({ ...prev, serviceCity: '' }));
-    }
-    setServiceCitySearch('');
-    setServiceCityModalVisible(false);
   };
 
   // Profil kaydetme fonksiyonu - Save profile function
@@ -181,7 +153,7 @@ export default function EditProfileScreen({ navigation }: Props) {
       setLoading(true);
 
       // API'ye güncelleme isteği gönder - Send update request to API
-      const response = await authAPI.updateProfile({
+      await authAPI.updateProfile({
         first_name: formData.firstName.trim(),
         last_name: formData.lastName.trim(),
         phone_number: formData.phoneNumber.trim(),
@@ -189,13 +161,7 @@ export default function EditProfileScreen({ navigation }: Props) {
         business_address: formData.businessAddress.trim(),
         business_address_il: formData.businessAddressIl.trim(),
         business_address_ilce: formData.businessAddressIlce.trim(),
-        service_city: formData.serviceCity.trim(),
       });
-
-      // HomeScreen banner'ı ve diğer ekranların güncel service_city'yi görmesi için store'u senkronize et
-      if (response.user) {
-        setCurrentUser(response.user);
-      }
 
       Alert.alert(
         'Başarılı',
@@ -346,33 +312,6 @@ export default function EditProfileScreen({ navigation }: Props) {
             </Card.Content>
           </Card>
 
-          {/* Hizmet Şehri - Service City (iş talepleri filtresi) */}
-          <Card style={[styles.formCard, { backgroundColor: cardBg }]}>
-            <Card.Content style={styles.cardContent}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                📍 Hizmet Şehri
-              </Text>
-              <Text variant="bodySmall" style={[styles.sectionSubtitle, { color: appColors.text.secondary }]}>
-                Yalnızca bu şehirden gelen yeni iş talepleri size bildirilir.
-              </Text>
-
-              <TouchableOpacity onPress={() => setServiceCityModalVisible(true)} activeOpacity={0.7}>
-                <View pointerEvents="none">
-                  <TextInput
-                    label="Hizmet Şehri *"
-                    value={formData.serviceCity}
-                    editable={false}
-                    placeholder="Şehir seçin"
-                    style={styles.input}
-                    error={!!errors.serviceCity}
-                    right={<TextInput.Icon icon="chevron-down" />}
-                  />
-                </View>
-              </TouchableOpacity>
-              {errors.serviceCity && <Text style={styles.errorText}>{errors.serviceCity}</Text>}
-            </Card.Content>
-          </Card>
-
           {/* Bilgi notu - Information note */}
           <Card style={[styles.infoCard, { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }]}>
             <Card.Content>
@@ -394,63 +333,6 @@ export default function EditProfileScreen({ navigation }: Props) {
             {loading ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
           </Button>
         </ScrollView>
-
-        {/* Hizmet Şehri Seçim Modal - Service City Picker Modal */}
-        <Modal
-          visible={serviceCityModalVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setServiceCityModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: cardBg }]}>
-              <View style={styles.modalHeader}>
-                <Text variant="titleLarge" style={styles.modalTitle}>Hizmet Şehri Seçiniz</Text>
-                <IconButton
-                  icon="close"
-                  size={24}
-                  onPress={() => setServiceCityModalVisible(false)}
-                />
-              </View>
-
-              <Searchbar
-                placeholder="İl ara..."
-                onChangeText={setServiceCitySearch}
-                value={serviceCitySearch}
-                style={styles.searchBar}
-              />
-
-              {filteredServiceCities.length === 0 ? (
-                <View style={{ padding: 20, alignItems: 'center' }}>
-                  <Text style={{ color: appColors.text.secondary }}>İl bulunamadı</Text>
-                </View>
-              ) : (
-                <ScrollView style={styles.modalList}>
-                  {filteredServiceCities.map((city, index) => (
-                    <TouchableOpacity
-                      key={`service-city-${index}-${city}`}
-                      style={[
-                        styles.modalItem,
-                        formData.serviceCity === city && { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }
-                      ]}
-                      onPress={() => handleServiceCitySelect(city)}
-                    >
-                      <Text style={[
-                        styles.modalItemText,
-                        formData.serviceCity === city && styles.modalItemTextSelected
-                      ]}>
-                        {city}
-                      </Text>
-                      {formData.serviceCity === city && (
-                        <MaterialCommunityIcons name="check" size={24} color="#26a69a" />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              )}
-            </View>
-          </View>
-        </Modal>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -522,52 +404,5 @@ const styles = StyleSheet.create({
   },
   saveButtonContent: {
     paddingVertical: 8,
-  },
-  // Hizmet Şehri seçim modal'ı için stiller (PersonalInfoNewScreen pattern'i)
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    height: '80%',
-    paddingBottom: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  modalTitle: {
-    fontWeight: 'bold',
-    color: '#26a69a',
-  },
-  searchBar: {
-    margin: 16,
-    elevation: 0,
-  },
-  modalList: {
-    maxHeight: 500,
-  },
-  modalItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  modalItemText: {
-    fontSize: 16,
-    color: '#000',
-  },
-  modalItemTextSelected: {
-    fontWeight: 'bold',
-    color: '#26a69a',
   },
 });
