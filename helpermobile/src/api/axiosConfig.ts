@@ -5,6 +5,8 @@ import axios, {
 } from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../constants/network";
+import { APP_VERSION, APP_CLIENT, APP_PLATFORM } from "../constants/appVersion";
+import { useUpgradeStore } from "../store/useUpgradeStore";
 import { logger } from "../utils/logger";
 
 // Logout durumunu takip et - logout sırasında 401 bildirimleri gösterme
@@ -27,6 +29,15 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
     async (config: InternalAxiosRequestConfig) => {
         try {
+            // Zorunlu versiyon kontrolü için backend her isteğe 3 header bekliyor.
+            // Eksikse backend bypass eder (curl/server-to-server için) ama biz her
+            // request'te göndererek `426 Upgrade Required` filtresinin çalışmasını sağlıyoruz.
+            if (config.headers) {
+                config.headers['X-App-Version'] = APP_VERSION;
+                config.headers['X-App-Platform'] = APP_PLATFORM;
+                config.headers['X-App-Client'] = APP_CLIENT;
+            }
+
             let token = null;
             try {
                 token = await AsyncStorage.getItem("access_token");
@@ -69,6 +80,21 @@ axiosInstance.interceptors.response.use(
     async (error: AxiosError) => {
         try {
             if (error.response) {
+                // 426 Upgrade Required — backend istemci versiyonu min'den düşük olduğunda döner.
+                // Kullanıcıyı kalıcı bir UpgradeRequiredGate ile kilitleyip mağazaya yönlendiriyoruz.
+                // Bu kontrol diğer status handler'larından (401, 404 vs.) ÖNCE gelmeli.
+                if (error.response.status === 426) {
+                    const data = (error.response.data ?? {}) as Record<string, any>;
+                    useUpgradeStore.getState().setUpgradeRequired({
+                        messageTr: data.message_tr || 'Lütfen uygulamayı güncelleyin.',
+                        messageEn: data.message_en || 'Please update the app.',
+                        minVersion: data.min_version || '',
+                        currentVersion: data.current_version || '',
+                        updateUrl: data.update_url || '',
+                    });
+                    return Promise.reject(error);
+                }
+
                 // 404 hatalarını sessizce yönet (araç fotoğrafları ve FCM token silme)
                 const isPhotoEndpoint = error.config?.url?.includes('/vehicles/documents/');
                 const isFCMLogout = error.config?.url?.includes('/auth/notifications/logout/');

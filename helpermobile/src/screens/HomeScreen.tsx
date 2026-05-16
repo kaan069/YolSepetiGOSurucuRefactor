@@ -7,10 +7,15 @@ import { Switch, Text, Card, useTheme, Button, IconButton } from 'react-native-p
 import MapView, { Region } from 'react-native-maps';
 import messaging from '@react-native-firebase/messaging';
 import * as Location from 'expo-location';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import NewJobNotification from '../components/NewJobNotification';
 import { useDriverStore } from '../store/driverStore';
+import { useAuthStore } from '../store/authStore';
 import { useResponsive } from '../hooks/useResponsive';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { RootStackParamList } from '../navigation';
+import authAPI from '../api/auth';
 import { logger } from '../utils/logger';
 
 
@@ -18,6 +23,8 @@ export default function HomeScreen() {
   // Get state and actions from global stores.
   // Global store'lardan state ve eylemleri al.
   const { isAvailable, currentLocation, updateOnlineStatus, loadOnlineStatus, isLoadingStatus } = useDriverStore();
+  const { currentUser, setCurrentUser } = useAuthStore();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const theme = useTheme();
   const { spacing, tabBar, safeArea, moderateScale } = useResponsive();
 
@@ -31,9 +38,23 @@ export default function HomeScreen() {
   // Yeni iş bildirim banner'ının görünürlüğünü kontrol eden state.
   const [newJobVisible, setNewJobVisible] = useState(false);
 
+  // Hizmet şehri (service_city) boş mu? Boşsa banner göster.
+  // AsyncStorage'daki eski user objesi service_city içermeyebilir; backend'den taze çekmeden
+  // banner'ı gizlersek yanlış pozitif/negatif olur — useEffect aşağıda taze profil çeker.
+  const needsServiceCity = !currentUser?.service_city || currentUser.service_city.trim() === '';
+
   // Online status'u yükle
   useEffect(() => {
     loadOnlineStatus();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Backend'den taze profil çek — service_city banner doğru kararla gösterilsin
+  // (mevcut login'li kullanıcıların AsyncStorage'ındaki user objesi service_city içermez)
+  useEffect(() => {
+    authAPI.getProfile()
+      .then(r => setCurrentUser(r.user))
+      .catch(err => logger.warn('auth', 'HomeScreen.refreshProfile failed', { status: err?.response?.status }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -191,8 +212,32 @@ export default function HomeScreen() {
           </Card.Content>
         </Card>
 
+        {/* Hizmet şehri seçilmediyse uyarı banner'ı —
+            backend bu durumda hiçbir talep döndürmez ve FCM göndermez */}
+        {needsServiceCity && (
+          <Card style={[styles.serviceCityBanner, { margin: spacing.md, marginTop: 0 }]}>
+            <Card.Content style={styles.serviceCityBannerContent}>
+              <Text variant="titleSmall" style={styles.serviceCityBannerTitle}>
+                📍 Hizmet şehri seçilmedi
+              </Text>
+              <Text variant="bodySmall" style={styles.serviceCityBannerBody}>
+                Yeni iş bildirimleri için hizmet şehrinizi seçin. Aksi takdirde talepler size ulaşmaz.
+              </Text>
+              <Button
+                mode="contained"
+                compact
+                onPress={() => navigation.navigate('EditProfile')}
+                style={styles.serviceCityBannerButton}
+                buttonColor="#f57c00"
+              >
+                Şehir Seç
+              </Button>
+            </Card.Content>
+          </Card>
+        )}
+
         {/* Firebase Test Button - for debugging */}
-        
+
       </View>
 
       {/* Notification banner for new jobs. */}
@@ -215,5 +260,29 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  serviceCityBanner: {
+    backgroundColor: '#fff3e0',
+    borderLeftWidth: 4,
+    borderLeftColor: '#f57c00',
+    borderRadius: 8,
+    elevation: 3,
+  },
+  serviceCityBannerContent: {
+    paddingVertical: 12,
+  },
+  serviceCityBannerTitle: {
+    fontWeight: 'bold',
+    color: '#e65100',
+    marginBottom: 4,
+  },
+  serviceCityBannerBody: {
+    color: '#5d4037',
+    marginBottom: 10,
+    lineHeight: 18,
+  },
+  serviceCityBannerButton: {
+    alignSelf: 'flex-start',
+    borderRadius: 6,
   },
 });

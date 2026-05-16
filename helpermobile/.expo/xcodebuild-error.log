@@ -1,2 +1,5 @@
-2026-03-27 09:17:28.857 xcodebuild[81109:3269286]  DVTDeviceOperation: Encountered a build number "" that is incompatible with DVTBuildVersion.
-2026-03-27 09:17:29.249 xcodebuild[81109:3269284] [MT] DVTDeviceOperation: Encountered a build number "" that is incompatible with DVTBuildVersion.
+2026-05-16 19:39:51.446 xcodebuild[34894:17892028]  DVTDeviceOperation: Encountered a build number "" that is incompatible with DVTBuildVersion.
+2026-05-16 19:39:51.994 xcodebuild[34894:17891833] [MT] DVTDeviceOperation: Encountered a build number "" that is incompatible with DVTBuildVersion.
+--- xcodebuild: WARNING: Using the first of multiple matching destinations:
+{ platform:iOS Simulator, arch:arm64, id:DB7C0B69-73AB-4068-B543-19DC8E658DF8, OS:18.4, name:15 }
+{ platform:iOS Simulator, arch:x86_64, id:DB7C0B69-73AB-4068-B543-19DC8E658DF8, OS:18.4, name:15 }

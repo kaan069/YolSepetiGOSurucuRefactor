@@ -19,7 +19,11 @@ import NetworkStatusAlert from './components/NetworkStatusAlert';
 import LocationPermissionAlert from './components/LocationPermissionAlert';
 import BackgroundPermissionGate from './components/BackgroundPermissionGate';
 import AccountReadinessGate from './components/AccountReadinessGate';
+import UpgradeRequiredGate from './components/UpgradeRequiredGate';
 import { useAuthStore } from './store/authStore';
+import { useUpgradeStore } from './store/useUpgradeStore';
+import { fetchAppVersionConfig } from './api/appVersion';
+import { APP_VERSION, APP_PLATFORM, compareVersions } from './constants/appVersion';
 import { useActiveJobStore } from './store/useActiveJobStore';
 import { useNakliyeLocationStore } from './store/useNakliyeLocationStore';
 import { authAPI, requestsAPI } from './api';
@@ -98,6 +102,36 @@ export default function App() {
   React.useEffect(() => {
     loadThemePreference();
   }, [loadThemePreference]);
+
+  // Proactive versiyon kontrolü — splash sırasında `GET /app-version/` ile
+  // min versiyonu sorgular. Düşükse UpgradeRequiredGate'i tetikler ve diğer
+  // tüm akışları (auth check, font load) görsel olarak override eder.
+  // Başarısız olursa interceptor 426 fallback'i devreye girer; uygulama kilitlenmez.
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const config = await fetchAppVersionConfig();
+      if (cancelled || !config) return;
+
+      const driverConfig = config.driver;
+      if (!driverConfig) return;
+
+      const platform = APP_PLATFORM as 'ios' | 'android' | 'web';
+      const minVersion = driverConfig.min_versions?.[platform];
+      const updateUrl = driverConfig.update_urls?.[platform];
+
+      if (minVersion && compareVersions(APP_VERSION, minVersion) < 0) {
+        useUpgradeStore.getState().setUpgradeRequired({
+          messageTr: config.update_message_tr || 'Lütfen uygulamayı güncelleyin.',
+          messageEn: config.update_message_en || 'Please update the app.',
+          minVersion,
+          currentVersion: APP_VERSION,
+          updateUrl: updateUrl || '',
+        });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Onboarding durumunu AsyncStorage'dan yükle
   React.useEffect(() => {
@@ -297,6 +331,11 @@ export default function App() {
 
       {/* Hesap onay kontrolü - onaylanana kadar kapanmayan gate */}
       <AccountReadinessGate navigationRef={navigationRef} />
+
+      {/* Zorunlu versiyon kontrolü - backend min versiyon yükselttiğinde veya
+          splash kontrolü düşük versiyon tespit ettiğinde mağazaya yönlendirir.
+          Diğer tüm gate'lerin üzerinde — auth/network sorunundan bağımsız çalışır. */}
+      <UpgradeRequiredGate />
     </PaperProvider>
   );
 }
