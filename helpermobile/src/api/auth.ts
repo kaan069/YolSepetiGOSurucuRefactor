@@ -272,7 +272,7 @@ class AuthAPI {
         business_address: string;
         business_address_il: string;
         business_address_ilce: string;
-        service_city: string;
+        service_cities: string[];
         user_type: string[];
     }>): Promise<{ user: AuthResponse['user'] }> {
         try {

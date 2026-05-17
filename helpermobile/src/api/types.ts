@@ -31,7 +31,7 @@ export interface User {
     business_address: string;
     business_address_il: string;
     business_address_ilce: string;
-    service_city?: string;  // Sürücünün iş aldığı şehir — boşsa hiçbir talep listelenmez/bildirilmez
+    service_cities?: string[];  // Sürücünün iş aldığı şehirler (çoklu) — boşsa hiçbir talep listelenmez/bildirilmez
     user_type: string[];
     provider_type?: ProviderType;  // Sahis / Firma / Eleman
     is_active: boolean;

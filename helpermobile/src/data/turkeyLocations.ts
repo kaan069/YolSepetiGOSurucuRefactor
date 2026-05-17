@@ -346,3 +346,49 @@ export const getDistrictsByCity = (cityName: string): string[] => {
 export const getCityNames = (): string[] => {
   return TURKEY_CITIES.map(city => city.name);
 };
+
+// ==================== TÜRKİYE BÖLGELERİ ====================
+// Hizmet Alanı ekranında bölge bazlı toplu seçim için.
+// Coğrafi 7 bölge ayrımı kullanılıyor (TÜİK standardı).
+
+export interface Region {
+  name: string;
+  cities: string[];
+}
+
+export const TURKEY_REGIONS: Region[] = [
+  {
+    name: 'Marmara',
+    cities: ['İstanbul', 'Bursa', 'Tekirdağ', 'Edirne', 'Kırklareli', 'Kocaeli', 'Sakarya', 'Yalova', 'Bilecik', 'Çanakkale', 'Balıkesir'],
+  },
+  {
+    name: 'Ege',
+    cities: ['İzmir', 'Manisa', 'Aydın', 'Denizli', 'Muğla', 'Uşak', 'Afyonkarahisar', 'Kütahya'],
+  },
+  {
+    name: 'Akdeniz',
+    cities: ['Antalya', 'Mersin', 'Adana', 'Hatay', 'Osmaniye', 'Kahramanmaraş', 'Isparta', 'Burdur'],
+  },
+  {
+    name: 'İç Anadolu',
+    cities: ['Ankara', 'Konya', 'Kayseri', 'Eskişehir', 'Aksaray', 'Karaman', 'Kırıkkale', 'Kırşehir', 'Nevşehir', 'Niğde', 'Sivas', 'Yozgat', 'Çankırı'],
+  },
+  {
+    name: 'Karadeniz',
+    cities: ['Samsun', 'Trabzon', 'Ordu', 'Giresun', 'Rize', 'Artvin', 'Sinop', 'Kastamonu', 'Bartın', 'Zonguldak', 'Bolu', 'Düzce', 'Karabük', 'Çorum', 'Amasya', 'Tokat', 'Gümüşhane', 'Bayburt'],
+  },
+  {
+    name: 'Doğu Anadolu',
+    cities: ['Erzurum', 'Van', 'Malatya', 'Elazığ', 'Ağrı', 'Kars', 'Iğdır', 'Ardahan', 'Bingöl', 'Bitlis', 'Erzincan', 'Hakkari', 'Muş', 'Tunceli'],
+  },
+  {
+    name: 'Güneydoğu Anadolu',
+    cities: ['Gaziantep', 'Şanlıurfa', 'Diyarbakır', 'Adıyaman', 'Batman', 'Kilis', 'Mardin', 'Siirt', 'Şırnak'],
+  },
+];
+
+// Bölge adıyla şehirleri getir
+export const getCitiesByRegion = (regionName: string): string[] => {
+  const region = TURKEY_REGIONS.find(r => r.name === regionName);
+  return region ? region.cities : [];
+};

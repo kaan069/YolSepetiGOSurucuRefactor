@@ -38,10 +38,10 @@ export default function HomeScreen() {
   // Yeni iş bildirim banner'ının görünürlüğünü kontrol eden state.
   const [newJobVisible, setNewJobVisible] = useState(false);
 
-  // Hizmet şehri (service_city) boş mu? Boşsa banner göster.
-  // AsyncStorage'daki eski user objesi service_city içermeyebilir; backend'den taze çekmeden
+  // Hizmet şehirleri (service_cities) boş mu? Boşsa banner göster.
+  // AsyncStorage'daki eski user objesi service_cities içermeyebilir; backend'den taze çekmeden
   // banner'ı gizlersek yanlış pozitif/negatif olur — useEffect aşağıda taze profil çeker.
-  const needsServiceCity = !currentUser?.service_city || currentUser.service_city.trim() === '';
+  const needsServiceCity = !currentUser?.service_cities || currentUser.service_cities.length === 0;
 
   // Online status'u yükle
   useEffect(() => {
@@ -49,8 +49,8 @@ export default function HomeScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Backend'den taze profil çek — service_city banner doğru kararla gösterilsin
-  // (mevcut login'li kullanıcıların AsyncStorage'ındaki user objesi service_city içermez)
+  // Backend'den taze profil çek — service_cities banner doğru kararla gösterilsin
+  // (mevcut login'li kullanıcıların AsyncStorage'ındaki user objesi service_cities içermeyebilir)
   useEffect(() => {
     authAPI.getProfile()
       .then(r => setCurrentUser(r.user))
@@ -221,7 +221,7 @@ export default function HomeScreen() {
                 📍 Hizmet şehri seçilmedi
               </Text>
               <Text variant="bodySmall" style={styles.serviceCityBannerBody}>
-                Yeni iş bildirimleri için hizmet şehrinizi seçin. Aksi takdirde talepler size ulaşmaz.
+                Yeni iş bildirimleri için hizmet şehirlerinizi seçin. Aksi takdirde talepler size ulaşmaz.
               </Text>
               <Button
                 mode="contained"
