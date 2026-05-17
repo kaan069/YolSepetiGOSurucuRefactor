@@ -145,27 +145,43 @@ export default function OrdersScreen() {
       const acceptedDriverId = data?.accepted_driver_id;
       const storeKey = wsServiceToFilter[serviceType];
 
-      // accepted_driver_id kontrolü: başka sürücü kabul edildiyse sadece listeyi yenile
       const myUserId = useAuthStore.getState().currentUser?.id;
-      if (acceptedDriverId !== null && acceptedDriverId !== undefined && myUserId) {
-        const myId = typeof myUserId === 'string' ? parseInt(myUserId) : myUserId;
-        if (acceptedDriverId !== myId) {
-          // Başka sürücü kabul edildi - sayıları güncelle ve listeyi yenile
-          if (oldStatus && validCountStatuses.includes(oldStatus)) {
-            useJobCountsStore.getState().decrementCount(storeKey, oldStatus as any);
-          }
-          refreshByServiceType(serviceType);
-          fetchAllServicesJobCounts();
-          return; // Benim işim değil, sekme değiştirme
-        }
-      }
+      const myId = myUserId !== undefined
+        ? (typeof myUserId === 'string' ? parseInt(myUserId, 10) : myUserId)
+        : undefined;
 
-      // İş detay ekranına event gönder (ödeme yapıldığında vs. otomatik güncelleme)
+      // Backend matrisi (doğrulandı):
+      //   - pending→awaiting_approval (offers.py:222) ve otomatik iptal → null
+      //   - awaiting_payment / in_progress / completed / admin-update → accepted_by_driver_id dolu
+      // Lokal count delta ve auto-navigate'i YALNIZCA bu olayın bizimle ilgili olduğuna
+      // kesin kanıt varsa uygula. Aksi halde başka sürücü teklif verdiğinde Cihaz 1'in
+      // sekmesi yanlışlıkla "Onay Bekleyen"e kayıyordu (multi-cihaz bug).
+      const isMyJob =
+        acceptedDriverId !== null &&
+        acceptedDriverId !== undefined &&
+        myId !== undefined &&
+        acceptedDriverId === myId;
+
+      // Açık iş detay ekranı (varsa) her durumda güncellensin — kimin işi olduğundan bağımsız
       if (jobId) {
         useJobUpdateEventStore.getState().setJobUpdated(jobId, newStatus);
       }
 
-      // Sayıları güncelle
+      if (!isMyJob) {
+        // Benim değil (ya da kanıt yok) — backend'e güven: sadece counts + refresh,
+        // sekme değiştirme. Teklif veren sürücünün auto-nav'i submit-offer REST
+        // cevabında zaten yapılıyor (OfferScreen'ler), regresyon yok.
+        if (data?.counts) {
+          useJobCountsStore.getState().updateServiceCounts(storeKey, data.counts);
+        }
+        refreshByServiceType(serviceType);
+        if (newStatus === 'completed' || newStatus === 'cancelled') {
+          fetchAllServicesJobCounts();
+        }
+        return;
+      }
+
+      // isMyJob === true — lokal count delta + auto-navigate güvenli
       if (oldStatus && validCountStatuses.includes(oldStatus)) {
         useJobCountsStore.getState().decrementCount(storeKey, oldStatus as any);
       }
