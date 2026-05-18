@@ -12,6 +12,82 @@ interface ContractModalProps {
   onAccept?: () => void;
 }
 
+type EmphasisStyle = 'bold' | 'underline';
+
+const EMPHASIZED_SENTENCES: Array<{ text: string; style: EmphasisStyle }> = [
+  {
+    text: 'Platform yalnızca dijital aracılık hizmeti olup, hizmetin fiili ifasını üstlenmez.',
+    style: 'underline',
+  },
+  {
+    text: 'Yol SepetiGO sadece bir aracıdır. Asla bir taraf değildir. Fiyatlandırma, kabul, taraflar arasında olup Yol Sepeti Go hiçbir sorumluluk altında değildir. Taraflar önceden rizikoları kabul eder.',
+    style: 'underline',
+  },
+  {
+    text: '7.5. Platform, hizmet bedelini tek taraflı belirlemez; fiyatlandırma Hizmet Sağlayıcı tarafından yapılır.',
+    style: 'underline',
+  },
+  {
+    text: 'Hizmet Sağlayıcı; sunduğu hizmetleri tamamen kendi nam ve hesabına bağımsız bir şekilde yürüttüğünü kabul eder. Hizmet Sağlayıcı; kendi personelinden, kullandığı araç ve ekipmanlardan, faaliyetleri kapsamında doğabilecek zararlardan, vergi yükümlülüklerinden, sigorta primlerinden ve SGK dahil tüm yasal yükümlülüklerden münhasıran kendisinin sorumlu olduğunu kabul ve taahhüt eder.',
+    style: 'underline',
+  },
+  {
+    text: 'Hizmet Sağlayıcı ile platform işletmecisi Yol Sepeti Go arasında hiçbir şekilde işçi‑işveren ilişkisi, hizmet sözleşmesi, temsil, acentelik, adi ortaklık veya benzeri bir hukuki ilişki kurulmuş sayılmaz. Hizmet Sağlayıcı ve onun istihdam ettiği personel hiçbir surette Yol Sepeti Go\'nun çalışanı olarak kabul edilemez.',
+    style: 'underline',
+  },
+  {
+    text: 'Bu yükümlülüklerin yerine getirilmemesinden doğabilecek her türlü sorumluluk hizmet sağlayıcıya ait olacaktır.',
+    style: 'underline',
+  },
+  {
+    text: '(Hizmet Sağlayıcı veya kullanıcı tarafından)',
+    style: 'underline',
+  },
+  {
+    text: 'Taraflar, iptal durumunda platformun belirlediği kesinti ve iade koşullarını peşinen kabul eder.',
+    style: 'underline',
+  },
+  {
+    text: 'İptal Zamanları ve öngörülen kesinti ise şöyledir:',
+    style: 'bold',
+  },
+  {
+    text: '50.000 TL (elli bin türk lirası)',
+    style: 'underline',
+  },
+];
+
+function renderFormattedContent(text: string): React.ReactNode[] {
+  const ranges: Array<{ start: number; end: number; style: EmphasisStyle }> = [];
+  for (const item of EMPHASIZED_SENTENCES) {
+    let pos = 0;
+    while (true) {
+      const idx = text.indexOf(item.text, pos);
+      if (idx === -1) break;
+      ranges.push({ start: idx, end: idx + item.text.length, style: item.style });
+      pos = idx + item.text.length;
+    }
+  }
+  ranges.sort((a, b) => a.start - b.start);
+
+  const segments: React.ReactNode[] = [];
+  let cursor = 0;
+  let key = 0;
+  for (const r of ranges) {
+    if (r.start < cursor) continue;
+    if (r.start > cursor) segments.push(text.slice(cursor, r.start));
+    const inner = text.slice(r.start, r.end);
+    if (r.style === 'bold') {
+      segments.push(<Text key={`b-${key++}`} style={{ fontWeight: 'bold' }}>{inner}</Text>);
+    } else {
+      segments.push(<Text key={`u-${key++}`} style={{ textDecorationLine: 'underline' }}>{inner}</Text>);
+    }
+    cursor = r.end;
+  }
+  if (cursor < text.length) segments.push(text.slice(cursor));
+  return segments;
+}
+
 export default function ContractModal({ visible, contract, onDismiss, showAcceptButton, onAccept }: ContractModalProps) {
   const theme = useTheme();
   const [scrolledToBottom, setScrolledToBottom] = useState(false);
@@ -75,7 +151,7 @@ export default function ContractModal({ visible, contract, onDismiss, showAccept
             onScroll={handleScroll}
             scrollEventThrottle={16}
           >
-            <Text style={styles.contractText}>{contract.content}</Text>
+            <Text style={styles.contractText}>{renderFormattedContent(contract.content)}</Text>
           </ScrollView>
 
           {/* Footer */}
