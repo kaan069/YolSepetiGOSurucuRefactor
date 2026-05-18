@@ -1,6 +1,6 @@
 // This screen displays the details of a job. It can handle both active (accepted) and completed jobs.
 // Bu ekran bir işin detaylarını görüntüler. Hem aktif (kabul edilmiş) hem de tamamlanmış işleri yönetebilir.
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, ScrollView, Linking, Platform, Alert, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Button } from 'react-native-paper';
@@ -157,42 +157,17 @@ export default function JobDetailScreen({ route, navigation }: Props) {
     }
   }, [lastCancelledJobId, lastCancelledAt, jobId, fetchRequest]);
 
-  // WebSocket iş güncelleme event'ini dinle (ödeme yapıldığında vs.)
+  // WebSocket iş güncelleme event'ini dinle (ödeme yapıldığında, status değiştiğinde vs.)
+  // Sessizce detayı yenile — kullanıcı zaten bu ekranda; rahatsız edici Alert + navigate
+  // yapısı kaldırıldı (önceki davranış: detaydan atıp OrdersTab'a zorla yönlendiriyordu,
+  // serviceFilter sabit olduğu için her zaman çekici sekmesine düşürüyordu).
   const { lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus } = useJobUpdateEventStore();
-  const lastShownUpdateKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (lastUpdatedJobId && String(lastUpdatedJobId) === jobId) {
-      if (lastUpdatedStatus) {
-        const eventKey = `${lastUpdatedJobId}-${lastUpdatedStatus}`;
-        if (lastShownUpdateKeyRef.current === eventKey) return;
-        lastShownUpdateKeyRef.current = eventKey;
-        const statusLabels: Record<string, string> = {
-          'awaiting_approval': 'Onay Bekleniyor',
-          'awaiting_payment': 'Ödeme Bekleniyor',
-          'in_progress': 'Devam Ediyor',
-          'completed': 'Tamamlandı',
-          'cancelled': 'İptal Edildi',
-        };
-        const label = statusLabels[lastUpdatedStatus] || lastUpdatedStatus;
-        useJobUpdateEventStore.getState().clear();
-        Alert.alert('İş Durumu Güncellendi', `İş durumu: ${label}`, [{
-          text: 'Tamam',
-          onPress: () => {
-            navigation.navigate('Tabs', {
-              screen: 'OrdersTab',
-              params: {
-                filter: lastUpdatedStatus === 'cancelled' ? 'pending' : lastUpdatedStatus,
-                serviceFilter: 'tow',
-                timestamp: Date.now(),
-              },
-            });
-          },
-        }]);
-      } else {
-        fetchRequest();
-      }
+      useJobUpdateEventStore.getState().clear();
+      fetchRequest();
     }
-  }, [lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus, jobId, navigation, fetchRequest]);
+  }, [lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus, jobId, fetchRequest]);
 
   // Onay/ödeme beklerken fallback polling (10 saniyede bir)
   // Sadece WebSocket bağlantısı yoksa çalışır

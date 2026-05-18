@@ -1,6 +1,6 @@
 // Nakliye iş detayı ekranı (Evden Eve + Şehirler Arası)
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { View, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text, Button } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -166,42 +166,15 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
     }
   }, [lastCancelledJobId, lastCancelledAt, jobId, fetchRequest]);
 
-  // WebSocket iş güncelleme event'ini dinle (ödeme yapıldığında vs.)
+  // WebSocket iş güncelleme event'ini dinle — sessizce detayı yenile.
+  // Önceki Alert + zorla OrdersTab'a navigate yapısı kaldırıldı (UX bozuyordu).
   const { lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus } = useJobUpdateEventStore();
-  const lastShownUpdateKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (lastUpdatedJobId && String(lastUpdatedJobId) === jobId) {
-      if (lastUpdatedStatus) {
-        const eventKey = `${lastUpdatedJobId}-${lastUpdatedStatus}`;
-        if (lastShownUpdateKeyRef.current === eventKey) return;
-        lastShownUpdateKeyRef.current = eventKey;
-        const statusLabels: Record<string, string> = {
-          'awaiting_approval': 'Onay Bekleniyor',
-          'awaiting_payment': 'Ödeme Bekleniyor',
-          'in_progress': 'Devam Ediyor',
-          'completed': 'Tamamlandı',
-          'cancelled': 'İptal Edildi',
-        };
-        const label = statusLabels[lastUpdatedStatus] || lastUpdatedStatus;
-        useJobUpdateEventStore.getState().clear();
-        Alert.alert('İş Durumu Güncellendi', `İş durumu: ${label}`, [{
-          text: 'Tamam',
-          onPress: () => {
-            navigation.navigate('Tabs', {
-              screen: 'OrdersTab',
-              params: {
-                filter: lastUpdatedStatus === 'cancelled' ? 'pending' : lastUpdatedStatus,
-                serviceFilter: 'nakliye',
-                timestamp: Date.now(),
-              },
-            });
-          },
-        }]);
-      } else {
-        fetchRequest();
-      }
+      useJobUpdateEventStore.getState().clear();
+      fetchRequest();
     }
-  }, [lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus, jobId, navigation, fetchRequest]);
+  }, [lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus, jobId, fetchRequest]);
 
   // Onay/ödeme beklerken fallback polling (10 saniyede bir)
   // Sadece WebSocket bağlantısı yoksa çalışır

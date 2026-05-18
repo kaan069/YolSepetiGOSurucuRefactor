@@ -1,5 +1,5 @@
 // Vinç iş detay ekranı
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Text, Button } from 'react-native-paper';
@@ -95,50 +95,23 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
     }
   }, [lastCancelledJobId, lastCancelledAt, jobId]);
 
-  // WebSocket iş güncelleme event'ini dinle (ödeme yapıldığında vs.)
+  // WebSocket iş güncelleme event'ini dinle — sessizce detayı yenile.
+  // Önceki Alert + zorla OrdersTab'a navigate yapısı kaldırıldı (UX bozuyordu).
   const { lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus } = useJobUpdateEventStore();
-  const lastShownUpdateKeyRef = useRef<string | null>(null);
   useEffect(() => {
     if (lastUpdatedJobId && String(lastUpdatedJobId) === jobId) {
-      if (lastUpdatedStatus) {
-        const eventKey = `${lastUpdatedJobId}-${lastUpdatedStatus}`;
-        if (lastShownUpdateKeyRef.current === eventKey) return;
-        lastShownUpdateKeyRef.current = eventKey;
-        const statusLabels: Record<string, string> = {
-          'awaiting_approval': 'Onay Bekleniyor',
-          'awaiting_payment': 'Ödeme Bekleniyor',
-          'in_progress': 'Devam Ediyor',
-          'completed': 'Tamamlandı',
-          'cancelled': 'İptal Edildi',
-        };
-        const label = statusLabels[lastUpdatedStatus] || lastUpdatedStatus;
-        useJobUpdateEventStore.getState().clear();
-        Alert.alert('İş Durumu Güncellendi', `İş durumu: ${label}`, [{
-          text: 'Tamam',
-          onPress: () => {
-            navigation.navigate('Tabs', {
-              screen: 'OrdersTab',
-              params: {
-                filter: lastUpdatedStatus === 'cancelled' ? 'pending' : lastUpdatedStatus,
-                serviceFilter: 'crane',
-                timestamp: Date.now(),
-              },
-            });
-          },
-        }]);
-      } else {
-        const refetch = async () => {
-          try {
-            const request = await requestsAPI.getCraneRequestDetail(parseInt(jobId));
-            setCraneRequest(request);
-          } catch (error) {
-            // Güncelleme sonrası detay alınamazsa yoksay
-          }
-        };
-        refetch();
-      }
+      useJobUpdateEventStore.getState().clear();
+      const refetch = async () => {
+        try {
+          const request = await requestsAPI.getCraneRequestDetail(parseInt(jobId));
+          setCraneRequest(request);
+        } catch (error) {
+          // Güncelleme sonrası detay alınamazsa yoksay
+        }
+      };
+      refetch();
     }
-  }, [lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus, jobId, navigation]);
+  }, [lastUpdatedJobId, lastUpdatedAt, lastUpdatedStatus, jobId]);
 
   // Onay/ödeme beklerken fallback polling (10 saniyede bir)
   // Sadece WebSocket bağlantısı yoksa çalışır
