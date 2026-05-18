@@ -27,7 +27,7 @@ import { APP_VERSION, APP_PLATFORM, compareVersions } from './constants/appVersi
 import { useActiveJobStore } from './store/useActiveJobStore';
 import { useNakliyeLocationStore } from './store/useNakliyeLocationStore';
 import { authAPI, requestsAPI } from './api';
-import { navigateToAcceptedJob, navigateToOfferScreen } from './utils/notificationNavigation';
+import { navigateByRequestStatus, isStaleNotification } from './utils/notificationNavigation';
 import { backgroundLocationService } from './services/backgroundLocationService';
 import { logger } from './utils/logger';
 
@@ -290,9 +290,17 @@ export default function App() {
           const serviceType = data.service_type || data.type || 'tow';
           const notificationType = data.type;
 
+          // Eski bildirim (>24h): foreground banner'da bile eski payload görülebilir
+          // (örn. uygulama kapalıyken tray'de bekleyen bildirim açılışta banner'a düşerse).
+          // OfferScreen'de 404 göstermek yerine OrdersTab'a yönlendir.
+          const stale = isStaleNotification(notification);
+
           if (navigationRef.current) {
+            if (stale) {
+              navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+            }
             // Eleman iş ataması bildirimi - EmployeeJobDetail'e yönlendir
-            if (notificationType === 'job_assigned') {
+            else if (notificationType === 'job_assigned') {
               const requestId = data.request_id;
               if (requestId) {
                 navigationRef.current.navigate('EmployeeJobDetail', {
@@ -306,11 +314,9 @@ export default function App() {
             else if (notificationType === 'request_cancelled') {
               navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
             }
-            else if ((notificationType === 'offer_accepted' || notificationType === 'request_approved') && orderId) {
-              navigateToAcceptedJob(navigationRef, orderId, serviceType, '[Banner]');
-            }
             else if (orderId) {
-              navigateToOfferScreen(navigationRef, orderId, serviceType);
+              // Talebin gerçek statüsüne göre OfferScreen veya JobDetail'e yönlendir
+              navigateByRequestStatus(navigationRef, orderId, serviceType, '[Banner]');
             }
           }
         }}

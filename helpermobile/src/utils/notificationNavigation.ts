@@ -20,6 +20,66 @@
 import { logger } from './logger';
 
 // ---------------------------------------------------------------------------
+// Stale notification kontrolü
+// ---------------------------------------------------------------------------
+
+/**
+ * Bildirimin "eski" sayılma eşiği — bu kadar saatten daha önce gönderilmiş
+ * bildirimler stale kabul edilir. iOS notification center'da uzun süre
+ * bekleyen bildirimlere tıklandığında ilgili request'in çoktan başka sürücüye
+ * atanmış olması yaygın bir senaryodur; OfferScreen'e yönlenip 404 görmek
+ * yerine kullanıcı doğrudan OrdersTab'a alınır.
+ */
+const STALE_NOTIFICATION_HOURS = 24;
+const STALE_NOTIFICATION_MS = STALE_NOTIFICATION_HOURS * 60 * 60 * 1000;
+
+/**
+ * Bildirim gönderim zamanını belirlemek için sırayla kontrol edilir:
+ *  1. Firebase RemoteMessage.sentTime (ms epoch) — onMessage / opened / killed state
+ *  2. Expo Notification.date (sec epoch) — foreground banner
+ *  3. data.created_at / data.createdAt / data.sent_at — backend payload alanları
+ *  Hiçbiri yoksa: `null` döner → caller stale değil sayar (false negative emniyetli).
+ */
+function extractNotificationSentMs(source: any): number | null {
+    if (!source) return null;
+
+    // Firebase RemoteMessage
+    if (typeof source.sentTime === 'number' && source.sentTime > 0) {
+        return source.sentTime;
+    }
+
+    // Expo Notifications — Notification.date saniyedir
+    if (typeof source.date === 'number' && source.date > 0) {
+        return source.date > 1e12 ? source.date : source.date * 1000;
+    }
+
+    // Backend data alanı (string ISO veya number epoch)
+    const data = source.data ?? source.request?.content?.data ?? source;
+    const candidate =
+        data?.created_at ?? data?.createdAt ?? data?.sent_at ?? data?.sentAt;
+    if (typeof candidate === 'string') {
+        const t = Date.parse(candidate);
+        return Number.isFinite(t) ? t : null;
+    }
+    if (typeof candidate === 'number' && candidate > 0) {
+        return candidate > 1e12 ? candidate : candidate * 1000;
+    }
+
+    return null;
+}
+
+/**
+ * Bildirim STALE_NOTIFICATION_HOURS'tan eskiyse `true` döner. Gönderim
+ * zamanı tespit edilemiyorsa konservatif olarak `false` döner (kullanıcı
+ * deneyimini yanlışlıkla bloke etmemek için).
+ */
+export function isStaleNotification(source: any): boolean {
+    const sentMs = extractNotificationSentMs(source);
+    if (sentMs === null) return false;
+    return Date.now() - sentMs > STALE_NOTIFICATION_MS;
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -205,8 +265,168 @@ function getJobDetailTarget(
     }
 }
 
+// ---------------------------------------------------------------------------
+// Status-based navigation (yeni master)
+// ---------------------------------------------------------------------------
+
+/**
+ * Servise göre uygun detail endpoint'ini çağırır.
+ * Backend: `/requests/{service}/details/{pk}/` — sürücü tüm status'ler için erişebilir.
+ */
+async function fetchRequestDetail(
+    requestsAPI: any,
+    serviceType: OfferServiceKey,
+    orderId: string | number
+): Promise<any> {
+    const id = typeof orderId === 'string' ? parseInt(orderId, 10) : orderId;
+    switch (serviceType) {
+        case 'crane': return requestsAPI.getCraneRequestDetail(id);
+        case 'home_moving': return requestsAPI.getHomeMovingRequestDetail(id);
+        case 'city_moving': return requestsAPI.getCityMovingRequestDetail(id);
+        case 'road_assistance': return requestsAPI.getRoadAssistanceRequestDetail(id);
+        case 'transfer': return requestsAPI.getTransferRequestDetail(id);
+        case 'tow':
+        default: return requestsAPI.getTowTruckRequestDetail(id);
+    }
+}
+
+/**
+ * Status'e göre JobDetail ekranı + navigation params'ı belirler.
+ *
+ * KRİTİK: `jobId` parametresi backend'in `request_id` (yani orderId) ile aynı.
+ * JobDetailScreen mount olduğunda `getXxxRequestDetail(parseInt(jobId))` çağırıyor
+ * ve bu endpoint backend tarafında `request_id__pk = jobId` ile sorgu yapıyor.
+ * useOrdersNavigation.ts pattern'i de aynı şekilde `orderId` değerini `jobId`
+ * olarak geçiriyor. Bu yüzden burada `detail.id` (driver kaydı id'si) DEĞİL,
+ * `orderId` kullanılır — yanlış id verilirse JobDetail fetch 404 alır.
+ */
+function getJobDetailNavigation(
+    serviceType: OfferServiceKey,
+    orderId: string | number
+): { screen: string; params: Record<string, any> } {
+    const jobId = String(orderId);
+    switch (serviceType) {
+        case 'crane':
+            return { screen: 'CraneJobDetail', params: { jobId } };
+        case 'home_moving':
+            return { screen: 'NakliyeJobDetail', params: { jobId, movingType: 'home' } };
+        case 'city_moving':
+            return { screen: 'NakliyeJobDetail', params: { jobId, movingType: 'city' } };
+        case 'road_assistance':
+            return { screen: 'RoadAssistanceJobDetail', params: { jobId } };
+        case 'transfer':
+            return { screen: 'TransferJobDetail', params: { jobId } };
+        case 'tow':
+        default:
+            return { screen: 'JobDetail', params: { jobId, fromScreen: 'Notification' } };
+    }
+}
+
+/**
+ * Master bildirim yönlendirme fonksiyonu — talebin gerçek statüsünü backend'den
+ * çekip uygun ekrana yönlendirir.
+ *
+ * - `pending`               → OfferScreen (mevcut `navigateToOfferScreen`)
+ * - `awaiting_approval`     → JobDetail (servise göre)
+ * - `awaiting_payment`      → JobDetail
+ * - `in_progress`           → JobDetail
+ * - `completed`             → OrdersTab `filter: completed`
+ * - `cancelled`             → OrdersTab + "iptal edilmiş" alert
+ * - bilinmeyen / boş        → OrdersTab fallback
+ *
+ * Hata (404 / network / vb.): kullanıcıya kısa Alert + OrdersTab.
+ *
+ * Kullanıldığı yerler:
+ *   - App.tsx (foreground banner onPress)
+ *   - useNotifications.ts (background state handler)
+ *   - useNotifications.ts (killed state handler)
+ */
+export async function navigateByRequestStatus(
+    navigationRef: any,
+    orderId: any,
+    rawServiceType: any,
+    logPrefix: string = ''
+): Promise<void> {
+    if (!navigationRef?.current || !orderId) return;
+
+    const serviceType = resolveOfferServiceKey(rawServiceType);
+
+    try {
+        const { requestsAPI } = await import('../api');
+        const detail = await fetchRequestDetail(requestsAPI, serviceType, orderId);
+
+        const status: string | undefined =
+            detail?.status || detail?.request_id?.status;
+
+        logger.info('navigation', `${logPrefix} Status-based routing`, { serviceType, status });
+
+        if (!status) {
+            navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+            return;
+        }
+
+        if (status === 'pending') {
+            navigateToOfferScreen(navigationRef, orderId, rawServiceType);
+            return;
+        }
+
+        if (status === 'cancelled') {
+            navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+            const { Alert } = await import('react-native');
+            Alert.alert('Bilgi', 'Bu talep iptal edilmiş.');
+            return;
+        }
+
+        if (status === 'completed') {
+            navigationRef.current.navigate('Tabs', {
+                screen: 'OrdersTab',
+                params: { filter: 'completed' },
+            });
+            return;
+        }
+
+        if (
+            status === 'awaiting_approval' ||
+            status === 'awaiting_payment' ||
+            status === 'in_progress'
+        ) {
+            // jobId = orderId (request_id) — JobDetailScreen mount olunca bu değeri
+            // doğrudan getXxxRequestDetail()'e geçiriyor; detail.id (driver kaydı)
+            // değil request_id geçilmesi şart, aksi halde JobDetail 404 alır.
+            const target = getJobDetailNavigation(serviceType, orderId);
+            if (!target.params.jobId) {
+                navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+                return;
+            }
+            navigationRef.current.navigate(target.screen, target.params);
+            return;
+        }
+
+        // Bilinmeyen status — fallback
+        logger.warn('navigation', `${logPrefix} Unknown status, routing to OrdersTab`, { status });
+        navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+    } catch (err: any) {
+        const httpStatus = err?.response?.status;
+        logger.error('navigation', `${logPrefix} navigateByRequestStatus failed`, {
+            status: httpStatus,
+        });
+        const { Alert } = await import('react-native');
+        const is404 = httpStatus === 404;
+        Alert.alert(
+            'Hata',
+            is404
+                ? 'Talep artık mevcut değil veya size erişim yok.'
+                : 'Talep yüklenemedi. Lütfen İşlerim sekmesinden tekrar deneyin.'
+        );
+        navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+    }
+}
+
 /**
  * Onaylanan iş bildiriminde doğru iş detay ekranına yönlendirir.
+ *
+ * @deprecated Yeni bildirim akışında `navigateByRequestStatus` kullanılır.
+ * Bu fonksiyon geriye uyum için korunmuştur; başka bir yerde import edilebilir.
  *
  * Kullanıldığı yerler:
  *   - App.tsx (foreground banner onPress)

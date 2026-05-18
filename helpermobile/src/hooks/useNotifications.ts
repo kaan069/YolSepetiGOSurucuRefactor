@@ -12,7 +12,7 @@ import {
 import { useAuthStore } from "../store/authStore";
 import { useNotificationStore } from "../store/notificationStore";
 import authAPI from "../api/auth";
-import { navigateToAcceptedJob, navigateToOfferScreen } from "../utils/notificationNavigation";
+import { navigateByRequestStatus, isStaleNotification } from "../utils/notificationNavigation";
 import { logger } from "../utils/logger";
 
 const FCM_TOKEN_KEY = "fcm_token";
@@ -185,19 +185,26 @@ export function useNotifications(navigationRef?: any) {
                 const serviceType = data.service_type || data.type || 'tow';
                 const notificationType = data.type;
 
+                // Eski bildirim (>24h): iş büyük ihtimalle başka sürücüye atanmış —
+                // OfferScreen'de 404 ile boş ekran yerine doğrudan OrdersTab'a al.
+                const stale = isStaleNotification(remoteMessage);
+
                 if (navigationRef?.current) {
                     setTimeout(() => {
+                        if (stale) {
+                            logger.info('fcm', '[Background] Stale notification (>24h), routing to OrdersTab');
+                            navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+                            return;
+                        }
                         if (notificationType === 'job_completed' || notificationType === 'request_completed') {
                             navigationRef.current.navigate('Tabs', { screen: 'EarningsTab' });
                         }
                         else if (notificationType === 'request_cancelled') {
                             navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
                         }
-                        else if ((notificationType === 'offer_accepted' || notificationType === 'request_approved') && orderId) {
-                            navigateToAcceptedJob(navigationRef, orderId, serviceType, '[Background]');
-                        }
                         else if (orderId) {
-                            navigateToOfferScreen(navigationRef, orderId, serviceType);
+                            // Talebin gerçek statüsüne göre OfferScreen veya JobDetail'e yönlendir
+                            navigateByRequestStatus(navigationRef, orderId, serviceType, '[Background]');
                         }
                     }, 500);
                 } else {
@@ -254,18 +261,25 @@ export function useNotifications(navigationRef?: any) {
                 const serviceType = data.service_type || data.type || 'tow';
                 const notificationType = data.type;
 
+                // Eski bildirim (>24h): killed state'te eski bildirime tıklamak yaygın —
+                // OfferScreen'de 404 görmek yerine OrdersTab'a yönlendir.
+                const stale = isStaleNotification(remoteMessage);
+
                 setTimeout(() => {
+                    if (stale) {
+                        logger.info('fcm', '[Killed State] Stale notification (>24h), routing to OrdersTab');
+                        navigationRef.current?.navigate('Tabs', { screen: 'OrdersTab' });
+                        return;
+                    }
                     if (notificationType === 'job_completed' || notificationType === 'request_completed') {
                         navigationRef.current?.navigate('Tabs', { screen: 'EarningsTab' });
                     }
                     else if (notificationType === 'request_cancelled') {
                         navigationRef.current?.navigate('Tabs', { screen: 'OrdersTab' });
                     }
-                    else if ((notificationType === 'offer_accepted' || notificationType === 'request_approved') && orderId) {
-                        navigateToAcceptedJob(navigationRef, orderId, serviceType, '[Killed State]');
-                    }
                     else if (orderId) {
-                        navigateToOfferScreen(navigationRef, orderId, serviceType);
+                        // Talebin gerçek statüsüne göre OfferScreen veya JobDetail'e yönlendir
+                        navigateByRequestStatus(navigationRef, orderId, serviceType, '[Killed State]');
                     }
                 }, 1500);
             }

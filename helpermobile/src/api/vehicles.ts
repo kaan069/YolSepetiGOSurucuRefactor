@@ -593,6 +593,8 @@ class VehiclesAPI {
                     color: truck.color,
                     platformType: 'open' as const,
                     supportedVehicleTypes: truck.availibility_vehicles_types || [],
+                    verificationStatus: truck.verification_status,
+                    verificationRejectionReason: truck.verification_rejection_reason,
                 };
 
                 if (existingIndex === -1) {
@@ -615,6 +617,8 @@ class VehiclesAPI {
                     year: crane.year.toString(),
                     color: crane.color,
                     maxHeight: crane.max_height.toString(),
+                    verificationStatus: crane.verification_status,
+                    verificationRejectionReason: crane.verification_rejection_reason,
                 };
 
                 if (existingIndex === -1) {
@@ -659,6 +663,8 @@ class VehiclesAPI {
                     pricePerKm: '',
                     pricePerHour: '',
                     minPrice: '',
+                    verificationStatus: vehicle.verification_status,
+                    verificationRejectionReason: (vehicle as any).verification_rejection_reason,
                 };
 
                 if (existingIndex === -1) {
@@ -698,6 +704,8 @@ class VehiclesAPI {
                     is24Hours: true,
                     workingHoursStart: undefined,
                     workingHoursEnd: undefined,
+                    verificationStatus: vehicle.verification_status,
+                    verificationRejectionReason: (vehicle as any).verification_rejection_reason,
                 };
 
                 if (existingIndex === -1) {
@@ -721,6 +729,8 @@ class VehiclesAPI {
                     transferType: vehicle.transfer_type || 'vip',
                     passengerCapacity: vehicle.passenger_capacity || 0,
                     vehicleClass: vehicle.vehicle_class || '',
+                    verificationStatus: vehicle.verification_status,
+                    verificationRejectionReason: vehicle.verification_rejection_reason,
                 };
 
                 if (existingIndex === -1) {

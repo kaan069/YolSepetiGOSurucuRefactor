@@ -19,6 +19,10 @@ export interface TowTruckInfo {
 
   // ÇEKEBİLECEĞİ ARAÇ TÜRLERİ - Supported Vehicle Types (multiple selection)
   supportedVehicleTypes: string[]; // Çoklu seçim: ['araba', 'motosiklet', 'arazi', 'ticari', 'minibus', 'tir', 'traktor']
+
+  // ONAY DURUMU - Verification Status (backend yönetici onayı)
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationRejectionReason?: string;
 }
 
 // Yeni vinç araç bilgi yapısı - New crane info structure
@@ -34,6 +38,10 @@ export interface CraneInfo {
 
   // TEKNİK ÖZELLİKLER - Technical Specifications
   maxHeight: string;           // Maksimum yükseklik (m) - Maximum height in meters
+
+  // ONAY DURUMU - Verification Status (backend yönetici onayı)
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationRejectionReason?: string;
 }
 
 // Nakliye araçları için interface - Transport vehicles interface (Legacy - backward compatibility)
@@ -80,6 +88,10 @@ export interface RoadAssistanceInfo {
   is24Hours: boolean; // 7/24 hizmet mi?
   workingHoursStart?: string; // Çalışma başlangıç saati (7/24 değilse)
   workingHoursEnd?: string; // Çalışma bitiş saati (7/24 değilse)
+
+  // ONAY DURUMU - Verification Status (backend yönetici onayı)
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationRejectionReason?: string;
 }
 
 // Nakliye Araç Tipi - Moving Vehicle Type (Backend enum)
@@ -123,6 +135,10 @@ export interface HomeMovingInfo {
   pricePerKm: string; // Km başına referans ücret (TL)
   pricePerHour: string; // Saatlik referans ücret (TL)
   minPrice: string; // Minimum ücret (TL)
+
+  // ONAY DURUMU - Verification Status (backend yönetici onayı)
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationRejectionReason?: string;
 }
 
 // Şehirden Şehire Nakliye için interface - City to City Moving interface
@@ -161,6 +177,10 @@ export interface TransferVehicleInfo {
   transferType: 'organization' | 'vip';
   passengerCapacity: number;
   vehicleClass: string;
+
+  // ONAY DURUMU - Verification Status (backend yönetici onayı)
+  verificationStatus?: 'pending' | 'approved' | 'rejected';
+  verificationRejectionReason?: string;
 }
 
 interface VehicleStore {

@@ -102,6 +102,8 @@ export interface Crane {
     color: string;
     created_at?: string;
     max_height: number;
+    verification_status?: 'pending' | 'approved' | 'rejected';
+    verification_rejection_reason?: string;
 }
 
 export interface CreateCraneRequest {
@@ -133,6 +135,8 @@ export interface TowTruck {
     color: string;
     availibility_vehicles_types: string[];  // Çekebileceği araç tipleri (örn: ['car', 'tractor'])
     created_at?: string;
+    verification_status?: 'pending' | 'approved' | 'rejected';
+    verification_rejection_reason?: string;
 }
 
 export interface CreateTowTruckRequest {
@@ -624,6 +628,7 @@ export interface NakliyeVehicle {
     max_weight: number;        // Maksimum ağırlık (kg)
     has_helper: boolean;       // Yardımcı personel var mı?
     verification_status?: 'pending' | 'approved' | 'rejected';  // Onay durumu
+    verification_rejection_reason?: string;  // Red sebebi (rejected ise)
     created_at?: string;
 }
 
@@ -654,6 +659,7 @@ export interface RoadAssistanceVehicle {
     plate_number: string;
     available_services?: string[];  // Opsiyonel - hizmet türleri kaldırıldı
     verification_status?: 'pending' | 'approved' | 'rejected';  // Onay durumu
+    verification_rejection_reason?: string;  // Red sebebi (rejected ise)
     created_at?: string;
 }
 
@@ -1113,6 +1119,8 @@ export interface TransferVehicleInfo {
   passenger_capacity: number;
   vehicle_class: VehiclePreference;
   photo?: string;
+  verification_status?: 'pending' | 'approved' | 'rejected';
+  verification_rejection_reason?: string;
 }
 
 export interface EmployeeJobsResponse {

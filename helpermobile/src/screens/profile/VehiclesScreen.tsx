@@ -11,6 +11,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
+import VehicleStatusChip from '../../components/common/VehicleStatusChip';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 
@@ -339,7 +340,10 @@ export default function VehiclesScreen({ navigation }: Props) {
                           {truck.platformType === 'closed' && '🚚 Kapalı Kasa'}
                           {truck.platformType === 'flatbed' && '🛻 Düz Platform'}
                         </Text>
-
+                        <VehicleStatusChip
+                          status={truck.verificationStatus}
+                          rejectionReason={truck.verificationRejectionReason}
+                        />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         <IconButton
@@ -389,6 +393,10 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <Text variant="bodySmall" style={styles.vehicleSpecs}>
                           Max: {crane.maxHeight}m yukseklik
                         </Text>
+                        <VehicleStatusChip
+                          status={crane.verificationStatus}
+                          rejectionReason={crane.verificationRejectionReason}
+                        />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         <IconButton
@@ -515,6 +523,10 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <Text variant="bodySmall" style={styles.priceText}>
                           {vehicle.pricePerKm} TL/km{vehicle.pricePerHour && ` - ${vehicle.pricePerHour} TL/saat`}
                         </Text>
+                        <VehicleStatusChip
+                          status={vehicle.verificationStatus}
+                          rejectionReason={vehicle.verificationRejectionReason}
+                        />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         <IconButton
@@ -581,6 +593,10 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <Text variant="bodyMedium" style={styles.vehicleDetails}>
                           {service.brand} {service.model} {service.year ? `- ${service.year}` : ''}
                         </Text>
+                        <VehicleStatusChip
+                          status={service.verificationStatus}
+                          rejectionReason={service.verificationRejectionReason}
+                        />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         <IconButton
@@ -640,6 +656,10 @@ export default function VehiclesScreen({ navigation }: Props) {
                             {vehicle.passengerCapacity} kişilik
                           </Text>
                         </View>
+                        <VehicleStatusChip
+                          status={vehicle.verificationStatus}
+                          rejectionReason={vehicle.verificationRejectionReason}
+                        />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         <IconButton
