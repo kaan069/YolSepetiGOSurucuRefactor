@@ -204,7 +204,8 @@ export function useNotifications(navigationRef?: any) {
                         }
                         else if (orderId) {
                             // Talebin gerçek statüsüne göre OfferScreen veya JobDetail'e yönlendir
-                            navigateByRequestStatus(navigationRef, orderId, serviceType, '[Background]');
+                            navigateByRequestStatus(navigationRef, orderId, serviceType, '[Background]')
+                                .catch((e) => logger.error('fcm', '[Background] navigateByRequestStatus rejected', { message: e?.message }));
                         }
                     }, 500);
                 } else {
@@ -279,7 +280,8 @@ export function useNotifications(navigationRef?: any) {
                     }
                     else if (orderId) {
                         // Talebin gerçek statüsüne göre OfferScreen veya JobDetail'e yönlendir
-                        navigateByRequestStatus(navigationRef, orderId, serviceType, '[Killed State]');
+                        navigateByRequestStatus(navigationRef, orderId, serviceType, '[Killed State]')
+                            .catch((e) => logger.error('fcm', '[Killed State] navigateByRequestStatus rejected', { message: e?.message }));
                     }
                 }, 1500);
             }

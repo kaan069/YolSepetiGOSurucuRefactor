@@ -303,9 +303,14 @@ export default function App() {
             else if (notificationType === 'job_assigned') {
               const requestId = data.request_id;
               if (requestId) {
-                navigationRef.current.navigate('EmployeeJobDetail', {
-                  requestId: parseInt(String(requestId)),
-                });
+                try {
+                  navigationRef.current.navigate('EmployeeJobDetail', {
+                    requestId: parseInt(String(requestId)),
+                  });
+                } catch (e: any) {
+                  logger.error('navigation', '[Banner] EmployeeJobDetail navigate failed', { message: e?.message });
+                  navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+                }
               }
             }
             else if (notificationType === 'job_completed' || notificationType === 'request_completed') {
@@ -316,7 +321,8 @@ export default function App() {
             }
             else if (orderId) {
               // Talebin gerçek statüsüne göre OfferScreen veya JobDetail'e yönlendir
-              navigateByRequestStatus(navigationRef, orderId, serviceType, '[Banner]');
+              navigateByRequestStatus(navigationRef, orderId, serviceType, '[Banner]')
+                .catch((e) => logger.error('navigation', '[Banner] navigateByRequestStatus rejected', { message: e?.message }));
             }
           }
         }}

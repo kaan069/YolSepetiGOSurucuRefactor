@@ -80,7 +80,6 @@ class RequestsAPI {
   ) => craneAPI.submitOffer(trackingToken, vehicleId, distanceToLocationKm, estimatedDurationHours, offerPrice, employeeId);
   withdrawCraneOffer = (trackingToken: string) => craneAPI.withdrawOffer(trackingToken);
   completeCraneRequest = (id: number) => commonAPI.completeCraneRequest(id);
-  payCraneCommission = (id: number) => commonAPI.payCraneCommission(id);
 
   // ==================== EVDEN EVE NAKLİYE (HOME MOVING) ====================
   getPendingHomeMovingRequests = () => homeMovingAPI.getPendingRequests();

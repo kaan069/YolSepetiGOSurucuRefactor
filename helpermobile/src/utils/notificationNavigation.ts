@@ -17,6 +17,7 @@
  * helper'ları kullanılır.
  */
 
+import { Alert } from 'react-native';
 import { logger } from './logger';
 
 // ---------------------------------------------------------------------------
@@ -341,84 +342,136 @@ function getJobDetailNavigation(
  *   - useNotifications.ts (background state handler)
  *   - useNotifications.ts (killed state handler)
  */
+/**
+ * Bildirim payload'ından gelen `orderId` farklı şekillerde gelebiliyor:
+ *  - "123" / 123                 → düz id
+ *  - { id: 123, ... }            → object (backend bazen request_id'yi obj olarak gönderiyor)
+ *  - null / undefined / "" / {}  → geçersiz
+ *
+ * Geçerli bir number/string id varsa onu döner; yoksa null.
+ */
+function normalizeOrderId(raw: any): string | number | null {
+    if (raw === null || raw === undefined || raw === '') return null;
+    if (typeof raw === 'object') {
+        const inner = (raw as any).id;
+        if (typeof inner === 'number' || typeof inner === 'string') return inner;
+        return null;
+    }
+    if (typeof raw === 'number' || typeof raw === 'string') return raw;
+    return null;
+}
+
+/** navigate() çağrısını fırlatmayacak şekilde sarar — bilinmeyen screen / params durumunda sessizce log atar. */
+function safeNavigate(navigationRef: any, name: string, params?: Record<string, any>, logPrefix: string = ''): void {
+    try {
+        navigationRef?.current?.navigate(name, params);
+    } catch (e: any) {
+        logger.error('navigation', `${logPrefix} safeNavigate failed`, { name, message: e?.message });
+    }
+}
+
 export async function navigateByRequestStatus(
     navigationRef: any,
     orderId: any,
     rawServiceType: any,
     logPrefix: string = ''
 ): Promise<void> {
-    if (!navigationRef?.current || !orderId) return;
-
-    const serviceType = resolveOfferServiceKey(rawServiceType);
-
     try {
-        const { requestsAPI } = await import('../api');
-        const detail = await fetchRequestDetail(requestsAPI, serviceType, orderId);
-
-        const status: string | undefined =
-            detail?.status || detail?.request_id?.status;
-
-        logger.info('navigation', `${logPrefix} Status-based routing`, { serviceType, status });
-
-        if (!status) {
-            navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+        if (!navigationRef?.current) {
+            logger.warn('navigation', `${logPrefix} no navigationRef, abort`);
             return;
         }
 
-        if (status === 'pending') {
-            navigateToOfferScreen(navigationRef, orderId, rawServiceType);
+        const normalizedOrderId = normalizeOrderId(orderId);
+        if (!normalizedOrderId) {
+            logger.warn('navigation', `${logPrefix} invalid orderId, fallback OrdersTab`, { raw: orderId });
+            safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
             return;
         }
 
-        if (status === 'cancelled') {
-            navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
-            const { Alert } = await import('react-native');
-            Alert.alert('Bilgi', 'Bu talep iptal edilmiş.');
-            return;
-        }
+        const serviceType = resolveOfferServiceKey(rawServiceType);
+        logger.info('navigation', `${logPrefix} start`, { orderId: normalizedOrderId, serviceType });
 
-        if (status === 'completed') {
-            navigationRef.current.navigate('Tabs', {
-                screen: 'OrdersTab',
-                params: { filter: 'completed' },
-            });
-            return;
-        }
-
-        if (
-            status === 'awaiting_approval' ||
-            status === 'awaiting_payment' ||
-            status === 'in_progress'
-        ) {
-            // jobId = orderId (request_id) — JobDetailScreen mount olunca bu değeri
-            // doğrudan getXxxRequestDetail()'e geçiriyor; detail.id (driver kaydı)
-            // değil request_id geçilmesi şart, aksi halde JobDetail 404 alır.
-            const target = getJobDetailNavigation(serviceType, orderId);
-            if (!target.params.jobId) {
-                navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+        try {
+            const apiModule = await import('../api');
+            const requestsAPI = (apiModule as any)?.requestsAPI;
+            if (!requestsAPI) {
+                logger.error('navigation', `${logPrefix} requestsAPI undefined after dynamic import`);
+                safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
                 return;
             }
-            navigationRef.current.navigate(target.screen, target.params);
-            return;
-        }
 
-        // Bilinmeyen status — fallback
-        logger.warn('navigation', `${logPrefix} Unknown status, routing to OrdersTab`, { status });
-        navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
-    } catch (err: any) {
-        const httpStatus = err?.response?.status;
-        logger.error('navigation', `${logPrefix} navigateByRequestStatus failed`, {
-            status: httpStatus,
-        });
-        const { Alert } = await import('react-native');
-        const is404 = httpStatus === 404;
-        Alert.alert(
-            'Hata',
-            is404
-                ? 'Talep artık mevcut değil veya size erişim yok.'
-                : 'Talep yüklenemedi. Lütfen İşlerim sekmesinden tekrar deneyin.'
-        );
-        navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+            const detail = await fetchRequestDetail(requestsAPI, serviceType, normalizedOrderId);
+
+            const status: string | undefined =
+                detail?.status || detail?.request_id?.status;
+
+            logger.info('navigation', `${logPrefix} detail fetched`, { serviceType, status });
+
+            if (!status) {
+                safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
+                return;
+            }
+
+            if (status === 'pending') {
+                navigateToOfferScreen(navigationRef, normalizedOrderId, rawServiceType);
+                return;
+            }
+
+            if (status === 'cancelled') {
+                safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
+                Alert.alert('Bilgi', 'Bu talep iptal edilmiş.');
+                return;
+            }
+
+            if (status === 'completed') {
+                safeNavigate(navigationRef, 'Tabs', {
+                    screen: 'OrdersTab',
+                    params: { filter: 'completed' },
+                }, logPrefix);
+                return;
+            }
+
+            if (
+                status === 'awaiting_approval' ||
+                status === 'awaiting_payment' ||
+                status === 'in_progress'
+            ) {
+                // jobId = orderId (request_id) — JobDetailScreen mount olunca bu değeri
+                // doğrudan getXxxRequestDetail()'e geçiriyor; detail.id (driver kaydı)
+                // değil request_id geçilmesi şart, aksi halde JobDetail 404 alır.
+                const target = getJobDetailNavigation(serviceType, normalizedOrderId);
+                if (!target.params.jobId) {
+                    safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
+                    return;
+                }
+                logger.info('navigation', `${logPrefix} navigate JobDetail`, { screen: target.screen });
+                safeNavigate(navigationRef, target.screen, target.params, logPrefix);
+                return;
+            }
+
+            // Bilinmeyen status — fallback
+            logger.warn('navigation', `${logPrefix} unknown status, fallback OrdersTab`, { status });
+            safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
+        } catch (err: any) {
+            const httpStatus = err?.response?.status;
+            logger.error('navigation', `${logPrefix} fetch/route failed`, {
+                status: httpStatus,
+                message: err?.message,
+            });
+            const is404 = httpStatus === 404;
+            Alert.alert(
+                'Hata',
+                is404
+                    ? 'Talep artık mevcut değil veya size erişim yok.'
+                    : 'Talep yüklenemedi. Lütfen İşlerim sekmesinden tekrar deneyin.'
+            );
+            safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
+        }
+    } catch (fatal: any) {
+        // Top-level catch — hiçbir şart altında native crash olmasın
+        logger.error('navigation', `${logPrefix} FATAL`, { message: fatal?.message });
+        safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
     }
 }
 

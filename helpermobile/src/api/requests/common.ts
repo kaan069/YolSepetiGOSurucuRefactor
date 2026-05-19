@@ -178,26 +178,6 @@ class CommonAPI {
     }
   }
 
-  // ==================== KOMİSYON ÖDEME (COMMISSION PAYMENT) ====================
-
-  // Vinç komisyon ödemesi
-  async payCraneCommission(requestId: number): Promise<{
-    success: boolean;
-    message: string;
-    request_id: number;
-    status: string;
-    payment_amount: string;
-    transaction_id?: string;
-  }> {
-    try {
-      const response = await axiosInstance.post(`/payment/requests/${requestId}/pay-commission/`);
-      return response.data;
-    } catch (error: any) {
-      logOrdersError('common.payCraneCommission', error);
-      throw error;
-    }
-  }
-
   // Çekici işi tamamla
   async completeTowTruckRequest(requestId: number): Promise<any> {
     try {

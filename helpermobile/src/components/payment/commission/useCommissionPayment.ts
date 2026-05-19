@@ -145,7 +145,6 @@ export function useCommissionPayment({
     setCvc('');
     setSaveCard(true);
     setShowNewCardForm(false);
-    setStep('select');
     setThreeDSHtml('');
     setErrorMessage('');
     pollingCountRef.current = 0;

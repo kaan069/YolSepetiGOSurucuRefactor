@@ -178,17 +178,6 @@ class CraneAPI {
     }
   }
 
-  // Komisyon öde
-  async payCommission(requestId: number): Promise<any> {
-    try {
-      const response = await axiosInstance.post(`/requests/crane/${requestId}/pay-commission/`);
-      return response.data;
-    } catch (error: any) {
-      logOrdersError('crane.payCommission', error);
-      throw error;
-    }
-  }
-
   async withdrawOffer(trackingToken: string): Promise<any> {
     try {
       const response = await axiosInstance.delete(`/requests/crane/${trackingToken}/withdraw-offer/`);
