@@ -373,7 +373,6 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
     } catch (error) {
       logger.error('orders', 'Yenileme hatasi');
     }
-    Alert.alert('Odeme Basarili', 'Komisyon odemesi tamamlandi.', [{ text: 'Tamam' }]);
   };
 
   const handlePaymentFailed = (errorMessage: string) => {

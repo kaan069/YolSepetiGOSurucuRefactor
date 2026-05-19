@@ -370,6 +370,54 @@ function safeNavigate(navigationRef: any, name: string, params?: Record<string, 
     }
 }
 
+/**
+ * Bildirim payload'ından gelen `service_type` field'ı yanlış / eksik olabiliyor (örn.
+ * tüm servislerin tow olarak resolve olması). Bu yüzden detail endpoint çağrısı önce
+ * belirlenen servisle yapılır; 404 alınırsa diğer servisler sırayla denenir.
+ *
+ * 404 dışı hata (network, 5xx) olduğunda fırlatır — caller'da yakalanır.
+ */
+const ALL_SERVICES: OfferServiceKey[] = ['tow', 'crane', 'home_moving', 'city_moving', 'road_assistance', 'transfer'];
+
+async function findRequestDetail(
+    requestsAPI: any,
+    preferredService: OfferServiceKey,
+    orderId: string | number,
+    logPrefix: string,
+): Promise<{ detail: any; serviceType: OfferServiceKey } | null> {
+    const tryOrder = [preferredService, ...ALL_SERVICES.filter((s) => s !== preferredService)];
+    let lastNon404Error: any = null;
+
+    for (const s of tryOrder) {
+        try {
+            const detail = await fetchRequestDetail(requestsAPI, s, orderId);
+            if (detail) {
+                if (s !== preferredService) {
+                    logger.info('navigation', `${logPrefix} matched alternate service`, {
+                        preferred: preferredService,
+                        actual: s,
+                    });
+                }
+                return { detail, serviceType: s };
+            }
+        } catch (err: any) {
+            const httpStatus = err?.response?.status;
+            if (httpStatus === 404) {
+                // Bu servis bu orderId için yok — diğerini dene
+                continue;
+            }
+            // 404 dışı hata: network vb. — kaydı tut, devam et (bazı endpointler 5xx fırlatır)
+            lastNon404Error = err;
+        }
+    }
+
+    // Hiçbir servis match etmedi
+    if (lastNon404Error) {
+        throw lastNon404Error;
+    }
+    return null;
+}
+
 export async function navigateByRequestStatus(
     navigationRef: any,
     orderId: any,
@@ -401,12 +449,22 @@ export async function navigateByRequestStatus(
                 return;
             }
 
-            const detail = await fetchRequestDetail(requestsAPI, serviceType, normalizedOrderId);
+            // service_type payload'ında yanlış/eksik gelirse diğer servisleri sırayla dene
+            const found = await findRequestDetail(requestsAPI, serviceType, normalizedOrderId, logPrefix);
 
+            if (!found) {
+                logger.warn('navigation', `${logPrefix} no service matched orderId, fallback OrdersTab`, {
+                    orderId: normalizedOrderId,
+                });
+                safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
+                return;
+            }
+
+            const { detail, serviceType: matchedService } = found;
             const status: string | undefined =
                 detail?.status || detail?.request_id?.status;
 
-            logger.info('navigation', `${logPrefix} detail fetched`, { serviceType, status });
+            logger.info('navigation', `${logPrefix} detail fetched`, { serviceType: matchedService, status });
 
             if (!status) {
                 safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
@@ -414,7 +472,8 @@ export async function navigateByRequestStatus(
             }
 
             if (status === 'pending') {
-                navigateToOfferScreen(navigationRef, normalizedOrderId, rawServiceType);
+                // matchedService doğru servisi tutuyor; alias değil direkt key gönderelim
+                navigateToOfferScreen(navigationRef, normalizedOrderId, matchedService);
                 return;
             }
 
@@ -437,10 +496,9 @@ export async function navigateByRequestStatus(
                 status === 'awaiting_payment' ||
                 status === 'in_progress'
             ) {
-                // jobId = orderId (request_id) — JobDetailScreen mount olunca bu değeri
-                // doğrudan getXxxRequestDetail()'e geçiriyor; detail.id (driver kaydı)
-                // değil request_id geçilmesi şart, aksi halde JobDetail 404 alır.
-                const target = getJobDetailNavigation(serviceType, normalizedOrderId);
+                // jobId = orderId (VehicleRequest.id) — backend detail endpoint'i bu
+                // değeri request_id__pk filtresinde kullanıyor.
+                const target = getJobDetailNavigation(matchedService, normalizedOrderId);
                 if (!target.params.jobId) {
                     safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
                     return;
@@ -459,13 +517,17 @@ export async function navigateByRequestStatus(
                 status: httpStatus,
                 message: err?.message,
             });
-            const is404 = httpStatus === 404;
-            Alert.alert(
-                'Hata',
-                is404
-                    ? 'Talep artık mevcut değil veya size erişim yok.'
-                    : 'Talep yüklenemedi. Lütfen İşlerim sekmesinden tekrar deneyin.'
-            );
+            // 404 = talep bulunamadı / erişim yok → sessizce OrdersTab.
+            // Sebep genellikle: bildirim payload'ındaki id detail endpoint'inde yok
+            // (backend `request_details_id` vs `request_id` mismatch veya talep silindi).
+            // Kullanıcıya alert göstermek kafa karıştırıcı — sessizce OrdersTab'a düşelim.
+            // Diğer hatalar (network vb.) için kısa bilgilendirme yapalım.
+            if (httpStatus !== 404) {
+                Alert.alert(
+                    'Hata',
+                    'Talep yüklenemedi. Lütfen İşlerim sekmesinden tekrar deneyin.'
+                );
+            }
             safeNavigate(navigationRef, 'Tabs', { screen: 'OrdersTab' }, logPrefix);
         }
     } catch (fatal: any) {

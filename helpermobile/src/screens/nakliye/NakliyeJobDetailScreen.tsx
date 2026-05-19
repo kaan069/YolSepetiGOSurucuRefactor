@@ -249,7 +249,6 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
     } catch (error) {
       logger.error('orders', 'Yenileme hatas');
     }
-    Alert.alert('Ödeme Başarılı', 'Komisyon ödemesi tamamlandı. İş artık devam ediyor.', [{ text: 'Tamam' }]);
   };
 
   // Ödeme başarısız

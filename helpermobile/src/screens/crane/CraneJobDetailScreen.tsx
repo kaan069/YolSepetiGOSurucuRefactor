@@ -198,7 +198,6 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
     } catch (error) {
       logger.error('orders', 'Yenileme hatas');
     }
-    Alert.alert('Ödeme Başarılı', 'Komisyon ödemesi tamamlandı.', [{ text: 'Tamam' }]);
   };
 
   const handlePaymentFailed = (errorMessage: string) => {
