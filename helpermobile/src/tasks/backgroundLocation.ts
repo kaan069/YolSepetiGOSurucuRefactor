@@ -8,6 +8,12 @@
  * 3. HTTP de basarisizsa → local queue'ya ekle (sonra flush edilir)
  * 4. Aktif is yoksa → task'i durdur
  *
+ * HTTP fallback hata kodlari:
+ * - 404: tracking_token yok / gecersiz → is unutulmali
+ * - 410: is completed/cancelled → is unutulmali
+ * Bu iki durumda queue + activeJob store + bg task tamamen temizlenir
+ * (sonsuz retry + batarya kaybi onlemek icin).
+ *
  * NOT: bg task'tan WebSocket reconnect denemiyoruz — headless context'te
  * acilan ws baglantisi task callback return olunca OS tarafindan kapatilir.
  * Reconnect mantigi locationWebSocket servisi + useLocationWebSocket hook'unda.
@@ -16,6 +22,8 @@ import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { locationWebSocket } from '../services/locationWebSocket';
+import { backgroundLocationService } from '../services/backgroundLocationService';
+import { useActiveJobStore } from '../store/useActiveJobStore';
 import axiosInstance from '../api/axiosConfig';
 import { logger } from '../utils/logger';
 
@@ -24,17 +32,38 @@ export const BACKGROUND_LOCATION_TASK = 'background-location-task';
 const LOCATION_QUEUE_KEY = 'bg-location-queue';
 const MAX_QUEUE_SIZE = 200;
 
-// HTTP fallback ile konum gonder
-async function sendLocationHTTP(trackingToken: string, latitude: number, longitude: number): Promise<boolean> {
+type HttpResult = 'success' | 'job_closed' | 'retry';
+
+// Aktif is kapandi (404/410) — queue + store + bg task tamamen temizle
+async function handleJobClosed(httpStatus: number): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(LOCATION_QUEUE_KEY);
+  } catch {}
+  try {
+    useActiveJobStore.getState().clearActiveJob();
+  } catch {}
+  try {
+    await backgroundLocationService.forceStop();
+  } catch {}
+  logger.info('location', `backgroundLocation.jobClosed HTTP ${httpStatus} - tracking durduruldu, queue temizlendi`);
+}
+
+// HTTP fallback ile konum gonder (tekli)
+async function sendLocationHTTP(trackingToken: string, latitude: number, longitude: number): Promise<HttpResult> {
   try {
     await axiosInstance.post(`/vehicles/location/${trackingToken}/http-update/`, {
       latitude,
       longitude,
     });
-    return true;
-  } catch (err) {
-    logger.warn('location', 'backgroundLocation.httpFallback failed');
-    return false;
+    return 'success';
+  } catch (err: any) {
+    const status = err?.response?.status;
+    if (status === 404 || status === 410) {
+      await handleJobClosed(status);
+      return 'job_closed';
+    }
+    logger.warn('location', `backgroundLocation.httpFallback failed status=${status ?? 'network'}`);
+    return 'retry';
   }
 }
 
@@ -66,8 +95,13 @@ export async function flushLocationQueue(trackingToken: string): Promise<void> {
 
     await AsyncStorage.removeItem(LOCATION_QUEUE_KEY);
     logger.debug('location', 'backgroundLocation.queueFlush success', { count: queue.length });
-  } catch (err) {
-    logger.warn('location', 'backgroundLocation.queueFlush failed');
+  } catch (err: any) {
+    const status = err?.response?.status;
+    if (status === 404 || status === 410) {
+      await handleJobClosed(status);
+      return;
+    }
+    logger.warn('location', `backgroundLocation.queueFlush failed status=${status ?? 'network'}`);
   }
 }
 
@@ -107,16 +141,21 @@ TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
     }
 
     // 3. HTTP fallback dene
-    const httpSuccess = await sendLocationHTTP(trackingToken, latitude, longitude);
+    const result = await sendLocationHTTP(trackingToken, latitude, longitude);
 
-    if (httpSuccess) {
+    if (result === 'success') {
       logger.debug('location', 'backgroundLocation.task - http fallback ok');
       // Birikmis queue varsa flush et
       await flushLocationQueue(trackingToken);
       return;
     }
 
-    // 4. HTTP basarisiz - queue'ya ekle
+    if (result === 'job_closed') {
+      // handleJobClosed icinde her sey temizlendi, queue'ya ekleme yok
+      return;
+    }
+
+    // 4. HTTP retry-able hata - queue'ya ekle
     await addToQueue(latitude, longitude);
     logger.debug('location', 'backgroundLocation.task - queued for later');
   } catch (err) {
