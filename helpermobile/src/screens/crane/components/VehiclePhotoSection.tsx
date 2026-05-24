@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
@@ -23,11 +23,13 @@ export default function VehiclePhotoSection({
 }: VehiclePhotoSectionProps) {
 
   const pickImageFromGallery = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (Platform.OS === 'ios') {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (permissionResult.granted === false) {
-      Alert.alert('İzin Gerekli', 'Galeriye erişim izni vermelisiniz.');
-      return;
+      if (permissionResult.granted === false) {
+        Alert.alert('İzin Gerekli', 'Galeriye erişim izni vermelisiniz.');
+        return;
+      }
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({

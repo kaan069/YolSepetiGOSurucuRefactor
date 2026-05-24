@@ -235,20 +235,22 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
     }
   }, [currentLocation, request]);
 
-  // Ödeme başarılı
+  // Ödeme başarılı — sürücüyü "Devam Eden" sekmesi üzerinden talebin detayına yönlendir
   const handlePaymentSuccess = async () => {
     setShowPaymentModal(false);
-    try {
-      let updatedRequest;
-      if (movingType === 'city') {
-        updatedRequest = await requestsAPI.getCityMovingRequestDetail(parseInt(jobId));
-      } else {
-        updatedRequest = await requestsAPI.getHomeMovingRequestDetail(parseInt(jobId));
-      }
-      setRequest(updatedRequest);
-    } catch (error) {
-      logger.error('orders', 'Yenileme hatas');
-    }
+    navigation.reset({
+      index: 1,
+      routes: [
+        {
+          name: 'Tabs',
+          params: {
+            screen: 'OrdersTab',
+            params: { filter: 'in_progress', serviceFilter: 'nakliye', timestamp: Date.now() },
+          },
+        } as any,
+        { name: 'NakliyeJobDetail', params: { jobId, movingType } } as any,
+      ],
+    });
   };
 
   // Ödeme başarısız

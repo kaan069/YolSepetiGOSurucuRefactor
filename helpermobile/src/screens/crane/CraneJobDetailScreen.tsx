@@ -189,15 +189,22 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
     navigation.navigate('Tabs', { screen: 'OrdersTab' });
   };
 
-  // Ödeme başarılı
+  // Ödeme başarılı — sürücüyü "Devam Eden" sekmesi üzerinden talebin detayına yönlendir
   const handlePaymentSuccess = async () => {
     setShowPaymentModal(false);
-    try {
-      const updatedRequest = await requestsAPI.getCraneRequestDetail(parseInt(jobId));
-      setCraneRequest(updatedRequest);
-    } catch (error) {
-      logger.error('orders', 'Yenileme hatas');
-    }
+    navigation.reset({
+      index: 1,
+      routes: [
+        {
+          name: 'Tabs',
+          params: {
+            screen: 'OrdersTab',
+            params: { filter: 'in_progress', serviceFilter: 'crane', timestamp: Date.now() },
+          },
+        } as any,
+        { name: 'CraneJobDetail', params: { jobId } } as any,
+      ],
+    });
   };
 
   const handlePaymentFailed = (errorMessage: string) => {

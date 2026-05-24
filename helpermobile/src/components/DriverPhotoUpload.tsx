@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   TextInput,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -44,6 +45,7 @@ export default function DriverPhotoUpload({
   const hasPending = pendingPhotos.length > 0;
 
   const requestPermission = async (type: 'camera' | 'gallery') => {
+    if (type === 'gallery' && Platform.OS !== 'ios') return true;
     const { status } = type === 'camera'
       ? await ImagePicker.requestCameraPermissionsAsync()
       : await ImagePicker.requestMediaLibraryPermissionsAsync();

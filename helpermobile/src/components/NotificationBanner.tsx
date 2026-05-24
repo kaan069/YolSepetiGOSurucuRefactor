@@ -9,6 +9,7 @@ interface NotificationBannerProps {
   onDismiss: () => void;
   onPress?: () => void;
   duration?: number;
+  actionLabel?: string;
 }
 
 /**
@@ -29,6 +30,7 @@ export default function NotificationBanner({
   onDismiss,
   onPress,
   duration = 5000,
+  actionLabel = 'Görüntüle',
 }: NotificationBannerProps) {
   const slideAnim = useRef(new Animated.Value(-300)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
@@ -138,7 +140,7 @@ export default function NotificationBanner({
                     style={styles.actionButton}
                     contentStyle={styles.actionButtonContent}
                   >
-                    Görüntüle
+                    {actionLabel}
                   </Button>
                 </View>
               </Card>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, ScrollView, View, Alert, Image, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { StyleSheet, ScrollView, View, Alert, Image, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Text, Button } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -136,10 +136,12 @@ export default function DocumentsScreen({ navigation, route }: Props) {
     }
 
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert('İzin Gerekli', 'Galeri erişimi için izin vermeniz gerekiyor.');
-        return;
+      if (Platform.OS === 'ios') {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+          Alert.alert('İzin Gerekli', 'Galeri erişimi için izin vermeniz gerekiyor.');
+          return;
+        }
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({

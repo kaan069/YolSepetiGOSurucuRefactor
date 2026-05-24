@@ -206,16 +206,22 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
     navigation.navigate('Tabs', { screen: 'OrdersTab' });
   };
 
-  // Ödeme başarılı
+  // Ödeme başarılı — sürücüyü "Devam Eden" sekmesi üzerinden talebin detayına yönlendir
   const handlePaymentSuccess = async () => {
     setShowPaymentModal(false);
-    logger.debug('orders', 'Komisyon deme baarl');
-    try {
-      const updatedRequest = await requestsAPI.getRoadAssistanceRequestDetail(parseInt(jobId));
-      setRequest(updatedRequest);
-    } catch (error) {
-      logger.error('orders', 'Yenileme hatas');
-    }
+    navigation.reset({
+      index: 1,
+      routes: [
+        {
+          name: 'Tabs',
+          params: {
+            screen: 'OrdersTab',
+            params: { filter: 'in_progress', serviceFilter: 'roadAssistance', timestamp: Date.now() },
+          },
+        } as any,
+        { name: 'RoadAssistanceJobDetail', params: { jobId } } as any,
+      ],
+    });
   };
 
   // Ödeme başarısız

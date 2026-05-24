@@ -48,7 +48,7 @@ class LocationWebSocketService {
   private ws: WebSocket | null = null;
   private trackingToken: string | null = null;  // ⚠️ requestId yerine trackingToken
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private static readonly MAX_RECONNECT_DELAY_MS = 60000; // 60s tavan
   private reconnectTimeout: NodeJS.Timeout | null = null;
   private isIntentionallyClosed = false;
   private config: LocationWebSocketConfig | null = null;
@@ -245,7 +245,8 @@ class LocationWebSocketService {
         }
 
         // Kasıtlı olarak kapatılmadıysa ve internet varsa yeniden bağlan
-        if (!this.isIntentionallyClosed && this.reconnectAttempts < this.maxReconnectAttempts) {
+        // ⚠️ Aktif iş süresince sınırsız reconnect — exponential backoff (max 60s) ile rate-limit
+        if (!this.isIntentionallyClosed) {
           this.attemptReconnect();
         }
       };
@@ -260,7 +261,11 @@ class LocationWebSocketService {
    */
   private attemptReconnect(): void {
     this.reconnectAttempts++;
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000); // Exponential backoff, max 30s
+    // Exponential backoff, max 60s
+    const delay = Math.min(
+      1000 * Math.pow(2, this.reconnectAttempts),
+      LocationWebSocketService.MAX_RECONNECT_DELAY_MS,
+    );
 
     this.reconnectTimeout = setTimeout(() => {
       if (this.config) {

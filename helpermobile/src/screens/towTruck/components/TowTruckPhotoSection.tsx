@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
+import { View, StyleSheet, Image, TouchableOpacity, Alert, Platform } from 'react-native';
 import { Text, Button } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as ImagePicker from 'expo-image-picker';
@@ -20,11 +20,13 @@ export default function TowTruckPhotoSection({
   helperText = 'Plaka gorunur sekilde arac fotografi ekleyin',
 }: TowTruckPhotoSectionProps) {
   const pickImageFromGallery = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (Platform.OS === 'ios') {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
-    if (permissionResult.granted === false) {
-      Alert.alert('Izin Gerekli', 'Galeriye erisim izni vermelisiniz.');
-      return;
+      if (permissionResult.granted === false) {
+        Alert.alert('Izin Gerekli', 'Galeriye erisim izni vermelisiniz.');
+        return;
+      }
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({

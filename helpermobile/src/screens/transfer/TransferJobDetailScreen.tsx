@@ -364,15 +364,22 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
     navigation.navigate('Tabs', { screen: 'OrdersTab' });
   };
 
-  // Odeme basarili
+  // Odeme basarili — surucuyu "Devam Eden" sekmesi uzerinden talebin detayina yonlendir
   const handlePaymentSuccess = async () => {
     setShowPaymentModal(false);
-    try {
-      const updatedRequest = await requestsAPI.getTransferRequestDetail(parseInt(jobId));
-      setTransferRequest(updatedRequest);
-    } catch (error) {
-      logger.error('orders', 'Yenileme hatasi');
-    }
+    navigation.reset({
+      index: 1,
+      routes: [
+        {
+          name: 'Tabs',
+          params: {
+            screen: 'OrdersTab',
+            params: { filter: 'in_progress', serviceFilter: 'transfer', timestamp: Date.now() },
+          },
+        } as any,
+        { name: 'TransferJobDetail', params: { jobId } } as any,
+      ],
+    });
   };
 
   const handlePaymentFailed = (errorMessage: string) => {

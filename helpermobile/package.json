@@ -19,7 +19,6 @@
     "axios": "^1.11.0",
     "eas": "^0.1.0",
     "expo": "^54.0.17",
-    "expo-dev-client": "^6.0.16",
     "expo-device": "^8.0.9",
     "expo-document-picker": "~14.0.7",
     "expo-file-system": "~19.0.21",
@@ -53,7 +52,18 @@
     "@react-native-community/cli": "latest",
     "@types/react": "~19.1.10",
     "@types/react-native-vector-icons": "^6.4.18",
+    "expo-dev-client": "^6.0.16",
     "typescript": "~5.9.2"
+  },
+  "expo": {
+    "autolinking": {
+      "exclude": [
+        "expo-dev-client",
+        "expo-dev-launcher",
+        "expo-dev-menu",
+        "expo-dev-menu-interface"
+      ]
+    }
   },
   "private": true
 }

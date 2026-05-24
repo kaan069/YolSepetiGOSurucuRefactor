@@ -174,16 +174,20 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
   };
 
   const pickModalGallery = async () => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Izin Gerekli', 'Galeri izni vermelisiniz.'); return; }
+    if (Platform.OS === 'ios') {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) { Alert.alert('Izin Gerekli', 'Galeri izni vermelisiniz.'); return; }
+    }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, quality: 0.3, exif: false });
     if (!result.canceled && result.assets[0]) setMPhoto(result.assets[0].uri);
   };
 
   // Interior photo picker
   const pickInteriorPhoto = async (index: number) => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) { Alert.alert('Izin Gerekli', 'Galeri izni vermelisiniz.'); return; }
+    if (Platform.OS === 'ios') {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) { Alert.alert('Izin Gerekli', 'Galeri izni vermelisiniz.'); return; }
+    }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, quality: 0.3, exif: false });
     if (!result.canceled && result.assets[0]) {
       setMInteriorPhotos(prev => { const next = [...prev]; next[index] = result.assets[0].uri; return next; });
@@ -283,8 +287,10 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
   };
 
   const pickDocGallery = async (key: string) => {
-    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!perm.granted) return;
+    if (Platform.OS === 'ios') {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) return;
+    }
     const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: false, quality: 0.3, exif: false });
     if (!result.canceled && result.assets[0]) setDocumentPhotos(prev => ({ ...prev, [key]: result.assets[0].uri }));
   };

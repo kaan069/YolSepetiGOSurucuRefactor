@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { vehiclesAPI } from '../../../api';
@@ -17,6 +17,7 @@ import { logger } from '../../../utils/logger';
 type PickTarget = 'vehicle' | 'insurance';
 
 async function requestMediaLibraryPermission(): Promise<boolean> {
+  if (Platform.OS !== 'ios') return true;
   const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (!permissionResult.granted) {
     Alert.alert('İzin Gerekli', 'Galeriye erişim izni vermelisiniz.');

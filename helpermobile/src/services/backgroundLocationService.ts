@@ -90,9 +90,14 @@ class BackgroundLocationService {
         return;
       }
 
+      // ⚠️ HEARTBEAT: timeInterval + dusuk distanceInterval ile surucu duruyor olsa
+      // bile her 5sn tick at — sunucu canli oldugunu bilsin.
+      // iOS: timeInterval desteklenmez, daima distance-based. Hareketsizken iOS bg
+      // tick atmaz; bu sirada foreground hook'undaki 5sn interval devreye girer.
       await Location.startLocationUpdatesAsync(BACKGROUND_LOCATION_TASK, {
         accuracy: Location.Accuracy.BestForNavigation,
-        distanceInterval: 10,
+        distanceInterval: 5,
+        timeInterval: 5000,
         deferredUpdatesInterval: 5000,
         showsBackgroundLocationIndicator: true,
         pausesUpdatesAutomatically: false,

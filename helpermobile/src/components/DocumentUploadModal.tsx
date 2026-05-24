@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, Platform } from 'react-native';
 import { Modal, Portal, Card, Text, Button, Divider } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as DocumentPicker from 'expo-document-picker';
@@ -61,10 +61,12 @@ export default function DocumentUploadModal({
 
   const handleGalleryPick = async () => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permissionResult.granted) {
-        Alert.alert('İzin Gerekli', 'Galeri erişimi için izin vermeniz gerekiyor.');
-        return;
+      if (Platform.OS === 'ios') {
+        const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permissionResult.granted) {
+          Alert.alert('İzin Gerekli', 'Galeri erişimi için izin vermeniz gerekiyor.');
+          return;
+        }
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({

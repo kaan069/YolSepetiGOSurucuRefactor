@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { View, Alert } from 'react-native';
+import { View, Alert, AppState, AppStateStatus, Platform } from 'react-native';
 import * as Font from 'expo-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RootNavigator from './navigation';
@@ -29,6 +29,7 @@ import { useNakliyeLocationStore } from './store/useNakliyeLocationStore';
 import { authAPI, requestsAPI } from './api';
 import { navigateByRequestStatus, isStaleNotification } from './utils/notificationNavigation';
 import { backgroundLocationService } from './services/backgroundLocationService';
+import { flushLocationQueue } from './tasks/backgroundLocation';
 import { logger } from './utils/logger';
 
 export default function App() {
@@ -198,6 +199,54 @@ export default function App() {
   useLocationTracking();
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // QUEUE FLUSH - App active olunca birikmis konumlari sunucuya yolla
+  // iOS killed-state'ten geri donen kullanicilar icin kritik (apple bg location'i
+  // tamamen kapattigi icin queue dolu birikir, ilk acilista flush etmek gerek).
+  // ═══════════════════════════════════════════════════════════════════════════
+  React.useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleAppStateChange = (nextState: AppStateStatus) => {
+      if (nextState !== 'active') return;
+      const token = useActiveJobStore.getState().trackingToken;
+      if (!token) return;
+      flushLocationQueue(token).catch(() => {});
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    // Ilk mount'ta da bir kez dene (app cold-start sonrasi)
+    handleAppStateChange(AppState.currentState);
+
+    return () => subscription.remove();
+  }, [isAuthenticated]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // iOS KILL UYARISI - Aktif is baslayinca bir kerelik bilgilendirme.
+  // iOS, kullanici uygulamayi swipe ile kapatirsa bg location'i durdurur
+  // (Apple kurali, asilamaz). Kullaniciyi bu konuda uyariyoruz.
+  // ═══════════════════════════════════════════════════════════════════════════
+  React.useEffect(() => {
+    if (Platform.OS !== 'ios') return;
+    if (!isAuthenticated) return;
+    if (!activeJobTrackingToken) return;
+
+    const KEY = 'ios-kill-warning-shown';
+    AsyncStorage.getItem(KEY).then((shown) => {
+      if (shown) return;
+      Alert.alert(
+        'Uygulamayı Kapatmayın',
+        'Aktif iş süresince uygulamayı tamamen kapatmayın. Aksi takdirde konum paylaşımı durur ve müşteri sizi haritada göremez.',
+        [
+          {
+            text: 'Anladım',
+            onPress: () => AsyncStorage.setItem(KEY, '1').catch(() => {}),
+          },
+        ],
+      );
+    });
+  }, [isAuthenticated, activeJobTrackingToken]);
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // AKTİF İŞ WebSocket - useActiveJobStore'dan trackingToken alınır
   // ⚠️ SADECE İŞ DEVAM EDİYORKEN (in_progress) KONUM GÖNDERİMİ YAPILIR
   // ⚠️ NAKLİYE (transport) İŞLERİ HARİÇ - Onlar için manuel "Yola Çık" butonu kullanılır
@@ -275,58 +324,71 @@ export default function App() {
     <PaperProvider theme={isDarkMode ? darkTheme : theme}>
       <RootNavigator navigationRef={navigationRef} />
 
-      <NotificationBanner
-        visible={showBanner}
-        title={notification?.request.content.title || ''}
-        body={notification?.request.content.body || ''}
-        onDismiss={() => setShowBanner(false)}
-        onPress={() => {
-          setShowBanner(false);
-          const data = notification?.request.content.data;
+      {(() => {
+        const bannerData = notification?.request.content.data;
+        const bannerTitle = notification?.request.content.title || '';
+        const bannerNotifType = bannerData?.type;
+        const isRejection =
+          bannerNotifType === 'request_rejected' ||
+          bannerNotifType === 'offer_rejected' ||
+          bannerTitle.toLowerCase().includes('reddedildi');
 
-          if (!data) return;
+        return (
+          <NotificationBanner
+            visible={showBanner}
+            title={bannerTitle}
+            body={notification?.request.content.body || ''}
+            onDismiss={() => setShowBanner(false)}
+            actionLabel={isRejection ? 'Tamam' : 'Görüntüle'}
+            onPress={isRejection ? undefined : () => {
+              setShowBanner(false);
+              const data = notification?.request.content.data;
 
-          const orderId = data.request_details_id || data.orderId || data.order_id || data.requestId || data.request_id;
-          const serviceType = data.service_type || data.type || 'tow';
-          const notificationType = data.type;
+              if (!data) return;
 
-          // Eski bildirim (>24h): foreground banner'da bile eski payload görülebilir
-          // (örn. uygulama kapalıyken tray'de bekleyen bildirim açılışta banner'a düşerse).
-          // OfferScreen'de 404 göstermek yerine OrdersTab'a yönlendir.
-          const stale = isStaleNotification(notification);
+              const orderId = data.request_details_id || data.orderId || data.order_id || data.requestId || data.request_id;
+              const serviceType = data.service_type || data.type || 'tow';
+              const notificationType = data.type;
 
-          if (navigationRef.current) {
-            if (stale) {
-              navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
-            }
-            // Eleman iş ataması bildirimi - EmployeeJobDetail'e yönlendir
-            else if (notificationType === 'job_assigned') {
-              const requestId = data.request_id;
-              if (requestId) {
-                try {
-                  navigationRef.current.navigate('EmployeeJobDetail', {
-                    requestId: parseInt(String(requestId)),
-                  });
-                } catch (e: any) {
-                  logger.error('navigation', '[Banner] EmployeeJobDetail navigate failed', { message: e?.message });
+              // Eski bildirim (>24h): foreground banner'da bile eski payload görülebilir
+              // (örn. uygulama kapalıyken tray'de bekleyen bildirim açılışta banner'a düşerse).
+              // OfferScreen'de 404 göstermek yerine OrdersTab'a yönlendir.
+              const stale = isStaleNotification(notification);
+
+              if (navigationRef.current) {
+                if (stale) {
                   navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
                 }
+                // Eleman iş ataması bildirimi - EmployeeJobDetail'e yönlendir
+                else if (notificationType === 'job_assigned') {
+                  const requestId = data.request_id;
+                  if (requestId) {
+                    try {
+                      navigationRef.current.navigate('EmployeeJobDetail', {
+                        requestId: parseInt(String(requestId)),
+                      });
+                    } catch (e: any) {
+                      logger.error('navigation', '[Banner] EmployeeJobDetail navigate failed', { message: e?.message });
+                      navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+                    }
+                  }
+                }
+                else if (notificationType === 'job_completed' || notificationType === 'request_completed') {
+                  navigationRef.current.navigate('Tabs', { screen: 'EarningsTab' });
+                }
+                else if (notificationType === 'request_cancelled') {
+                  navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
+                }
+                else if (orderId) {
+                  // Talebin gerçek statüsüne göre OfferScreen veya JobDetail'e yönlendir
+                  navigateByRequestStatus(navigationRef, orderId, serviceType, '[Banner]')
+                    .catch((e) => logger.error('navigation', '[Banner] navigateByRequestStatus rejected', { message: e?.message }));
+                }
               }
-            }
-            else if (notificationType === 'job_completed' || notificationType === 'request_completed') {
-              navigationRef.current.navigate('Tabs', { screen: 'EarningsTab' });
-            }
-            else if (notificationType === 'request_cancelled') {
-              navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
-            }
-            else if (orderId) {
-              // Talebin gerçek statüsüne göre OfferScreen veya JobDetail'e yönlendir
-              navigateByRequestStatus(navigationRef, orderId, serviceType, '[Banner]')
-                .catch((e) => logger.error('navigation', '[Banner] navigateByRequestStatus rejected', { message: e?.message }));
-            }
-          }
-        }}
-      />
+            }}
+          />
+        );
+      })()}
 
       <GuideOverlay />
 
