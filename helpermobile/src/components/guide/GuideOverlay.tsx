@@ -1,13 +1,18 @@
 import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Dimensions, TouchableWithoutFeedback } from 'react-native';
+import { View, StyleSheet, Animated, Dimensions, Platform, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useGuideStore } from '../../store/useGuideStore';
 import { guideSteps } from './guideSteps';
 import GuideTooltip from './GuideTooltip';
+import { TAB_BAR_SIZE } from '../../utils/responsive';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const TAB_BAR_CONTENT_HEIGHT = 60;
 const SPOTLIGHT_SIZE = 70;
+
+// Tab icon dikey merkezi (screen height'tan offset olarak)
+// iOS: tab bar 94pt, iconlar üst 60pt'ta → ekran altından TAB_BAR_SIZE.height - 30 yukarıda
+// Android: tab bar 60pt, iconlar ortalanmış → ekran altından TAB_BAR_SIZE.height / 2 yukarıda
+const TAB_ICON_Y = SCREEN_HEIGHT - (Platform.OS === 'ios' ? TAB_BAR_SIZE.height - 30 : TAB_BAR_SIZE.height / 2);
 
 // Tab bar'daki her sekmenin merkez X koordinatini hesapla
 function getTabCenterX(tabIndex: number): number {
@@ -28,31 +33,36 @@ function getTargetPosition(target: string, insets: { top: number; bottom: number
     case 'tab_orders':
       return {
         x: getTabCenterX(1),
-        y: SCREEN_HEIGHT - insets.bottom - TAB_BAR_CONTENT_HEIGHT / 2,
+        y: TAB_ICON_Y,
         spotlightWidth: SPOTLIGHT_SIZE,
         spotlightHeight: SPOTLIGHT_SIZE,
       };
     case 'tab_earnings':
       return {
         x: getTabCenterX(2),
-        y: SCREEN_HEIGHT - insets.bottom - TAB_BAR_CONTENT_HEIGHT / 2,
+        y: TAB_ICON_Y,
         spotlightWidth: SPOTLIGHT_SIZE,
         spotlightHeight: SPOTLIGHT_SIZE,
       };
     case 'tab_profile':
       return {
         x: getTabCenterX(3),
-        y: SCREEN_HEIGHT - insets.bottom - TAB_BAR_CONTENT_HEIGHT / 2,
+        y: TAB_ICON_Y,
         spotlightWidth: SPOTLIGHT_SIZE,
         spotlightHeight: SPOTLIGHT_SIZE,
       };
-    case 'location_button':
+    case 'location_button': {
+      // HomeScreen.tsx: right: 8, bottom: TAB_BAR_SIZE.height + 8, size 56
+      const BUTTON_SIZE = 56;
+      const BUTTON_RIGHT = 8;
+      const BUTTON_BOTTOM = TAB_BAR_SIZE.height + 8;
       return {
-        x: SCREEN_WIDTH - 44,
-        y: SCREEN_HEIGHT - insets.bottom - TAB_BAR_CONTENT_HEIGHT - 60,
-        spotlightWidth: 64,
-        spotlightHeight: 64,
+        x: SCREEN_WIDTH - BUTTON_RIGHT - BUTTON_SIZE / 2,
+        y: SCREEN_HEIGHT - BUTTON_BOTTOM - BUTTON_SIZE / 2,
+        spotlightWidth: 70,
+        spotlightHeight: 70,
       };
+    }
     default:
       return { x: SCREEN_WIDTH / 2, y: SCREEN_HEIGHT / 2, spotlightWidth: SPOTLIGHT_SIZE, spotlightHeight: SPOTLIGHT_SIZE };
   }

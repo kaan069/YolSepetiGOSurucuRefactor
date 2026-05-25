@@ -10,24 +10,24 @@ export interface GuideStep {
 export const guideSteps: GuideStep[] = [
   {
     id: 'toggle',
-    title: 'Cevrimici / Cevrimdisi',
-    description: 'Bu dugmeyi acarak cevrimici olun ve yakininizdaki is taleplerini almaya baslayin.',
+    title: 'Çevrimiçi / Çevrimdışı',
+    description: 'Bu düğmeyi açarak çevrimiçi olun ve yakınınızdaki iş taleplerini almaya başlayın.',
     target: 'toggle',
     arrowDirection: 'up',
     icon: 'toggle-switch-outline',
   },
   {
     id: 'tab_orders',
-    title: 'Isler Sekmesi',
-    description: 'Bu sekmede gelen is taleplerini goreceksiniz. Teklif verin, isi kabul edin ve adim adim takip edin.',
+    title: 'İşler Sekmesi',
+    description: 'Bu sekmede gelen iş taleplerini göreceksiniz. Teklif verin, işi kabul edin ve adım adım takip edin.',
     target: 'tab_orders',
     arrowDirection: 'down',
     icon: 'clipboard-text-outline',
   },
   {
     id: 'tab_earnings',
-    title: 'Kazanc Sekmesi',
-    description: 'Tamamladiginiz islerin kazancini buradan takip edebilirsiniz. Gunluk, haftalik ve aylik raporlari goruntuleyin.',
+    title: 'Kazanç Sekmesi',
+    description: 'Tamamladığınız işlerin kazancını buradan takip edebilirsiniz. Günlük, haftalık ve aylık raporları görüntüleyin.',
     target: 'tab_earnings',
     arrowDirection: 'down',
     icon: 'cash-multiple',
@@ -35,7 +35,7 @@ export const guideSteps: GuideStep[] = [
   {
     id: 'tab_profile',
     title: 'Profil Sekmesi',
-    description: 'Profil ayarlarinizi, araclarinizi, belgelerinizi ve sirket bilgilerinizi buradan yonetebilirsiniz.',
+    description: 'Profil ayarlarınızı, araçlarınızı, belgelerinizi ve şirket bilgilerinizi buradan yönetebilirsiniz.',
     target: 'tab_profile',
     arrowDirection: 'down',
     icon: 'account-cog-outline',
@@ -43,7 +43,7 @@ export const guideSteps: GuideStep[] = [
   {
     id: 'location_button',
     title: 'Konum Butonu',
-    description: 'Konumunuzu haritada bulmak ve gormek icin bu butona basin.',
+    description: 'Konumunuzu haritada bulmak ve görmek için bu butona basın.',
     target: 'location_button',
     arrowDirection: 'left',
     icon: 'crosshairs-gps',
