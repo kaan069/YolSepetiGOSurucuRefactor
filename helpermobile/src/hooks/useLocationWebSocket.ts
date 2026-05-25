@@ -18,7 +18,6 @@ import { Alert } from 'react-native';
 import * as Location from 'expo-location';
 import { locationWebSocket } from '../services/locationWebSocket';
 import { backgroundLocationService } from '../services/backgroundLocationService';
-import { flushLocationQueue } from '../tasks/backgroundLocation';
 import { logger } from '../utils/logger';
 
 export interface UseLocationWebSocketOptions {
@@ -48,19 +47,13 @@ export interface UseLocationWebSocketOptions {
  * ```
  */
 export function useLocationWebSocket(options: UseLocationWebSocketOptions) {
-  const { trackingToken, enabled } = options;
+  const { trackingToken, enabled, onConnected, onError, onDisconnected } = options;
+  // ⚠️ FİX: currentLocation'ı component scope'da tutma, interval içinde fresh değer için store'dan oku
   const lastSentLocation = useRef<{ lat: number; lng: number } | null>(null);
   const isConnecting = useRef(false);
-  const [wsConnected, setWsConnected] = useState(false);
-  const [isInternetDisconnected, setIsInternetDisconnected] = useState(false);
-  const backgroundStarted = useRef(false);
-
-  // ⚠️ Callback ref pattern: parent her render'da yeni arrow function geciyor.
-  // Effect deps'e koymadan en guncel callback'i kullanabilmek icin ref'te tut.
-  const callbacksRef = useRef(options);
-  useEffect(() => {
-    callbacksRef.current = options;
-  });
+  const [wsConnected, setWsConnected] = useState(false); // ← WebSocket connection state
+  const [isInternetDisconnected, setIsInternetDisconnected] = useState(false); // ← Internet status
+  const backgroundStarted = useRef(false); // ← Background location tracking durumu
 
   // WebSocket bağlantısını yönet
   useEffect(() => {
@@ -75,10 +68,7 @@ export function useLocationWebSocket(options: UseLocationWebSocketOptions) {
       onConnected: () => {
         isConnecting.current = false;
         setWsConnected(true);
-        callbacksRef.current.onConnected?.();
-
-        // WS geri geldiginde bekleyen queue'yu flush et
-        flushLocationQueue(trackingToken).catch(() => {});
+        onConnected?.();
 
         // Arka plan konum takibini başlat (WebSocket bağlandığında)
         if (!backgroundStarted.current) {
@@ -92,18 +82,12 @@ export function useLocationWebSocket(options: UseLocationWebSocketOptions) {
         logger.error('websocket', 'useLocationWebSocket.onError');
         isConnecting.current = false;
         setWsConnected(false);
-        callbacksRef.current.onError?.(error);
+        onError?.(error);
       },
       onDisconnected: () => {
         isConnecting.current = false;
         setWsConnected(false);
-        callbacksRef.current.onDisconnected?.();
-      },
-      onStatusUpdate: (data: any) => {
-        callbacksRef.current.onStatusUpdate?.(data);
-      },
-      onRequestRejected: () => {
-        callbacksRef.current.onRequestRejected?.();
+        onDisconnected?.();
       },
       onInternetDisconnected: () => {
         setIsInternetDisconnected(true);

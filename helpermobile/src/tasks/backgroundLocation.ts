@@ -2,68 +2,36 @@
  * ARKA PLAN KONUM TASK TANIMI
  *
  * Akis:
- * 1. WebSocket bagliysa → direkt gonder (hizli yol — foreground / Android bg)
+ * 1. WebSocket bagliysa → direkt gonder (hizli yol)
  * 2. WebSocket bagli degilse → HTTP fallback ile gonder
- *    - HTTP basariliysa → bekleyen queue'yu da flush et
- * 3. HTTP de basarisizsa → local queue'ya ekle (sonra flush edilir)
+ * 3. HTTP de basarisizsa → local queue'ya ekle (sonra toplu gonderilir)
  * 4. Aktif is yoksa → task'i durdur
- *
- * HTTP fallback hata kodlari:
- * - 404: tracking_token yok / gecersiz → is unutulmali
- * - 410: is completed/cancelled → is unutulmali
- * Bu iki durumda queue + activeJob store + bg task tamamen temizlenir
- * (sonsuz retry + batarya kaybi onlemek icin).
- *
- * NOT: bg task'tan WebSocket reconnect denemiyoruz — headless context'te
- * acilan ws baglantisi task callback return olunca OS tarafindan kapatilir.
- * Reconnect mantigi locationWebSocket servisi + useLocationWebSocket hook'unda.
  */
 import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { locationWebSocket } from '../services/locationWebSocket';
-import { backgroundLocationService } from '../services/backgroundLocationService';
-import { useActiveJobStore } from '../store/useActiveJobStore';
 import axiosInstance from '../api/axiosConfig';
 import { logger } from '../utils/logger';
 
 export const BACKGROUND_LOCATION_TASK = 'background-location-task';
 
+const RECONNECT_FAIL_KEY = 'bg-location-reconnect-fails';
 const LOCATION_QUEUE_KEY = 'bg-location-queue';
-const MAX_QUEUE_SIZE = 200;
+const MAX_RECONNECT_FAILS = 10;
+const MAX_QUEUE_SIZE = 50;
 
-type HttpResult = 'success' | 'job_closed' | 'retry';
-
-// Aktif is kapandi (404/410) — queue + store + bg task tamamen temizle
-async function handleJobClosed(httpStatus: number): Promise<void> {
-  try {
-    await AsyncStorage.removeItem(LOCATION_QUEUE_KEY);
-  } catch {}
-  try {
-    useActiveJobStore.getState().clearActiveJob();
-  } catch {}
-  try {
-    await backgroundLocationService.forceStop();
-  } catch {}
-  logger.info('location', `backgroundLocation.jobClosed HTTP ${httpStatus} - tracking durduruldu, queue temizlendi`);
-}
-
-// HTTP fallback ile konum gonder (tekli)
-async function sendLocationHTTP(trackingToken: string, latitude: number, longitude: number): Promise<HttpResult> {
+// HTTP fallback ile konum gonder
+async function sendLocationHTTP(trackingToken: string, latitude: number, longitude: number): Promise<boolean> {
   try {
     await axiosInstance.post(`/vehicles/location/${trackingToken}/http-update/`, {
       latitude,
       longitude,
     });
-    return 'success';
-  } catch (err: any) {
-    const status = err?.response?.status;
-    if (status === 404 || status === 410) {
-      await handleJobClosed(status);
-      return 'job_closed';
-    }
-    logger.warn('location', `backgroundLocation.httpFallback failed status=${status ?? 'network'}`);
-    return 'retry';
+    return true;
+  } catch (err) {
+    logger.warn('location', 'backgroundLocation.httpFallback failed');
+    return false;
   }
 }
 
@@ -95,13 +63,8 @@ export async function flushLocationQueue(trackingToken: string): Promise<void> {
 
     await AsyncStorage.removeItem(LOCATION_QUEUE_KEY);
     logger.debug('location', 'backgroundLocation.queueFlush success', { count: queue.length });
-  } catch (err: any) {
-    const status = err?.response?.status;
-    if (status === 404 || status === 410) {
-      await handleJobClosed(status);
-      return;
-    }
-    logger.warn('location', `backgroundLocation.queueFlush failed status=${status ?? 'network'}`);
+  } catch (err) {
+    logger.warn('location', 'backgroundLocation.queueFlush failed');
   }
 }
 
@@ -124,6 +87,7 @@ TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
 
   // 1. WebSocket bagliysa direkt gonder (hizli yol)
   if (locationWebSocket.isConnected()) {
+    await AsyncStorage.removeItem(RECONNECT_FAIL_KEY).catch(() => {});
     locationWebSocket.sendLocation({ latitude, longitude });
     return;
   }
@@ -136,28 +100,62 @@ TaskManager.defineTask(BACKGROUND_LOCATION_TASK, async ({ data, error }) => {
 
     if (!trackingToken) {
       logger.debug('location', 'backgroundLocation.task - no active job, stopping');
+      await AsyncStorage.removeItem(RECONNECT_FAIL_KEY).catch(() => {});
       await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
       return;
     }
 
-    // 3. HTTP fallback dene
-    const result = await sendLocationHTTP(trackingToken, latitude, longitude);
+    // Reconnect fail sayisini kontrol et
+    const failCountStr = await AsyncStorage.getItem(RECONNECT_FAIL_KEY);
+    const failCount = failCountStr ? parseInt(failCountStr) : 0;
 
-    if (result === 'success') {
+    if (failCount >= MAX_RECONNECT_FAILS) {
+      logger.warn('location', 'backgroundLocation.task - max fails reached, stopping', { failCount });
+      await AsyncStorage.removeItem(RECONNECT_FAIL_KEY).catch(() => {});
+      await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
+      return;
+    }
+
+    // 3. Once HTTP fallback dene (WebSocket reconnect'ten daha hizli ve guvenilir)
+    const httpSuccess = await sendLocationHTTP(trackingToken, latitude, longitude);
+
+    if (httpSuccess) {
       logger.debug('location', 'backgroundLocation.task - http fallback ok');
-      // Birikmis queue varsa flush et
-      await flushLocationQueue(trackingToken);
+      // HTTP basarili - fail counter'i sifirla
+      await AsyncStorage.removeItem(RECONNECT_FAIL_KEY).catch(() => {});
       return;
     }
 
-    if (result === 'job_closed') {
-      // handleJobClosed icinde her sey temizlendi, queue'ya ekleme yok
-      return;
-    }
+    // 4. HTTP de basarisiz - WebSocket reconnect dene
+    logger.debug('location', 'backgroundLocation.task - trying ws reconnect');
+    const reconnected = await new Promise<boolean>((resolve) => {
+      const timeout = setTimeout(() => {
+        resolve(false);
+      }, 5000);
 
-    // 4. HTTP retry-able hata - queue'ya ekle
-    await addToQueue(latitude, longitude);
-    logger.debug('location', 'backgroundLocation.task - queued for later');
+      locationWebSocket.connect({
+        trackingToken,
+        onConnected: () => {
+          clearTimeout(timeout);
+          locationWebSocket.sendLocation({ latitude, longitude });
+          resolve(true);
+        },
+        onError: () => {
+          clearTimeout(timeout);
+          resolve(false);
+        },
+      });
+    });
+
+    if (reconnected) {
+      await AsyncStorage.removeItem(RECONNECT_FAIL_KEY).catch(() => {});
+      logger.debug('location', 'backgroundLocation.task - ws reconnect ok');
+    } else {
+      // 5. Her sey basarisiz - queue'ya ekle
+      await AsyncStorage.setItem(RECONNECT_FAIL_KEY, String(failCount + 1)).catch(() => {});
+      await addToQueue(latitude, longitude);
+      logger.debug('location', 'backgroundLocation.task - queued for later');
+    }
   } catch (err) {
     logger.error('location', 'backgroundLocation.task failure');
     await addToQueue(latitude, longitude);
