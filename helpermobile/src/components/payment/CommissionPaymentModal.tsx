@@ -34,6 +34,7 @@ interface CommissionPaymentModalProps {
   commissionVatAmount?: number;
   onPaymentSuccess: () => void;
   onPaymentFailed: (error: string) => void;
+  verifyJobCleared?: () => Promise<boolean>;
 }
 
 export default function CommissionPaymentModal({
@@ -46,6 +47,7 @@ export default function CommissionPaymentModal({
   commissionVatAmount,
   onPaymentSuccess,
   onPaymentFailed,
+  verifyJobCleared,
 }: CommissionPaymentModalProps) {
   const payment = useCommissionPayment({
     visible,
@@ -54,6 +56,7 @@ export default function CommissionPaymentModal({
     onPaymentSuccess,
     onPaymentFailed,
     onClose,
+    verifyJobCleared,
   });
 
   return (
@@ -153,7 +156,11 @@ export default function CommissionPaymentModal({
           )}
 
           {payment.step === 'success' && (
-            <SuccessScreen amount={commissionAmount} scaleValue={payment.scaleValue} />
+            <SuccessScreen
+              amount={commissionAmount}
+              scaleValue={payment.scaleValue}
+              verifyingJobStatus={payment.verifyingJobStatus}
+            />
           )}
 
           {payment.step === 'failed' && (

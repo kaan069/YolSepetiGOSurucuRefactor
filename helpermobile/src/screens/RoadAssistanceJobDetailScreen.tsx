@@ -546,6 +546,15 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
         commissionVatAmount={commissionVatAmount}
         onPaymentSuccess={handlePaymentSuccess}
         onPaymentFailed={handlePaymentFailed}
+        verifyJobCleared={async () => {
+          try {
+            const fresh = await requestsAPI.getRoadAssistanceRequestDetail(parseInt(jobId));
+            setRequest(fresh);
+            return getStatus(fresh) !== 'awaiting_payment';
+          } catch {
+            return false;
+          }
+        }}
       />
 
       {/* İş İptal Modal */}

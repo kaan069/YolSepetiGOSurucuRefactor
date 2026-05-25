@@ -4,6 +4,7 @@ import { OrdersJob } from '../screens/orders/types';
 import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { maskAddressToArea } from '../utils/addressMask';
 
 // Tercih edilen tarihi formatla ve gün farkını hesapla
 const formatPreferredDate = (dateString: string | undefined): { formatted: string; daysText: string; color: string } | null => {
@@ -61,8 +62,15 @@ export default function OrderCard({ item, onPress, onDismiss }: Props) {
   const { isDarkMode, appColors, cardBg } = useAppTheme();
 
   // OrdersJob zaten normalize edilmiş shape sunar (from/to/vehicleType).
-  const fromAddress = item.from.address || 'Adres belirtilmemiş';
-  const toAddress = item.to.address || 'Adres belirtilmemiş';
+  // Gizlilik: sadece in_progress / completed durumda tam adres göster.
+  // Diğerlerinde (pending, awaiting_*) sadece ilçe + il görünür.
+  const shouldShowFullAddress = item.status === 'in_progress' || item.status === 'completed';
+  const fromAddress = shouldShowFullAddress
+    ? (item.from.address || 'Adres belirtilmemiş')
+    : maskAddressToArea(item.from.address);
+  const toAddress = shouldShowFullAddress
+    ? (item.to.address || 'Adres belirtilmemiş')
+    : maskAddressToArea(item.to.address);
   const vehicleInfo = item.vehicleType || 'Belirtilmemiş';
   const preferredDateInfo = formatPreferredDate(item.preferredDate);
 

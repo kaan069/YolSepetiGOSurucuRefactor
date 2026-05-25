@@ -443,6 +443,15 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
         commissionVatAmount={commissionVatAmount}
         onPaymentSuccess={handlePaymentSuccess}
         onPaymentFailed={handlePaymentFailed}
+        verifyJobCleared={async () => {
+          try {
+            const fresh = await requestsAPI.getCraneRequestDetail(parseInt(jobId));
+            setCraneRequest(fresh);
+            return getStatus(fresh) !== 'awaiting_payment';
+          } catch {
+            return false;
+          }
+        }}
       />
 
       {/* İş İptal Modal */}

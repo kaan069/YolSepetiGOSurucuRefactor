@@ -22,6 +22,9 @@ interface UseCommissionPaymentProps {
   onPaymentSuccess: () => void;
   onPaymentFailed: (error: string) => void;
   onClose: () => void;
+  // Backend job status'unu doğrular: true dönerse iş artık 'awaiting_payment' değildir.
+  // Verilmezse modal 1500ms sonra success'i tetikler (geriye dönük uyumlu).
+  verifyJobCleared?: () => Promise<boolean>;
 }
 
 export function useCommissionPayment({
@@ -30,6 +33,7 @@ export function useCommissionPayment({
   onPaymentSuccess,
   onPaymentFailed,
   onClose,
+  verifyJobCleared,
 }: UseCommissionPaymentProps) {
   // Screen state
   const [step, setStep] = useState<PaymentStep>('select');
@@ -50,6 +54,9 @@ export function useCommissionPayment({
   // 3DS state
   const [threeDSHtml, setThreeDSHtml] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Ödeme başarılı sonrası backend job status doğrulama state'i
+  const [verifyingJobStatus, setVerifyingJobStatus] = useState(false);
 
   // Animation values
   const spinValue = useRef(new Animated.Value(0)).current;
@@ -153,8 +160,44 @@ export function useCommissionPayment({
 
   const handleClose = useCallback(() => {
     resetForm();
+    setVerifyingJobStatus(false);
     onClose();
   }, [resetForm, onClose]);
+
+  // Backend job status'unun güncel olduğunu doğrula.
+  // Race condition: backend WebSocket event'ini transaction commit ÖNCESİ atabiliyor.
+  // Bu yüzden iyzico success URL'inden sonra hemen onPaymentSuccess'i tetiklemek yerine
+  // verifyJobCleared() ile DB'nin gerçekten 'in_progress'e döndüğünü garantiliyoruz.
+  const waitForJobStatusUpdate = useCallback(async () => {
+    if (!verifyJobCleared) {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return;
+    }
+
+    setVerifyingJobStatus(true);
+    try {
+      // Sürücü manuel modal'ı kapatmadığı sürece status değişene kadar polle.
+      // Backend fix sonrası bu loop tipik olarak 1-2 saniyede biter.
+      while (true) {
+        try {
+          const cleared = await verifyJobCleared();
+          if (cleared) return;
+        } catch {
+          // Network hatası vs. → yine de polling'e devam et
+        }
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    } finally {
+      setVerifyingJobStatus(false);
+    }
+  }, [verifyJobCleared]);
+
+  const completeSuccessFlow = useCallback(async () => {
+    setStep('success');
+    await waitForJobStatusUpdate();
+    onPaymentSuccess();
+    handleClose();
+  }, [waitForJobStatusUpdate, onPaymentSuccess, handleClose]);
 
   // Ödeme yap
   const handlePayment = async () => {
@@ -188,11 +231,7 @@ export function useCommissionPayment({
       } else {
         if (callbackProcessedRef.current) return;
         callbackProcessedRef.current = true;
-        setStep('success');
-        setTimeout(() => {
-          onPaymentSuccess();
-          handleClose();
-        }, 1500);
+        completeSuccessFlow();
       }
     } catch (error: any) {
       logger.error('payment', 'useCommissionPayment.handlePayment failure', { status: error?.response?.status });
@@ -231,11 +270,7 @@ export function useCommissionPayment({
       if (data.status === 'success') {
         if (callbackProcessedRef.current) return;
         callbackProcessedRef.current = true;
-        setStep('success');
-        setTimeout(() => {
-          onPaymentSuccess();
-          handleClose();
-        }, 1500);
+        completeSuccessFlow();
       } else if (data.status === 'failed') {
         setErrorMessage(data.message || 'Ödeme başarısız oldu');
         setStep('failed');
@@ -243,7 +278,7 @@ export function useCommissionPayment({
     } catch (e) {
       // JSON parse edilemezse ignore et
     }
-  }, [onPaymentSuccess, handleClose]);
+  }, [completeSuccessFlow]);
 
   // Ödeme durumunu kontrol et (polling)
   const checkPaymentStatus = async () => {
@@ -265,11 +300,7 @@ export function useCommissionPayment({
         if (callbackProcessedRef.current) return;
         callbackProcessedRef.current = true;
         pollingCountRef.current = 0;
-        setStep('success');
-        setTimeout(() => {
-          onPaymentSuccess();
-          handleClose();
-        }, 1500);
+        completeSuccessFlow();
       } else if (paymentStatus === 'failed') {
         pollingCountRef.current = 0;
         const readableError = getReadablePaymentError(response.error_message || 'Ödeme başarısız oldu');
@@ -313,11 +344,7 @@ export function useCommissionPayment({
       if (step !== 'success') {
         callbackProcessedRef.current = true;
         pollingCountRef.current = 0;
-        setStep('success');
-        setTimeout(() => {
-          onPaymentSuccess();
-          handleClose();
-        }, 1500);
+        completeSuccessFlow();
       }
       return;
     }
@@ -351,7 +378,7 @@ export function useCommissionPayment({
         checkPaymentStatus();
       }, 2000);
     }
-  }, [step, onPaymentSuccess, handleClose]);
+  }, [step, completeSuccessFlow]);
 
   const isFormValid = useCallback((): boolean => {
     return (
@@ -372,6 +399,8 @@ export function useCommissionPayment({
     expireDate, setExpireDate, cvc, setCvc, saveCard, setSaveCard,
     // 3DS state
     threeDSHtml, errorMessage,
+    // Backend job status verification (post-payment)
+    verifyingJobStatus,
     // Handlers
     handlePayment, handleClose, handleWebViewMessage, handleWebViewNavigationChange,
     // Validation

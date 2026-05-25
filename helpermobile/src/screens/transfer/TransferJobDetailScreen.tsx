@@ -930,6 +930,15 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
         commissionVatAmount={commissionVatAmount}
         onPaymentSuccess={handlePaymentSuccess}
         onPaymentFailed={handlePaymentFailed}
+        verifyJobCleared={async () => {
+          try {
+            const fresh = await requestsAPI.getTransferRequestDetail(parseInt(jobId));
+            setTransferRequest(fresh);
+            return getStatus(fresh) !== 'awaiting_payment';
+          } catch {
+            return false;
+          }
+        }}
       />
 
       {/* Is Iptal Modal */}

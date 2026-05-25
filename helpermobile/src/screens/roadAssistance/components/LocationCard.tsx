@@ -5,6 +5,7 @@ import { Card, Text, Button } from 'react-native-paper';
 import MapView, { Marker, Circle } from 'react-native-maps';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { maskAddressToArea } from '../../../utils/addressMask';
 
 interface LocationCardProps {
   address: string;
@@ -13,22 +14,6 @@ interface LocationCardProps {
   distance: number | null;
   hideExactLocation?: boolean; // Teklif vermeden önce konumu gizle
 }
-
-// Adresten sadece ilçe/şehir bilgisini çıkar
-const getApproximateArea = (address: string): string => {
-  if (!address) return 'Bölge belirtilmemiş';
-
-  // Adresi virgül veya / ile böl
-  const parts = address.split(/[,\/]/);
-
-  // Son 2-3 parçayı al (genelde ilçe, şehir, ülke)
-  if (parts.length >= 2) {
-    return parts.slice(-2).join(', ').trim();
-  }
-
-  // Eğer bölünemiyorsa, ilk 30 karakteri göster
-  return address.length > 30 ? address.substring(0, 30) + '...' : address;
-};
 
 export default function LocationCard({ address, latitude, longitude, distance, hideExactLocation = false }: LocationCardProps) {
   const { isDarkMode, appColors } = useAppTheme();
@@ -92,7 +77,7 @@ export default function LocationCard({ address, latitude, longitude, distance, h
           <View style={[styles.locationInfo, { backgroundColor: locationInfoBg }]}>
             <View style={styles.addressRow}>
               <MaterialCommunityIcons name="map-marker-radius" size={20} color="#f57c00" />
-              <Text style={[styles.addressText, { color: appColors.text.primary }]}>{getApproximateArea(address)}</Text>
+              <Text style={[styles.addressText, { color: appColors.text.primary }]}>{maskAddressToArea(address)}</Text>
             </View>
             {distance !== null && (
               <View style={styles.distanceRow}>

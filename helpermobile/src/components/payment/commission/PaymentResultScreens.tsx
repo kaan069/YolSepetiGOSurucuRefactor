@@ -27,16 +27,18 @@ export function ProcessingScreen({ amount, spin }: ProcessingScreenProps) {
 interface SuccessScreenProps {
   amount: number;
   scaleValue: Animated.Value;
+  verifyingJobStatus?: boolean;
 }
 
-export function SuccessScreen({ amount, scaleValue }: SuccessScreenProps) {
+export function SuccessScreen({ amount, scaleValue, verifyingJobStatus }: SuccessScreenProps) {
+  const subtitle = verifyingJobStatus ? 'İş başlatılıyor...' : 'Yönlendiriliyorsunuz...';
   return (
     <View style={styles.successContainer}>
       <Animated.View style={[styles.successIcon, { transform: [{ scale: scaleValue }] }]}>
         <MaterialCommunityIcons name="check-circle" size={100} color="#4CAF50" />
       </Animated.View>
       <Text style={styles.successTitle}>Ödeme Başarılı!</Text>
-      <Text style={styles.successSubtitle}>İşiniz başlatılıyor...</Text>
+      <Text style={styles.successSubtitle}>{subtitle}</Text>
       <Text style={styles.successAmount}>{formatCurrency(amount)} TL</Text>
     </View>
   );

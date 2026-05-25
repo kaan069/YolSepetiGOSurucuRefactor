@@ -519,6 +519,17 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
         commissionVatAmount={commissionVatAmount}
         onPaymentSuccess={handlePaymentSuccess}
         onPaymentFailed={handlePaymentFailed}
+        verifyJobCleared={async () => {
+          try {
+            const fresh = movingType === 'city'
+              ? await requestsAPI.getCityMovingRequestDetail(parseInt(jobId))
+              : await requestsAPI.getHomeMovingRequestDetail(parseInt(jobId));
+            setRequest(fresh);
+            return getStatus(fresh) !== 'awaiting_payment';
+          } catch {
+            return false;
+          }
+        }}
       />
 
       {/* İş İptal Modal */}
