@@ -108,6 +108,7 @@ const getHeroConfig = (status: string) => {
 
 export default function TransferJobDetailScreen({ route, navigation }: Props) {
   const { jobId } = route.params;
+  const paymentJustCompleted = (route.params as any)?.paymentJustCompleted === true;
   const { isLocationSharing, startLocationSharing, stopLocationSharing } = useNakliyeLocationStore();
   const { isDarkMode, screenBg, cardBg, appColors } = useAppTheme();
 
@@ -118,6 +119,8 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  // Komisyon ödenince modal/card kalıcı olarak gizlenir. navigation.reset sonrası yeni mount'ta da nav param'dan true gelir.
+  const [paymentCompleted, setPaymentCompleted] = useState<boolean>(paymentJustCompleted);
   const { showNotification } = useNotificationStore();
 
   const status = transferRequest ? getStatus(transferRequest) : null;
@@ -371,7 +374,9 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
 
   // Odeme basarili — surucuyu "Devam Eden" sekmesi uzerinden talebin detayina yonlendir
   const handlePaymentSuccess = async () => {
+    setPaymentCompleted(true);
     setShowPaymentModal(false);
+    setTransferRequest((prev) => (prev ? { ...prev, status: 'in_progress' } : prev));
     navigation.reset({
       index: 1,
       routes: [
@@ -382,7 +387,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
             params: { filter: 'in_progress', serviceFilter: 'transfer', timestamp: Date.now() },
           },
         } as any,
-        { name: 'TransferJobDetail', params: { jobId } } as any,
+        { name: 'TransferJobDetail', params: { jobId, paymentJustCompleted: true } } as any,
       ],
     });
   };
@@ -516,8 +521,8 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
           </Card>
         )}
 
-        {/* Komisyon Odeme Karti */}
-        {isAwaitingPayment && (
+        {/* Komisyon Odeme Karti — odeme bittiyse asla gosterme */}
+        {isAwaitingPayment && !paymentCompleted && (
           <CommissionPaymentCard
             visible={true}
             serviceType="transfer"
@@ -530,7 +535,10 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
               customerName: transferRequest.requestOwnerNameSurname,
               description: `Transfer Hizmeti - ${transferTypeLabel}`,
             }}
-            onPayCommission={() => setShowPaymentModal(true)}
+            onPayCommission={() => {
+              if (paymentCompleted || status !== 'awaiting_payment') return;
+              setShowPaymentModal(true);
+            }}
             distanceKm={distanceFromBackend || distanceToPickup}
             estimatedDuration={transferRequest.estimated_duration_hours}
           />
@@ -924,9 +932,9 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
         )}
       </ScrollView>
 
-      {/* Odeme Modal */}
+      {/* Odeme Modal — basari sonrasi asla geri acilmaz */}
       <CommissionPaymentModal
-        visible={showPaymentModal}
+        visible={showPaymentModal && !paymentCompleted}
         onClose={() => setShowPaymentModal(false)}
         requestId={requestId || 0}
         commissionAmount={paymentCommissionAmount}

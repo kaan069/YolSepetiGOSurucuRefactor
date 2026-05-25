@@ -36,6 +36,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CraneJobDetail'>;
 
 export default function CraneJobDetailScreen({ route, navigation }: Props) {
   const { jobId } = route.params;
+  const paymentJustCompleted = (route.params as any)?.paymentJustCompleted === true;
   const { setActiveJob, clearActiveJob } = useActiveJobStore();
   const { screenBg, appColors } = useAppTheme();
 
@@ -46,6 +47,8 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  // Komisyon ödenince modal/card kalıcı olarak gizlenir. navigation.reset sonrası yeni mount'ta da nav param'dan true gelir.
+  const [paymentCompleted, setPaymentCompleted] = useState<boolean>(paymentJustCompleted);
 
   const status = craneRequest ? getStatus(craneRequest) : null;
   const requestId = craneRequest ? getRequestId(craneRequest) : null;
@@ -196,7 +199,9 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
 
   // Ödeme başarılı — sürücüyü "Devam Eden" sekmesi üzerinden talebin detayına yönlendir
   const handlePaymentSuccess = async () => {
+    setPaymentCompleted(true);
     setShowPaymentModal(false);
+    setCraneRequest((prev) => (prev ? { ...prev, status: 'in_progress' } : prev));
     navigation.reset({
       index: 1,
       routes: [
@@ -207,7 +212,7 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
             params: { filter: 'in_progress', serviceFilter: 'crane', timestamp: Date.now() },
           },
         } as any,
-        { name: 'CraneJobDetail', params: { jobId } } as any,
+        { name: 'CraneJobDetail', params: { jobId, paymentJustCompleted: true } } as any,
       ],
     });
   };
@@ -280,8 +285,8 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
         {/* Onay Bekleniyor Banner */}
         {isAwaitingApproval && <StatusBanner type="awaiting_approval" />}
 
-        {/* Komisyon Ödeme Kartı */}
-        {isAwaitingPayment && (
+        {/* Komisyon Ödeme Kartı — ödeme bittiyse asla gösterme */}
+        {isAwaitingPayment && !paymentCompleted && (
           <CommissionPaymentCard
             visible={true}
             serviceType="crane"
@@ -294,7 +299,10 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
               customerName: craneRequest.requestOwnerNameSurname,
               description: `Vinç Hizmeti - ${craneRequest.load_type || 'Yük'} (${craneRequest.load_weight || '?'} kg)`,
             }}
-            onPayCommission={() => setShowPaymentModal(true)}
+            onPayCommission={() => {
+              if (paymentCompleted || status !== 'awaiting_payment') return;
+              setShowPaymentModal(true);
+            }}
             distanceKm={distanceFromBackend || distanceToLocation}
             estimatedDuration={estimatedDuration}
           />
@@ -437,9 +445,9 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
         )}
       </ScrollView>
 
-      {/* Ödeme Modal */}
+      {/* Ödeme Modal — başarı sonrası asla geri açılmaz */}
       <CommissionPaymentModal
-        visible={showPaymentModal}
+        visible={showPaymentModal && !paymentCompleted}
         onClose={() => setShowPaymentModal(false)}
         requestId={requestId || 0}
         commissionAmount={paymentCommissionAmount}

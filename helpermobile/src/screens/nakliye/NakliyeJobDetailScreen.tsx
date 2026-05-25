@@ -42,6 +42,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'NakliyeJobDetail'>;
 
 export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
   const { jobId, movingType } = route.params;
+  const paymentJustCompleted = (route.params as any)?.paymentJustCompleted === true;
   const { screenBg, appColors } = useAppTheme();
 
   // Global nakliye konum paylaşımı store'u
@@ -56,6 +57,8 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  // Komisyon ödenince modal/card kalıcı olarak gizlenir. navigation.reset sonrası yeni mount'ta da nav param'dan true gelir.
+  const [paymentCompleted, setPaymentCompleted] = useState<boolean>(paymentJustCompleted);
 
   const status = request ? getStatus(request) : null;
   const isAwaitingApproval = status === 'awaiting_approval';
@@ -242,7 +245,9 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
 
   // Ödeme başarılı — sürücüyü "Devam Eden" sekmesi üzerinden talebin detayına yönlendir
   const handlePaymentSuccess = async () => {
+    setPaymentCompleted(true);
     setShowPaymentModal(false);
+    setRequest((prev) => (prev ? { ...prev, status: 'in_progress' } : prev));
     navigation.reset({
       index: 1,
       routes: [
@@ -253,7 +258,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
             params: { filter: 'in_progress', serviceFilter: 'nakliye', timestamp: Date.now() },
           },
         } as any,
-        { name: 'NakliyeJobDetail', params: { jobId, movingType } } as any,
+        { name: 'NakliyeJobDetail', params: { jobId, movingType, paymentJustCompleted: true } } as any,
       ],
     });
   };
@@ -347,7 +352,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <StatusBanner visible={isAwaitingApproval} />
 
-        {isAwaitingPayment && (
+        {isAwaitingPayment && !paymentCompleted && (
           <CommissionPaymentCard
             visible={true}
             serviceType="nakliye"
@@ -362,7 +367,10 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
                 ? `Evden Eve Nakliye - ${request.room_count || '?'} oda`
                 : `Şehirler Arası - ${request.from_city || ''} → ${request.to_city || ''}`,
             }}
-            onPayCommission={() => setShowPaymentModal(true)}
+            onPayCommission={() => {
+              if (paymentCompleted || status !== 'awaiting_payment') return;
+              setShowPaymentModal(true);
+            }}
             distanceKm={distanceToPickup}
             estimatedDuration={request.estimated_duration || request.estimated_duration_hours}
           />
@@ -515,7 +523,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
       </ScrollView>
 
       <CommissionPaymentModal
-        visible={showPaymentModal}
+        visible={showPaymentModal && !paymentCompleted}
         onClose={() => setShowPaymentModal(false)}
         requestId={requestId || 0}
         commissionAmount={paymentCommissionAmount}

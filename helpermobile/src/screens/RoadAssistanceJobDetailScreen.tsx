@@ -48,6 +48,7 @@ const getStatus = (request: any): string => {
 
 export default function RoadAssistanceJobDetailScreen({ route, navigation }: Props) {
   const { jobId } = route.params;
+  const paymentJustCompleted = (route.params as any)?.paymentJustCompleted === true;
   const { setActiveJob, clearActiveJob } = useActiveJobStore();
   const { isDarkMode, appColors, screenBg } = useAppTheme();
 
@@ -58,6 +59,8 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  // Komisyon ödenince modal/card kalıcı olarak gizlenir. navigation.reset sonrası yeni mount'ta da nav param'dan true gelir.
+  const [paymentCompleted, setPaymentCompleted] = useState<boolean>(paymentJustCompleted);
 
   const status = request ? getStatus(request) : null;
   const isAwaitingApproval = status === 'awaiting_approval';
@@ -213,7 +216,9 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
 
   // Ödeme başarılı — sürücüyü "Devam Eden" sekmesi üzerinden talebin detayına yönlendir
   const handlePaymentSuccess = async () => {
+    setPaymentCompleted(true);
     setShowPaymentModal(false);
+    setRequest((prev) => (prev ? { ...prev, status: 'in_progress' } : prev));
     navigation.reset({
       index: 1,
       routes: [
@@ -224,7 +229,7 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
             params: { filter: 'in_progress', serviceFilter: 'roadAssistance', timestamp: Date.now() },
           },
         } as any,
-        { name: 'RoadAssistanceJobDetail', params: { jobId } } as any,
+        { name: 'RoadAssistanceJobDetail', params: { jobId, paymentJustCompleted: true } } as any,
       ],
     });
   };
@@ -300,8 +305,8 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
           </Card>
         )}
 
-        {/* Komisyon Ödeme Ekranı */}
-        {isAwaitingPayment && (
+        {/* Komisyon Ödeme Ekranı — ödeme bittiyse asla gösterme */}
+        {isAwaitingPayment && !paymentCompleted && (
           <CommissionPaymentCard
             visible={true}
             serviceType="roadAssistance"
@@ -314,7 +319,10 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
               customerName: request.requestOwnerNameSurname || request.request_owner_name,
               description: `Yol Yardım - ${getServiceTypeLabel(request.service_type || request.assistance_type || '')}`,
             }}
-            onPayCommission={() => setShowPaymentModal(true)}
+            onPayCommission={() => {
+              if (paymentCompleted || status !== 'awaiting_payment') return;
+              setShowPaymentModal(true);
+            }}
             distanceKm={distanceToLocation}
             estimatedDuration={request.estimated_duration}
           />
@@ -540,9 +548,9 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
         )}
       </ScrollView>
 
-      {/* Komisyon Ödeme Modal */}
+      {/* Komisyon Ödeme Modal — başarı sonrası asla geri açılmaz */}
       <CommissionPaymentModal
-        visible={showPaymentModal}
+        visible={showPaymentModal && !paymentCompleted}
         onClose={() => setShowPaymentModal(false)}
         requestId={requestId || 0}
         commissionAmount={paymentCommissionAmount}
