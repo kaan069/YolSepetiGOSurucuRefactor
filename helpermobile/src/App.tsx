@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Provider as PaperProvider } from 'react-native-paper';
-import { View, Alert, AppState, AppStateStatus, Platform } from 'react-native';
+import { View, Alert } from 'react-native';
 import * as Font from 'expo-font';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RootNavigator from './navigation';
@@ -29,7 +29,6 @@ import { useNakliyeLocationStore } from './store/useNakliyeLocationStore';
 import { authAPI, requestsAPI } from './api';
 import { navigateByRequestStatus, isStaleNotification } from './utils/notificationNavigation';
 import { backgroundLocationService } from './services/backgroundLocationService';
-import { flushLocationQueue } from './tasks/backgroundLocation';
 import { logger } from './utils/logger';
 
 export default function App() {
@@ -197,54 +196,6 @@ export default function App() {
   }, [isAuthenticated]);
 
   useLocationTracking();
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // QUEUE FLUSH - App active olunca birikmis konumlari sunucuya yolla
-  // iOS killed-state'ten geri donen kullanicilar icin kritik (apple bg location'i
-  // tamamen kapattigi icin queue dolu birikir, ilk acilista flush etmek gerek).
-  // ═══════════════════════════════════════════════════════════════════════════
-  React.useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const handleAppStateChange = (nextState: AppStateStatus) => {
-      if (nextState !== 'active') return;
-      const token = useActiveJobStore.getState().trackingToken;
-      if (!token) return;
-      flushLocationQueue(token).catch(() => {});
-    };
-
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    // Ilk mount'ta da bir kez dene (app cold-start sonrasi)
-    handleAppStateChange(AppState.currentState);
-
-    return () => subscription.remove();
-  }, [isAuthenticated]);
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // iOS KILL UYARISI - Aktif is baslayinca bir kerelik bilgilendirme.
-  // iOS, kullanici uygulamayi swipe ile kapatirsa bg location'i durdurur
-  // (Apple kurali, asilamaz). Kullaniciyi bu konuda uyariyoruz.
-  // ═══════════════════════════════════════════════════════════════════════════
-  React.useEffect(() => {
-    if (Platform.OS !== 'ios') return;
-    if (!isAuthenticated) return;
-    if (!activeJobTrackingToken) return;
-
-    const KEY = 'ios-kill-warning-shown';
-    AsyncStorage.getItem(KEY).then((shown) => {
-      if (shown) return;
-      Alert.alert(
-        'Uygulamayı Kapatmayın',
-        'Aktif iş süresince uygulamayı tamamen kapatmayın. Aksi takdirde konum paylaşımı durur ve müşteri sizi haritada göremez.',
-        [
-          {
-            text: 'Anladım',
-            onPress: () => AsyncStorage.setItem(KEY, '1').catch(() => {}),
-          },
-        ],
-      );
-    });
-  }, [isAuthenticated, activeJobTrackingToken]);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // AKTİF İŞ WebSocket - useActiveJobStore'dan trackingToken alınır

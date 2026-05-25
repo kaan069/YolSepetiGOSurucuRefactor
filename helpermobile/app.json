@@ -50,7 +50,8 @@
                 "FOREGROUND_SERVICE_LOCATION",
                 "CAMERA",
                 "POST_NOTIFICATIONS",
-                "REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+                "REQUEST_IGNORE_BATTERY_OPTIMIZATIONS",
+                "WAKE_LOCK"
             ],
             "blockedPermissions": [
                 "READ_EXTERNAL_STORAGE",
@@ -78,7 +79,8 @@
                     "locationAlwaysPermission": "Aktif iş sırasında arka planda konum takibi için izin gereklidir.",
                     "locationWhenInUsePermission": "Aktif iş sırasında konumunuzu müşteri ile paylaşmak için konum iznine ihtiyacımız var.",
                     "isAndroidBackgroundLocationEnabled": true,
-                    "isAndroidForegroundServiceEnabled": true
+                    "isAndroidForegroundServiceEnabled": true,
+                    "isIosBackgroundLocationEnabled": true
                 }
             ],
             [
