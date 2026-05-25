@@ -22,6 +22,8 @@ import { useJobUpdateEventStore } from '../../store/useJobUpdateEventStore';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import PhotosSection from '../../components/PhotosSection';
 import DriverPhotoUpload from '../../components/DriverPhotoUpload';
+import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModal';
+import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferJobDetail'>;
@@ -124,6 +126,9 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
   const isAwaitingPayment = status === 'awaiting_payment';
   const isInProgress = status === 'in_progress';
   const isCompleted = status === 'completed';
+
+  // Komisyon ödendikten sonra (artık aktif iş) uyarı popup'ı
+  const bgWarning = useBackgroundAppWarning(jobId, isInProgress);
 
   // Istek detayini getir
   useEffect(() => {
@@ -949,6 +954,9 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
         trackingToken={transferRequest?.trackingToken || ''}
         onCancelSuccess={handleCancelSuccess}
       />
+
+      {/* Aktif is baslangicinda arka plan uyarisi */}
+      <BackgroundAppWarningModal visible={bgWarning.visible} onDismiss={bgWarning.dismiss} />
     </SafeAreaView>
   );
 }

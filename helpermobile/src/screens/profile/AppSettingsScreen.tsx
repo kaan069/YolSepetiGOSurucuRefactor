@@ -7,12 +7,11 @@ import { RootStackParamList } from '../../navigation';
 import AppBar from '../../components/common/AppBar';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useGuideStore } from '../../store/useGuideStore';
+import { APP_VERSION } from '../../constants/appVersion';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AppSettings'>;
 
 export default function AppSettingsScreen({ navigation }: Props) {
-  const [pushNotifications, setPushNotifications] = React.useState(true);
-  const [soundEnabled, setSoundEnabled] = React.useState(true);
   const { isDarkMode, toggleDarkMode } = useThemeStore();
   const paperTheme = useTheme();
 
@@ -20,20 +19,6 @@ export default function AppSettingsScreen({ navigation }: Props) {
     <SafeAreaView style={[styles.container, { backgroundColor: paperTheme.colors.background }]} edges={["bottom"]}>
       <AppBar title="Uygulama Ayarları" />
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-
-        <Card style={styles.card}>
-          <Card.Title title="Bildirimler" />
-          <Card.Content>
-            <View style={styles.settingRow}>
-              <Text variant="bodyLarge">Push Bildirimleri</Text>
-              <Switch value={pushNotifications} onValueChange={setPushNotifications} />
-            </View>
-            <View style={styles.settingRow}>
-              <Text variant="bodyLarge">Ses Bildirimleri</Text>
-              <Switch value={soundEnabled} onValueChange={setSoundEnabled} />
-            </View>
-          </Card.Content>
-        </Card>
 
         <Card style={styles.card}>
           <Card.Title title="Görünüm" />
@@ -87,7 +72,7 @@ export default function AppSettingsScreen({ navigation }: Props) {
           <Card.Content>
             <List.Item
               title="Uygulama Sürümü"
-              description="v1.0.0"
+              description={`v${APP_VERSION}`}
               left={(props) => <List.Icon {...props} icon="information" />}
             />
             <List.Item

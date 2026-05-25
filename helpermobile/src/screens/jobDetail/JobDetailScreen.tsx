@@ -30,6 +30,8 @@ import {
 } from './components';
 import PhotosSection from '../../components/PhotosSection';
 import DriverPhotoUpload from '../../components/DriverPhotoUpload';
+import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModal';
+import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import VehicleStatusSection from '../towTruckOffer/components/VehicleStatusSection';
 import { calculateDistance, getStatus, getRequestId } from './utils';
 import { LocationCoords } from './types';
@@ -57,6 +59,9 @@ export default function JobDetailScreen({ route, navigation }: Props) {
   const isAwaitingPayment = status === 'awaiting_payment';
   const isInProgress = status === 'in_progress';
   const isCompleted = status === 'completed';
+
+  // Müşteri eşleşmesi gerçekleşip aktif iş başladığında uyarı popup'ı
+  const bgWarning = useBackgroundAppWarning(jobId, isInProgress);
 
   // Fetch request from backend
   const fetchRequest = useCallback(async () => {
@@ -468,6 +473,9 @@ export default function JobDetailScreen({ route, navigation }: Props) {
         trackingToken={towTruckRequest?.trackingToken || ''}
         onCancelSuccess={handleCancelSuccess}
       />
+
+      {/* Aktif iş başlangıcında arka plan uyarısı */}
+      <BackgroundAppWarningModal visible={bgWarning.visible} onDismiss={bgWarning.dismiss} />
     </SafeAreaView>
   );
 }

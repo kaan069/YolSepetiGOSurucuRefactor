@@ -34,6 +34,8 @@ import {
 import { calculateDistance, getStatus } from './constants';
 import PhotosSection from '../../components/PhotosSection';
 import DriverPhotoUpload from '../../components/DriverPhotoUpload';
+import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModal';
+import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NakliyeJobDetail'>;
@@ -61,6 +63,9 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
   const isInProgress = status === 'in_progress';
   const isCompleted = status === 'completed';
   const isHomeMoving = movingType === 'home' || request?.moving_type === 'home';
+
+  // Komisyon ödendikten sonra (artık aktif iş) uyarı popup'ı
+  const bgWarning = useBackgroundAppWarning(jobId, isInProgress);
 
   // request_id backend'den RequestIdInfo objesi ya da raw number olarak gelebiliyor
   const requestId =
@@ -540,6 +545,9 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
         trackingToken={trackingToken || ''}
         onCancelSuccess={handleCancelSuccess}
       />
+
+      {/* Aktif iş başlangıcında arka plan uyarısı */}
+      <BackgroundAppWarningModal visible={bgWarning.visible} onDismiss={bgWarning.dismiss} />
     </SafeAreaView>
   );
 }

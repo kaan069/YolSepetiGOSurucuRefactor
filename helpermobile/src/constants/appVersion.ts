@@ -10,7 +10,7 @@
 import { Platform } from 'react-native';
 
 // app.json ve package.json `version` alanı ile senkron tutulmalı.
-export const APP_VERSION = '1.0.2';
+export const APP_VERSION = '1.0.7';
 
 // Bu uygulama sürücü tarafı — backend ayrı driver/customer min versiyonları tutuyor.
 export const APP_CLIENT = 'driver' as const;

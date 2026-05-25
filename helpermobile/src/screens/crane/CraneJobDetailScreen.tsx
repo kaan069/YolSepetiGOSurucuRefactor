@@ -28,6 +28,8 @@ import {
 import { calculateDistance, getStatus, getRequestId } from './constants';
 import PhotosSection from '../../components/PhotosSection';
 import DriverPhotoUpload from '../../components/DriverPhotoUpload';
+import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModal';
+import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneJobDetail'>;
@@ -49,6 +51,9 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
   const requestId = craneRequest ? getRequestId(craneRequest) : null;
   const isAwaitingApproval = status === 'awaiting_approval';
   const isAwaitingPayment = status === 'awaiting_payment';
+
+  // Komisyon ödendikten sonra (artık aktif iş) uyarı popup'ı
+  const bgWarning = useBackgroundAppWarning(jobId, status === 'in_progress');
 
   // İstek detayını getir
   // Earnings ekranından gelen jobId, ServiceRequest ID olabilir (CraneRequestDetails ID değil)
@@ -462,6 +467,9 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
         trackingToken={craneRequest?.trackingToken || ''}
         onCancelSuccess={handleCancelSuccess}
       />
+
+      {/* Aktif iş başlangıcında arka plan uyarısı */}
+      <BackgroundAppWarningModal visible={bgWarning.visible} onDismiss={bgWarning.dismiss} />
     </SafeAreaView>
   );
 }

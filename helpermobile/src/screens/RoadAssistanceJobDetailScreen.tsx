@@ -21,6 +21,8 @@ import { useJobUpdateEventStore } from '../store/useJobUpdateEventStore';
 import { getServiceTypeLabel, getProblemLabel, getProblemIcon, getVehicleTypeLabel } from './roadAssistance/constants';
 import PhotosSection from '../components/PhotosSection';
 import DriverPhotoUpload from '../components/DriverPhotoUpload';
+import BackgroundAppWarningModal from '../components/BackgroundAppWarningModal';
+import { useBackgroundAppWarning } from '../hooks/useBackgroundAppWarning';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { logger } from '../utils/logger';
 
@@ -62,6 +64,9 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
   const isAwaitingPayment = status === 'awaiting_payment';
   const isInProgress = status === 'in_progress';
   const isCompleted = status === 'completed';
+
+  // Müşteri eşleşmesi gerçekleşip aktif iş başladığında uyarı popup'ı
+  const bgWarning = useBackgroundAppWarning(jobId, isInProgress);
 
   // Request ID - backend RequestIdInfo objesi ya da raw number olarak gelebiliyor
   const requestId =
@@ -565,6 +570,9 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
         trackingToken={request?.tracking_token || request?.trackingToken || ''}
         onCancelSuccess={handleCancelSuccess}
       />
+
+      {/* Aktif iş başlangıcında arka plan uyarısı */}
+      <BackgroundAppWarningModal visible={bgWarning.visible} onDismiss={bgWarning.dismiss} />
     </SafeAreaView>
   );
 }
