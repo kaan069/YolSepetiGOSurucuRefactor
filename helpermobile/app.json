@@ -90,6 +90,13 @@
                     "sounds": []
                 }
             ],
+            [
+                "expo-image-picker",
+                {
+                    "photosPermission": false,
+                    "cameraPermission": "Bu uygulama araç fotoğrafı çekmek için kameranıza erişim izni istemektedir."
+                }
+            ],
             "@react-native-firebase/app"
         ],
         "extra": {

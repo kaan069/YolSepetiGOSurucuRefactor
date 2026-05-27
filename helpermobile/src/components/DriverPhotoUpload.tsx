@@ -80,19 +80,16 @@ export default function DriverPhotoUpload({
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.3,
-      allowsMultipleSelection: true,
-      selectionLimit: MAX_PHOTOS - totalPhotos,
+      allowsMultipleSelection: false,
       exif: false,
     });
-    if (!result.canceled && result.assets.length > 0) {
-      const validUris: string[] = [];
-      for (const asset of result.assets) {
-        if (asset.fileSize && asset.fileSize > MAX_FILE_SIZE) continue;
-        validUris.push(asset.uri);
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0];
+      if (asset.fileSize && asset.fileSize > MAX_FILE_SIZE) {
+        Alert.alert('Dosya Çok Büyük', "Fotoğraf 5MB'dan küçük olmalıdır.");
+        return;
       }
-      if (validUris.length > 0) {
-        setPendingPhotos(prev => [...prev, ...validUris]);
-      }
+      setPendingPhotos(prev => [...prev, asset.uri]);
     }
   };
 
