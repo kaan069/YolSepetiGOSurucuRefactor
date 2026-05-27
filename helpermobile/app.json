@@ -2,7 +2,7 @@
     "expo": {
         "name": "Yol SepetiGo Sürücü",
         "slug": "yolsepeti",
-        "version": "1.0.7",
+        "version": "1.0.8",
         "orientation": "portrait",
         "icon": "./assets/gosiyahbeyazlogo.png",
         "userInterfaceStyle": "light",
