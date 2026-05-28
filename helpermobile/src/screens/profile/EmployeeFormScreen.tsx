@@ -1,103 +1,122 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TextInput, Button, Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { AppBar } from '../../components/common';
 import { useEmployeeStore } from '../../store/useEmployeeStore';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useResponsive } from '../../hooks/useResponsive';
-import { validateTCNumber } from '../../utils/tcValidation';
+import {
+  FkButton,
+  FkPasswordInput,
+  FkTextInput,
+} from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmployeeForm'>;
+
+interface FormState {
+  firstName: string;
+  lastName: string;
+  phoneNumber: string;
+  pin: string;
+  tcNumber: string;
+}
+
+const EMPTY_FORM: FormState = {
+  firstName: '',
+  lastName: '',
+  phoneNumber: '',
+  pin: '',
+  tcNumber: '',
+};
 
 export default function EmployeeFormScreen({ navigation, route }: Props) {
   const employeeId = route.params?.employeeId;
   const isEditing = !!employeeId;
 
   const { employees, addEmployee, updateEmployee } = useEmployeeStore();
-  const { appColors, screenBg, cardBg, isDarkMode } = useAppTheme();
+  const { screenBg, cardBg } = useAppTheme();
   const { spacing } = useResponsive();
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [pin, setPin] = useState('');
-  const [tcNumber, setTcNumber] = useState('');
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
 
-  // Düzenleme modunda mevcut veriyi yükle
   useEffect(() => {
-    if (isEditing && employeeId) {
-      const employee = employees.find(e => e.id === employeeId);
-      if (employee) {
-        setFirstName(employee.first_name);
-        setLastName(employee.last_name);
-        const phone = employee.phone_number || '';
-        setPhoneNumber(phone.startsWith('+90') ? phone.slice(3) : phone);
-        setTcNumber(employee.tc_no);
-      }
-    }
-  }, [employeeId, isEditing]);
+    if (!isEditing || !employeeId) return;
+    const employee = employees.find((e) => e.id === employeeId);
+    if (!employee) return;
+    setForm({
+      firstName: employee.first_name,
+      lastName: employee.last_name,
+      phoneNumber:
+        (employee.phone_number || '').startsWith('+90')
+          ? employee.phone_number.slice(3)
+          : employee.phone_number || '',
+      tcNumber: employee.tc_no,
+      pin: '',
+    });
+  }, [employeeId, isEditing, employees]);
+
+  const setField = <K extends keyof FormState>(field: K, value: FormState[K]) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
 
   const validate = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!firstName.trim()) {
-      newErrors.firstName = 'Ad zorunludur';
-    }
-    if (!lastName.trim()) {
-      newErrors.lastName = 'Soyad zorunludur';
-    }
-    if (!phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Telefon numarası zorunludur';
-    } else if (phoneNumber.replace(/\D/g, '').length < 10) {
-      newErrors.phoneNumber = 'Geçerli bir telefon numarası girin';
-    }
+    const next: Partial<Record<keyof FormState, string>> = {};
+    if (!form.firstName.trim()) next.firstName = 'Ad zorunludur';
+    if (!form.lastName.trim()) next.lastName = 'Soyad zorunludur';
+    if (!form.phoneNumber.trim()) next.phoneNumber = 'Telefon numarası zorunludur';
+    else if (form.phoneNumber.replace(/\D/g, '').length < 10)
+      next.phoneNumber = 'Geçerli bir telefon numarası girin';
     if (!isEditing) {
-      if (!pin.trim()) {
-        newErrors.pin = 'PIN zorunludur';
-      } else if (pin.length < 4) {
-        newErrors.pin = 'PIN en az 4 haneli olmalıdır';
-      }
+      if (!form.pin.trim()) next.pin = 'PIN zorunludur';
+      else if (form.pin.length < 4) next.pin = 'PIN en az 4 haneli olmalıdır';
     }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    setErrors(next);
+    return Object.keys(next).length === 0;
   };
 
   const handleSave = async () => {
     if (!validate()) return;
-
     setLoading(true);
     try {
       if (isEditing && employeeId) {
         await updateEmployee(employeeId, {
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          phone_number: `+90${phoneNumber.trim()}`,
-          tc_no: tcNumber.trim(),
+          first_name: form.firstName.trim(),
+          last_name: form.lastName.trim(),
+          phone_number: `+90${form.phoneNumber.trim()}`,
+          tc_no: form.tcNumber.trim(),
         });
         Alert.alert('Başarılı', 'Eleman bilgileri güncellendi.', [
           { text: 'Tamam', onPress: () => navigation.goBack() },
         ]);
       } else {
         await addEmployee({
-          first_name: firstName.trim(),
-          last_name: lastName.trim(),
-          phone_number: `+90${phoneNumber.trim()}`,
-          password: pin,
-          tc_no: tcNumber.trim(),
+          first_name: form.firstName.trim(),
+          last_name: form.lastName.trim(),
+          phone_number: `+90${form.phoneNumber.trim()}`,
+          password: form.pin,
+          tc_no: form.tcNumber.trim(),
         });
         Alert.alert('Başarılı', 'Yeni eleman eklendi.', [
           { text: 'Tamam', onPress: () => navigation.goBack() },
         ]);
       }
     } catch (error: any) {
-      const errorMsg = error?.response?.data?.detail
-        || error?.response?.data?.message
-        || 'İşlem sırasında bir hata oluştu.';
+      const errorMsg =
+        error?.response?.data?.detail ||
+        error?.response?.data?.message ||
+        'İşlem sırasında bir hata oluştu.';
       Alert.alert('Hata', errorMsg);
     } finally {
       setLoading(false);
@@ -118,107 +137,61 @@ export default function EmployeeFormScreen({ navigation, route }: Props) {
           showsVerticalScrollIndicator={false}
         >
           <View style={[styles.formCard, { backgroundColor: cardBg }]}>
-            <TextInput
+            <FkTextInput
               label="Ad"
-              value={firstName}
-              onChangeText={(text) => {
-                setFirstName(text);
-                if (errors.firstName) setErrors(prev => ({ ...prev, firstName: '' }));
-              }}
+              required
+              value={form.firstName}
+              onChange={(v) => setField('firstName', v)}
+              leftIcon="account"
+              error={errors.firstName}
               mode="outlined"
-              style={styles.input}
-              left={<TextInput.Icon icon="account" />}
-              error={!!errors.firstName}
             />
-            {errors.firstName ? (
-              <Text style={styles.errorText}>{errors.firstName}</Text>
-            ) : null}
-
-            <TextInput
+            <FkTextInput
               label="Soyad"
-              value={lastName}
-              onChangeText={(text) => {
-                setLastName(text);
-                if (errors.lastName) setErrors(prev => ({ ...prev, lastName: '' }));
-              }}
+              required
+              value={form.lastName}
+              onChange={(v) => setField('lastName', v)}
+              leftIcon="account"
+              error={errors.lastName}
               mode="outlined"
-              style={styles.input}
-              left={<TextInput.Icon icon="account" />}
-              error={!!errors.lastName}
             />
-            {errors.lastName ? (
-              <Text style={styles.errorText}>{errors.lastName}</Text>
-            ) : null}
-
-            <TextInput
+            <FkTextInput
               label="Telefon Numarası"
-              value={phoneNumber}
-              onChangeText={(text) => {
-                setPhoneNumber(text.replace(/\D/g, ''));
-                if (errors.phoneNumber) setErrors(prev => ({ ...prev, phoneNumber: '' }));
-              }}
-              mode="outlined"
-              style={styles.input}
+              required
+              value={form.phoneNumber}
+              onChange={(v) => setField('phoneNumber', v.replace(/\D/g, ''))}
               keyboardType="phone-pad"
               maxLength={10}
-              left={<TextInput.Affix text="+90" />}
-              error={!!errors.phoneNumber}
-            />
-            {errors.phoneNumber ? (
-              <Text style={styles.errorText}>{errors.phoneNumber}</Text>
-            ) : null}
-
-            <TextInput
-              label="TC Kimlik No"
-              value={tcNumber}
-              onChangeText={(text) => {
-                setTcNumber(text.replace(/\D/g, '').substring(0, 11));
-                if (errors.tcNumber) setErrors(prev => ({ ...prev, tcNumber: '' }));
-              }}
+              leftAffix="+90"
+              error={errors.phoneNumber}
               mode="outlined"
-              style={styles.input}
+            />
+            <FkTextInput
+              label="TC Kimlik No"
+              value={form.tcNumber}
+              onChange={(v) => setField('tcNumber', v.replace(/\D/g, '').slice(0, 11))}
               keyboardType="number-pad"
               maxLength={11}
-              left={<TextInput.Icon icon="card-account-details" />}
-              error={!!errors.tcNumber}
+              leftIcon="card-account-details"
+              mode="outlined"
             />
-            {errors.tcNumber ? (
-              <Text style={styles.errorText}>{errors.tcNumber}</Text>
-            ) : null}
 
             {!isEditing && (
-              <>
-                <TextInput
-                  label="PIN (Giriş Şifresi)"
-                  value={pin}
-                  onChangeText={(text) => {
-                    setPin(text.replace(/\D/g, ''));
-                    if (errors.pin) setErrors(prev => ({ ...prev, pin: '' }));
-                  }}
-                  mode="outlined"
-                  style={styles.input}
-                  keyboardType="number-pad"
-                  secureTextEntry
-                  left={<TextInput.Icon icon="lock" />}
-                  error={!!errors.pin}
-                />
-                {errors.pin ? (
-                  <Text style={styles.errorText}>{errors.pin}</Text>
-                ) : null}
-              </>
+              <FkPasswordInput
+                label="PIN (Giriş Şifresi)"
+                required
+                value={form.pin}
+                onChange={(v) => setField('pin', v.replace(/\D/g, ''))}
+                numericPin
+                error={errors.pin}
+                mode="outlined"
+              />
             )}
           </View>
 
-          <Button
-            mode="contained"
-            onPress={handleSave}
-            loading={loading}
-            disabled={loading}
-            style={styles.saveButton}
-            contentStyle={styles.saveButtonContent}
-          >
+          <FkButton onPress={handleSave} loading={loading} disabled={loading} fullWidth>
             {isEditing ? 'Güncelle' : 'Eleman Ekle'}
-          </Button>
+          </FkButton>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -226,12 +199,8 @@ export default function EmployeeFormScreen({ navigation, route }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  content: { flex: 1 },
   formCard: {
     borderRadius: 16,
     padding: 16,
@@ -241,21 +210,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 3,
-  },
-  input: {
-    marginBottom: 8,
-  },
-  errorText: {
-    color: '#EF4444',
-    fontSize: 12,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  saveButton: {
-    borderRadius: 12,
-    marginBottom: 20,
-  },
-  saveButtonContent: {
-    paddingVertical: 8,
   },
 });

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Card, Text, TextInput } from 'react-native-paper';
+import { FkFormSection, FkTextInput } from '../../../../components/fk';
 import { EditVehicleFormData } from '../types';
 
 interface Props {
@@ -11,94 +11,65 @@ interface Props {
 
 export default function TransportFieldsCard({ formData, errors, updateField }: Props) {
   return (
-    <Card style={styles.card}>
-      <Card.Content style={styles.cardContent}>
-        <Text variant="titleMedium" style={styles.sectionTitle}>
-          Nakliye Özellikleri
-        </Text>
-
-        <View style={styles.row}>
-          <TextInput
-            label="Kapasite (ton) *"
+    <FkFormSection title="Nakliye Özellikleri">
+      <View style={styles.row}>
+        <View style={styles.col}>
+          <FkTextInput
+            label="Kapasite (ton)"
+            required
             value={formData.capacity?.toString() || ''}
-            onChangeText={updateField('capacity')}
+            onChange={updateField('capacity')}
             keyboardType="numeric"
-            style={[styles.halfInput, styles.inputLeft]}
-            error={!!errors.capacity}
             placeholder="5"
-          />
-          <TextInput
-            label="Hacim (m³) *"
-            value={formData.volume?.toString() || ''}
-            onChangeText={updateField('volume')}
-            keyboardType="numeric"
-            style={[styles.halfInput, styles.inputRight]}
-            error={!!errors.volume}
-            placeholder="25"
+            error={errors.capacity}
           />
         </View>
+        <View style={styles.col}>
+          <FkTextInput
+            label="Hacim (m³)"
+            required
+            value={formData.volume?.toString() || ''}
+            onChange={updateField('volume')}
+            keyboardType="numeric"
+            placeholder="25"
+            error={errors.volume}
+          />
+        </View>
+      </View>
 
-        <View style={styles.row}>
-          <TextInput
+      <View style={styles.row}>
+        <View style={styles.col}>
+          <FkTextInput
             label="Uzunluk (m)"
             value={formData.length || ''}
-            onChangeText={updateField('length')}
+            onChange={updateField('length')}
             keyboardType="numeric"
-            style={[styles.halfInput, styles.inputLeft]}
             placeholder="6"
           />
-          <TextInput
+        </View>
+        <View style={styles.col}>
+          <FkTextInput
             label="Genişlik (m)"
             value={formData.width || ''}
-            onChangeText={updateField('width')}
+            onChange={updateField('width')}
             keyboardType="numeric"
-            style={[styles.halfInput, styles.inputRight]}
             placeholder="2.5"
           />
         </View>
+      </View>
 
-        <TextInput
-          label="Yükseklik (m)"
-          value={formData.height || ''}
-          onChangeText={updateField('height')}
-          keyboardType="numeric"
-          style={styles.input}
-          placeholder="2.5"
-        />
-      </Card.Content>
-    </Card>
+      <FkTextInput
+        label="Yükseklik (m)"
+        value={formData.height || ''}
+        onChange={updateField('height')}
+        keyboardType="numeric"
+        placeholder="2.5"
+      />
+    </FkFormSection>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    elevation: 2,
-    marginBottom: 16,
-  },
-  cardContent: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#26a69a',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  input: {
-    marginBottom: 16,
-  },
-  halfInput: {
-    flex: 1,
-    marginBottom: 16,
-  },
-  inputLeft: {
-    marginRight: 6,
-  },
-  inputRight: {
-    marginLeft: 6,
-  },
+  row: { flexDirection: 'row', gap: 12 },
+  col: { flex: 1 },
 });

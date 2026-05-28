@@ -1,8 +1,9 @@
 import React from 'react';
-import { StyleSheet, View, Image } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { Image, StyleSheet, View } from 'react-native';
+import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useAppTheme } from '../../../../hooks/useAppTheme';
+import { FkFormSection } from '../../../../components/fk';
+import { useFkTokens } from '../../../../hooks/useFkTokens';
 import { isPdfFile } from '../../../../utils/fileHelpers';
 import { TRANSFER_DOCUMENT_LABELS } from '../constants';
 
@@ -11,76 +12,56 @@ interface Props {
 }
 
 export default function TransferDocumentsCard({ transferDocuments }: Props) {
-  const { appColors } = useAppTheme();
+  const { tokens } = useFkTokens();
 
   if (Object.keys(transferDocuments).length === 0) return null;
 
   return (
-    <Card style={styles.card}>
-      <Card.Content style={styles.cardContent}>
-        <Text variant="titleMedium" style={styles.sectionTitle}>
-          📄 Yüklenen Belgeler
-        </Text>
-        {Object.entries(transferDocuments).map(([key, url]) => (
-          <View key={key} style={styles.documentItem}>
-            <Text
-              variant="bodyMedium"
-              style={[styles.documentLabel, { color: appColors.text.primary }]}
+    <FkFormSection title="📄 Yüklenen Belgeler">
+      {Object.entries(transferDocuments).map(([key, url]) => (
+        <View key={key} style={styles.row}>
+          <Text
+            variant="bodyMedium"
+            style={[styles.label, { color: tokens.colors.textPrimary }]}
+          >
+            {TRANSFER_DOCUMENT_LABELS[key] || key}
+          </Text>
+          {isPdfFile(url) ? (
+            <View
+              style={[
+                styles.pdfPreview,
+                { backgroundColor: tokens.colors.surfaceMuted, borderRadius: tokens.radius.md },
+              ]}
             >
-              {TRANSFER_DOCUMENT_LABELS[key] || key}
-            </Text>
-            {isPdfFile(url) ? (
-              <View style={styles.pdfPreview}>
-                <MaterialCommunityIcons name="file-pdf-box" size={36} color="#f44336" />
-                <Text style={{ marginLeft: 8, color: appColors.text.secondary }}>
-                  PDF Belgesi
-                </Text>
-              </View>
-            ) : (
-              <Image source={{ uri: url }} style={styles.documentImage} resizeMode="cover" />
-            )}
-          </View>
-        ))}
-      </Card.Content>
-    </Card>
+              <MaterialCommunityIcons name="file-pdf-box" size={36} color={tokens.colors.error} />
+              <Text style={{ marginLeft: 8, color: tokens.colors.textSecondary }}>
+                PDF Belgesi
+              </Text>
+            </View>
+          ) : (
+            <Image
+              source={{ uri: url }}
+              style={[styles.image, { borderRadius: tokens.radius.md }]}
+              resizeMode="cover"
+            />
+          )}
+        </View>
+      ))}
+    </FkFormSection>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    borderRadius: 16,
-    elevation: 2,
-    marginBottom: 16,
-  },
-  cardContent: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#26a69a',
-  },
-  documentItem: {
-    marginBottom: 12,
-  },
-  documentLabel: {
-    fontWeight: '600',
-    marginBottom: 6,
-  },
+  row: { marginBottom: 12 },
+  label: { fontWeight: '600', marginBottom: 6 },
   pdfPreview: {
     width: '100%',
     height: 150,
-    borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
     gap: 8,
   },
-  documentImage: {
-    width: '100%',
-    height: 120,
-    borderRadius: 8,
-  },
+  image: { width: '100%', height: 120 },
 });

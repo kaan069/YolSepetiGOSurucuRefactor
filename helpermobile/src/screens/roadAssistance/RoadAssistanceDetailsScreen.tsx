@@ -79,6 +79,15 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
   const addService = async () => {
     if (!validateService()) return;
 
+    if (!vehiclePhoto) {
+      Alert.alert('Eksik Bilgi', 'Araç fotoğrafı zorunludur.');
+      return;
+    }
+    if (!insurancePhoto) {
+      Alert.alert('Eksik Bilgi', 'Sigorta belgesi zorunludur.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -279,15 +288,15 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
               onPhotoChange={setVehiclePhoto}
               title="Yol Yardım Aracı Fotoğrafı"
               helperText="Plaka görünür şekilde araç fotoğrafı ekleyin"
-              primaryColor="#e65100"
+              required
             />
 
             <VehiclePhotoSection
               vehiclePhoto={insurancePhoto}
               onPhotoChange={setInsurancePhoto}
-              title="Sigorta Belgesi (Opsiyonel)"
+              title="Sigorta Belgesi"
               helperText="Araç sigorta belgesini fotoğraf veya PDF olarak yükleyin"
-              primaryColor="#e65100"
+              required
             />
 
             <Button

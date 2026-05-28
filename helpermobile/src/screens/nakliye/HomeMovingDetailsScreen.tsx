@@ -91,6 +91,15 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
   const addVehicle = async () => {
     if (!validateVehicle()) return;
 
+    if (!vehiclePhoto) {
+      Alert.alert('Eksik Bilgi', 'Araç fotoğrafı zorunludur.');
+      return;
+    }
+    if (!insurancePhoto) {
+      Alert.alert('Eksik Bilgi', 'Sigorta belgesi zorunludur.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -260,15 +269,15 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
               onPhotoChange={setVehiclePhoto}
               title="Nakliye Aracı Fotoğrafı"
               helperText="Plaka görünür şekilde araç fotoğrafı ekleyin"
-              primaryColor="#1565c0"
+              required
             />
 
             <VehiclePhotoSection
               vehiclePhoto={insurancePhoto}
               onPhotoChange={setInsurancePhoto}
-              title="Sigorta Belgesi (Opsiyonel)"
+              title="Sigorta Belgesi"
               helperText="Araç sigorta belgesini fotoğraf veya PDF olarak yükleyin"
-              primaryColor="#1565c0"
+              required
             />
 
             <Button

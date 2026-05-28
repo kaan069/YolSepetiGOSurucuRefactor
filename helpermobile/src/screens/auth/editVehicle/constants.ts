@@ -1,5 +1,7 @@
-import { SelectOption } from '../../../components/common/SelectDropdown';
+import { FkSelectOption } from '../../../components/fk-select';
 import { VehicleKind } from './types';
+
+export type SelectOption = FkSelectOption<string>;
 
 export const MOVING_VEHICLE_TYPE_OPTIONS: SelectOption[] = [
   { value: 'closed_truck', label: 'Kapalı Kasa Kamyon' },

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
+import { Animated, ScrollView, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Text, ProgressBar, Chip } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -11,6 +11,7 @@ import { CompositeScreenProps, CommonActions } from '@react-navigation/native';
 import { RootStackParamList, RootTabParamList, EmployeeTabParamList } from '../../navigation';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { useSyncedBlink } from '../../hooks/useSyncedBlink';
 import { documentsAPI } from '../../api';
 import { ProfileCompletenessResponse, ProviderType } from '../../api/types';
 import { useFocusEffect } from '@react-navigation/native';
@@ -29,6 +30,7 @@ interface MenuItemProps {
   subtitle: string;
   icon: string;
   onPress: () => void;
+  blinkAlert?: boolean;
 }
 
 export default function ProfileMenuScreen({ navigation }: Props) {
@@ -81,20 +83,44 @@ export default function ProfileMenuScreen({ navigation }: Props) {
   };
 
   // MenuItem component - responsive styles ile
-  const MenuItem = ({ title, subtitle, icon, onPress }: MenuItemProps) => (
-    <TouchableOpacity onPress={onPress} style={{ marginBottom: spacing.sm }}>
-      <Card mode="outlined" style={{ backgroundColor: cardBg }}>
+  const MenuItem = ({ title, subtitle, icon, onPress, blinkAlert }: MenuItemProps) => {
+    const blinkAnim = useSyncedBlink(!!blinkAlert);
+
+    const alertColor = '#D32F2F';
+    const alertBg = isDarkMode ? '#3a1414' : '#ffebee';
+
+    const cardStyle = blinkAlert
+      ? { backgroundColor: alertBg, borderColor: alertColor, borderWidth: 1.5 }
+      : { backgroundColor: cardBg };
+
+    const accentColor = blinkAlert ? alertColor : appColors.primary[400];
+    const titleColor = blinkAlert ? alertColor : appColors.text.primary;
+    const subtitleColor = blinkAlert ? alertColor : appColors.text.secondary;
+    const chevronColor = blinkAlert ? alertColor : appColors.text.secondary;
+
+    const inner = (
+      <Card mode="outlined" style={cardStyle}>
         <Card.Content style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs }}>
-          <MaterialCommunityIcons name={icon} size={moderateScale(24)} color={appColors.primary[400]} style={{ marginRight: spacing.md }} />
+          <MaterialCommunityIcons name={icon} size={moderateScale(24)} color={accentColor} style={{ marginRight: spacing.md }} />
           <View style={{ flex: 1 }}>
-            <Text variant="titleMedium" style={{ fontWeight: '600', marginBottom: 2 }}>{title}</Text>
-            <Text variant="bodySmall" style={{ color: appColors.text.secondary }}>{subtitle}</Text>
+            <Text variant="titleMedium" style={{ fontWeight: '600', marginBottom: 2, color: titleColor }}>{title}</Text>
+            <Text variant="bodySmall" style={{ color: subtitleColor }}>{subtitle}</Text>
           </View>
-          <MaterialCommunityIcons name="chevron-right" size={moderateScale(20)} color={appColors.text.secondary} />
+          <MaterialCommunityIcons name="chevron-right" size={moderateScale(20)} color={chevronColor} />
         </Card.Content>
       </Card>
-    </TouchableOpacity>
-  );
+    );
+
+    return (
+      <TouchableOpacity onPress={onPress} style={{ marginBottom: spacing.sm }}>
+        {blinkAlert ? (
+          <Animated.View style={{ opacity: blinkAnim }}>{inner}</Animated.View>
+        ) : (
+          inner
+        )}
+      </TouchableOpacity>
+    );
+  };
 
   // Menü öğeleri - Evrak durumuna göre dinamik başlık
   const getDocumentsMenuTitle = () => {
@@ -128,6 +154,7 @@ export default function ProfileMenuScreen({ navigation }: Props) {
       subtitle: 'Evraklarım, şirket bilgilerim',
       icon: getDocumentsMenuIcon(),
       onPress: () => navigation.navigate('MissingDocuments'),
+      blinkAlert: !!(completeness && !completeness.is_complete),
     }] : []),
     // Yorumlar ve Puan - eleman kullanıcılara gösterilmez
     ...(userProviderType !== 'employee' ? [{
@@ -299,6 +326,7 @@ export default function ProfileMenuScreen({ navigation }: Props) {
             subtitle={item.subtitle}
             icon={item.icon}
             onPress={item.onPress}
+            blinkAlert={(item as { blinkAlert?: boolean }).blinkAlert}
           />
         ))}
 

@@ -10,6 +10,11 @@ import {
   updateTransportVehicleLocal,
 } from './services/editVehicleService';
 import { EditVehicleFormData, VehicleKind, VehicleRecord } from './types';
+import {
+  VEHICLE_KINDS_WITH_INSURANCE,
+  VEHICLE_KINDS_WITH_PHOTO,
+  VEHICLE_KIND_LABELS,
+} from './constants';
 import { logger } from '../../../utils/logger';
 
 interface UseUpdateVehicleParams {
@@ -46,6 +51,16 @@ export function useUpdateVehicle({
 
   const handleSave = async () => {
     if (!validateForm() || !vehicle) return;
+
+    if (VEHICLE_KINDS_WITH_PHOTO.includes(vehicleType) && !vehiclePhoto) {
+      Alert.alert('Eksik Bilgi', `${VEHICLE_KIND_LABELS[vehicleType]} fotoğrafı zorunludur.`);
+      return;
+    }
+
+    if (VEHICLE_KINDS_WITH_INSURANCE.includes(vehicleType) && !insurancePhoto) {
+      Alert.alert('Eksik Bilgi', 'Sigorta belgesi zorunludur.');
+      return;
+    }
 
     setLoading(true);
     try {

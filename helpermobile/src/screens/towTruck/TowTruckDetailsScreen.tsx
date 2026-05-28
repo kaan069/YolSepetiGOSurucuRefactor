@@ -94,6 +94,15 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
   const addVehicle = async () => {
     if (!validateVehicle()) return;
 
+    if (!vehiclePhoto) {
+      Alert.alert('Eksik Bilgi', 'Araç fotoğrafı zorunludur.');
+      return;
+    }
+    if (!insurancePhoto) {
+      Alert.alert('Eksik Bilgi', 'Sigorta belgesi zorunludur.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -261,13 +270,15 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
             <TowTruckPhotoSection
               vehiclePhoto={vehiclePhoto}
               onPhotoChange={setVehiclePhoto}
+              required
             />
 
             <TowTruckPhotoSection
               vehiclePhoto={insurancePhoto}
               onPhotoChange={setInsurancePhoto}
-              title="Sigorta Belgesi (Opsiyonel)"
-              helperText="Arac sigorta belgesini fotograf veya PDF olarak yukleyin"
+              title="Sigorta Belgesi"
+              helperText="Araç sigorta belgesini fotoğraf veya PDF olarak yükleyin"
+              required
             />
 
             <TowTruckVehicleTypesSection

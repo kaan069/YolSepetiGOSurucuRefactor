@@ -1,23 +1,17 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image, Alert, TouchableOpacity } from 'react-native';
-import { Button, Card, Text, useTheme, ProgressBar, IconButton } from 'react-native-paper';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { Card, Text, useTheme, ProgressBar, IconButton } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useRegistrationDataStore, ServiceType } from '../../store/useRegistrationDataStore';
 import { authAPI } from '../../api';
-import PhoneInput from '../../components/PhoneInput';
+import { FkButton, FkFormError, FkPhoneInput } from '../../components/fk';
+import type { FkCountry } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PhoneNumber'>;
-
-interface Country {
-  code: string;
-  dialCode: string;
-  flag: string;
-  name: string;
-}
 
 // Hizmet tipleri - Service types (4 ana hizmet türü)
 // Tüm hizmetler için aynı renk tonu kullanılıyor (tema primary rengi)
@@ -40,7 +34,7 @@ export default function PhoneNumberScreen({ navigation }: Props) {
   const setSelectedVehicleTypes = useRegistrationDataStore((s) => s.setSelectedVehicleTypes);
 
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [selectedCountry, setSelectedCountry] = useState<Country>({
+  const [selectedCountry, setSelectedCountry] = useState<FkCountry>({
     code: 'TR',
     dialCode: '+90',
     flag: '🇹🇷',
@@ -174,19 +168,24 @@ export default function PhoneNumberScreen({ navigation }: Props) {
               Kayıt olmak için telefon numaranızı girin
             </Text>
 
-            <PhoneInput
+            <FkPhoneInput
               value={phoneNumber}
-              onChangeText={(text) => {
+              onChange={(text) => {
                 setPhoneNumber(text);
                 setError('');
               }}
               onChangeCountry={(country) => setSelectedCountry(country)}
-              label="Telefon Numarası *"
-              //placeholder="555 123 45 67"
-              error={!!error}
+              label="Telefon Numarası"
+              required
             />
 
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+            {error ? (
+              <FkFormError
+                error={error}
+                withIcon
+                style={{ justifyContent: 'center', marginLeft: 0, marginBottom: 8 }}
+              />
+            ) : null}
 
             {/* Hizmet Seçimi - Service Selection */}
             <View style={styles.serviceSection}>
@@ -264,27 +263,28 @@ export default function PhoneNumberScreen({ navigation }: Props) {
                 })}
               </View>
 
-              {serviceError ? <Text style={styles.errorText}>{serviceError}</Text> : null}
+              {serviceError ? (
+                <FkFormError
+                  error={serviceError}
+                  withIcon
+                  style={{ justifyContent: 'center', marginLeft: 0, marginTop: 8 }}
+                />
+              ) : null}
             </View>
 
-            <Button
-              mode="contained"
+            <FkButton
               onPress={handleContinue}
               disabled={phoneNumber.length < 10 || selectedServices.length === 0 || loading}
               loading={loading}
+              fullWidth
               style={styles.button}
-              contentStyle={styles.buttonContent}
             >
               {loading ? 'Kod Gönderiliyor...' : 'Devam Et'}
-            </Button>
+            </FkButton>
 
-            <Button
-              mode="text"
-              onPress={() => navigation.navigate('PhoneAuth')}
-              style={styles.textButton}
-            >
+            <FkButton variant="ghost" onPress={() => navigation.navigate('PhoneAuth')} fullWidth>
               Zaten hesabınız var mı? Giriş yapın
-            </Button>
+            </FkButton>
           </Card.Content>
         </Card>
       </ScrollView>
@@ -357,13 +357,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
     opacity: 0.7,
-  },
-  errorText: {
-    color: '#B00020',
-    textAlign: 'center',
-    marginTop: -8,
-    marginBottom: 16,
-    fontSize: 12,
   },
   button: {
     marginTop: 8,

@@ -203,6 +203,10 @@ export function useVehiclePhotos(vehicleId: string | undefined, vehicleType: Veh
     });
   };
 
+  const setVehiclePhotoUri = (uri: string | null) => setVehiclePhoto(uri);
+  const setInsurancePhotoUri = (uri: string | null) => setInsurancePhoto(uri);
+  const replaceInteriorPhotos = (next: (string | null)[]) => setInteriorPhotos(next);
+
   return {
     vehiclePhoto,
     insurancePhoto,
@@ -218,5 +222,8 @@ export function useVehiclePhotos(vehicleId: string | undefined, vehicleType: Veh
     removeInsurancePhoto,
     pickInteriorPhoto,
     removeInteriorPhoto,
+    setVehiclePhotoUri,
+    setInsurancePhotoUri,
+    replaceInteriorPhotos,
   };
 }

@@ -6,15 +6,19 @@ import {
   StyleSheet,
   View,
 } from 'react-native';
-import { Button, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import {
+  FkButton,
+  FkDocumentUpload,
+  FkFormSection,
+} from '../../components/fk';
 import BasicInfoCard from './editVehicle/components/BasicInfoCard';
 import CraneFieldsCard from './editVehicle/components/CraneFieldsCard';
 import HomeMovingFieldsCard from './editVehicle/components/HomeMovingFieldsCard';
-import PhotoPicker from './editVehicle/components/PhotoPicker';
 import TowTruckFieldsCard from './editVehicle/components/TowTruckFieldsCard';
 import TransferDocumentsCard from './editVehicle/components/TransferDocumentsCard';
 import TransferFieldsCard from './editVehicle/components/TransferFieldsCard';
@@ -54,15 +58,9 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
     interiorPhotos,
     transferDocuments,
     loadingPhoto,
-    pickVehicleFromGallery,
-    pickVehicleFromCamera,
-    pickInsuranceFromGallery,
-    pickInsuranceFromCamera,
-    pickDocumentFor,
-    removeVehiclePhoto,
-    removeInsurancePhoto,
-    pickInteriorPhoto,
-    removeInteriorPhoto,
+    setVehiclePhotoUri,
+    setInsurancePhotoUri,
+    replaceInteriorPhotos,
   } = useVehiclePhotos(vehicle?.id, vehicleType);
 
   const { loading, handleSave } = useUpdateVehicle({
@@ -107,30 +105,26 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
         <BasicInfoCard formData={formData} errors={errors} updateField={updateField} />
 
         {showPhoto && (
-          <PhotoPicker
-            title={`📷 ${VEHICLE_KIND_LABELS[vehicleType]} Fotoğrafı`}
-            helperText="Plaka görünür şekilde araç fotoğrafı ekleyin"
-            photoUri={vehiclePhoto}
-            loading={loadingPhoto}
-            onPickCamera={pickVehicleFromCamera}
-            onPickGallery={pickVehicleFromGallery}
-            onPickDocument={() => pickDocumentFor('vehicle')}
-            onRemove={removeVehiclePhoto}
-            replaceMode="gallery"
-          />
+          <FkFormSection title={`📷 ${VEHICLE_KIND_LABELS[vehicleType]} Fotoğrafı`} required>
+            <FkDocumentUpload
+              helperText="Plaka görünür şekilde araç fotoğrafı ekleyin"
+              value={vehiclePhoto}
+              onChange={setVehiclePhotoUri}
+              loading={loadingPhoto}
+              imageQuality={0.8}
+            />
+          </FkFormSection>
         )}
 
         {showInsurance && (
-          <PhotoPicker
-            title="Sigorta Belgesi (Opsiyonel)"
-            helperText="Araç sigorta belgesini fotoğraf veya PDF olarak yükleyin"
-            photoUri={insurancePhoto}
-            onPickCamera={pickInsuranceFromCamera}
-            onPickGallery={pickInsuranceFromGallery}
-            onPickDocument={() => pickDocumentFor('insurance')}
-            onRemove={removeInsurancePhoto}
-            replaceMode="document"
-          />
+          <FkFormSection title="Sigorta Belgesi" required>
+            <FkDocumentUpload
+              helperText="Araç sigorta belgesini fotoğraf veya PDF olarak yükleyin"
+              value={insurancePhoto}
+              onChange={setInsurancePhotoUri}
+              imageQuality={0.8}
+            />
+          </FkFormSection>
         )}
 
         {vehicleType === 'tow' && (
@@ -152,8 +146,7 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
         {vehicleType === 'transfer' && transferType === 'vip' && (
           <TransferInteriorPhotosCard
             interiorPhotos={interiorPhotos}
-            onPickPhoto={pickInteriorPhoto}
-            onRemovePhoto={removeInteriorPhoto}
+            onChange={replaceInteriorPhotos}
           />
         )}
 
@@ -174,23 +167,22 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
         )}
 
         <View style={styles.buttonContainer}>
-          <Button
-            mode="outlined"
+          <FkButton
+            variant="secondary"
             onPress={() => navigation.goBack()}
-            style={[styles.button, styles.cancelButton]}
             disabled={loading}
+            style={styles.button}
           >
             İptal
-          </Button>
-          <Button
-            mode="contained"
+          </FkButton>
+          <FkButton
             onPress={handleSave}
-            style={styles.button}
             loading={loading}
             disabled={loading}
+            style={styles.button}
           >
             {loading ? 'Güncelleniyor...' : 'Kaydet'}
-          </Button>
+          </FkButton>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -198,41 +190,12 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-  },
-  scrollContent: {
-    paddingBottom: 100,
-  },
-  titleContainer: {
-    marginBottom: 24,
-    alignItems: 'center',
-  },
-  title: {
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  subtitle: {
-    textAlign: 'center',
-    opacity: 0.7,
-    paddingHorizontal: 20,
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    paddingBottom: 20,
-    marginTop: 8,
-  },
-  button: {
-    flex: 1,
-    borderRadius: 12,
-  },
-  cancelButton: {
-    borderColor: '#666',
-  },
+  container: { flex: 1 },
+  content: { flex: 1, padding: 20 },
+  scrollContent: { paddingBottom: 100 },
+  titleContainer: { marginBottom: 24, alignItems: 'center' },
+  title: { fontWeight: 'bold', textAlign: 'center', marginBottom: 8 },
+  subtitle: { textAlign: 'center', opacity: 0.7, paddingHorizontal: 20 },
+  buttonContainer: { flexDirection: 'row', gap: 12, paddingBottom: 20, marginTop: 8 },
+  button: { flex: 1 },
 });
