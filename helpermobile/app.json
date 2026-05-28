@@ -13,7 +13,7 @@
             "backgroundColor": "#ffffff"
         },
         "ios": {
-            "buildNumber": "6",
+            "buildNumber": "9",
             "supportsTablet": true,
             "bundleIdentifier": "com.devkaans.yolpaketi",
             "googleServicesFile": "./GoogleService-Info.plist",
