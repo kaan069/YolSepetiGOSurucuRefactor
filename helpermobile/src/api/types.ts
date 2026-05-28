@@ -85,6 +85,16 @@ export interface VerifyOTPResponse {
     verification_token: string;  // Register için kullanılacak JWT token
 }
 
+export interface CheckPhoneRequest {
+    phone_number: string;
+}
+
+export interface CheckPhoneResponse {
+    exists: boolean;
+    has_driver_role: boolean;
+    user_type: string[];
+}
+
 export interface LoginRequest {
     phone_number: string;
     password: string;

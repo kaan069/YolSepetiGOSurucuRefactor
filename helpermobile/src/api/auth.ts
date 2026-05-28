@@ -1,6 +1,6 @@
 import axiosInstance from './axiosConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthResponse, RegisterRequest, LoginRequest, SendOTPRequest, SendOTPResponse, VerifyOTPRequest, VerifyOTPResponse, AccountReadinessResponse } from './types';
+import { AuthResponse, RegisterRequest, LoginRequest, SendOTPRequest, SendOTPResponse, VerifyOTPRequest, VerifyOTPResponse, AccountReadinessResponse, CheckPhoneResponse } from './types';
 import { logger } from '../utils/logger';
 
 // Auth katmanı için güvenli error sanitizer.
@@ -23,6 +23,19 @@ const logFcmError = (action: string, error: any): void => {
 };
 
 class AuthAPI {
+    // Telefon numarasını backend'in beklediği +90XXXXXXXXXX formatına normalize eder.
+    // Girdideki "+90", "90", "0" prefix'leri ve formatlama karakterleri temizlenir.
+    private normalizeToE164(raw: string): string {
+        let cleanNumber = raw.replace(/[^0-9]/g, '');
+        if (cleanNumber.startsWith('90') && cleanNumber.length > 10) {
+            cleanNumber = cleanNumber.substring(2);
+        }
+        if (cleanNumber.startsWith('0')) {
+            cleanNumber = cleanNumber.substring(1);
+        }
+        return `+90${cleanNumber}`;
+    }
+
     // ==================== OTP İşlemleri ====================
 
     /**
@@ -33,21 +46,7 @@ class AuthAPI {
         try {
             logger.debug('auth', 'Sending OTP');
 
-            // Telefon numarasını temizle (sadece rakamlar)
-            let cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
-
-            // Başındaki 90'ı kaldır (eğer varsa)
-            if (cleanNumber.startsWith('90') && cleanNumber.length > 10) {
-                cleanNumber = cleanNumber.substring(2);
-            }
-
-            // Başındaki 0'ı kaldır
-            if (cleanNumber.startsWith('0')) {
-                cleanNumber = cleanNumber.substring(1);
-            }
-
-            // +90 ile birleştir (backend bu formatı bekliyor)
-            const fullNumber = `+90${cleanNumber}`;
+            const fullNumber = this.normalizeToE164(phoneNumber);
 
             const response = await axiosInstance.post<SendOTPResponse>('/api/otp/send/', {
                 phoneNumber: fullNumber,
@@ -70,19 +69,7 @@ class AuthAPI {
         try {
             logger.debug('auth', 'Verifying OTP');
 
-            // Telefon numarasını temizle
-            let cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
-
-            if (cleanNumber.startsWith('90') && cleanNumber.length > 10) {
-                cleanNumber = cleanNumber.substring(2);
-            }
-
-            if (cleanNumber.startsWith('0')) {
-                cleanNumber = cleanNumber.substring(1);
-            }
-
-            // +90 ile birleştir (backend bu formatı bekliyor)
-            const fullNumber = `+90${cleanNumber}`;
+            const fullNumber = this.normalizeToE164(phoneNumber);
 
             const response = await axiosInstance.post<VerifyOTPResponse>('/api/otp/verify/', {
                 phoneNumber: fullNumber,
@@ -98,6 +85,24 @@ class AuthAPI {
         }
     }
 
+    /**
+     * Telefon numarasının sürücü olarak kayıtlı olup olmadığını sorgular.
+     * Kayıt akışında OTP göndermeden önce çağrılır — zaten kayıtlıysa kullanıcı
+     * şifre/destek akışına yönlendirilir ve SMS israfı engellenir.
+     */
+    async checkPhoneRegistered(phoneNumber: string): Promise<CheckPhoneResponse> {
+        try {
+            const fullNumber = this.normalizeToE164(phoneNumber);
+            const response = await axiosInstance.post<CheckPhoneResponse>('/auth/check-phone/', {
+                phone_number: fullNumber,
+            });
+            return response.data;
+        } catch (error: any) {
+            logAuthError('checkPhoneRegistered', error);
+            throw error;
+        }
+    }
+
     // ==================== Auth İşlemleri ====================
 
     // Kullanıcı kaydı
@@ -105,21 +110,7 @@ class AuthAPI {
         try {
             logger.debug('auth', 'Register API call');
 
-            // Telefon numarasını normalize et (OTP verify ile aynı formatta olmalı)
-            let cleanNumber = data.phone_number.replace(/[^0-9]/g, '');
-
-            // Başındaki 90'ı kaldır (eğer varsa)
-            if (cleanNumber.startsWith('90') && cleanNumber.length > 10) {
-                cleanNumber = cleanNumber.substring(2);
-            }
-
-            // Başındaki 0'ı kaldır
-            if (cleanNumber.startsWith('0')) {
-                cleanNumber = cleanNumber.substring(1);
-            }
-
-            // +90 ile birleştir (backend bu formatı bekliyor - OTP verify ile aynı)
-            const normalizedPhone = `+90${cleanNumber}`;
+            const normalizedPhone = this.normalizeToE164(data.phone_number);
 
             // Request verisini hazırla
             const requestData = {

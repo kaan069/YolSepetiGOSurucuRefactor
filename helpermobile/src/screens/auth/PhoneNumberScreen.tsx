@@ -10,6 +10,7 @@ import { FkButton, FkFormError, FkPhoneInput } from '../../components/fk';
 import type { FkCountry } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import AlreadyRegisteredModal from './components/AlreadyRegisteredModal';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PhoneNumber'>;
 
@@ -44,6 +45,7 @@ export default function PhoneNumberScreen({ navigation }: Props) {
   const [error, setError] = useState('');
   const [serviceError, setServiceError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [registeredModalVisible, setRegisteredModalVisible] = useState(false);
 
   const toggleService = (serviceValue: string) => {
     setSelectedServices(prev =>
@@ -95,6 +97,19 @@ export default function PhoneNumberScreen({ navigation }: Props) {
     setError('');
 
     try {
+      // Pre-check: telefon zaten sürücü olarak kayıtlıysa SMS göndermeden modal aç.
+      // Network/4xx/5xx durumunda fail-open: kontrol başarısız olsa bile mevcut OTP akışı devam eder.
+      try {
+        const checkResult = await authAPI.checkPhoneRegistered(fullNumber);
+        if (checkResult.has_driver_role) {
+          setLoading(false);
+          setRegisteredModalVisible(true);
+          return;
+        }
+      } catch (checkError) {
+        logger.warn('auth', 'checkPhoneRegistered failed, continuing with OTP send');
+      }
+
       await authAPI.sendOTP(fullNumber);
 
       // OTP doğrulama ekranına git
@@ -288,6 +303,15 @@ export default function PhoneNumberScreen({ navigation }: Props) {
           </Card.Content>
         </Card>
       </ScrollView>
+
+      <AlreadyRegisteredModal
+        visible={registeredModalVisible}
+        onDismiss={() => setRegisteredModalVisible(false)}
+        onLogin={() => {
+          setRegisteredModalVisible(false);
+          navigation.navigate('PhoneAuth');
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
