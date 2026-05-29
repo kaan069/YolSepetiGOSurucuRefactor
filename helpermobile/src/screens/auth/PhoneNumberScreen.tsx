@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image, TouchableOpacity, Keyboard } from 'react-native';
 import { Card, Text, useTheme, ProgressBar, IconButton } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -57,6 +57,10 @@ export default function PhoneNumberScreen({ navigation }: Props) {
   };
 
   const handleContinue = async () => {
+    // Klavye açıkken FkModal'ın kullanılabilir yüksekliği daraldığı için
+    // pre-check modal'ı alttan kesiliyordu — devam etmeden klavyeyi kapat.
+    Keyboard.dismiss();
+
     // Validasyon: Türkiye için 10 haneli numara
     if (phoneNumber.length < 10) {
       setError('Telefon numarası 10 haneli olmalıdır.');
