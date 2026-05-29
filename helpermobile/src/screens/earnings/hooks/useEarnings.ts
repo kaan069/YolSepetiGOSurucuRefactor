@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { requestsAPI, authAPI, PeriodEarningsResponse, EarningsListItem, EarningsServiceType } from '../../../api';
+import { requestsAPI, authAPI, referralAPI, PeriodEarningsResponse, EarningsListItem, EarningsServiceType } from '../../../api';
 import { PeriodRange, CompletedJob, PAGE_SIZE } from '../constants';
 import { logger } from '../../../utils/logger';
 
@@ -20,6 +20,8 @@ export default function useEarnings() {
   const [selectedServiceTypes, setSelectedServiceTypes] = useState<EarningsServiceType[]>([]);
   const [userServiceTypes, setUserServiceTypes] = useState<EarningsServiceType[]>([]);
   const [totalEarnings, setTotalEarnings] = useState(0);
+  // Referans kazançlarımın lifetime toplamı — Earnings ekranında tek özet olarak gösterilir
+  const [referralLifetimeTotal, setReferralLifetimeTotal] = useState<string>('0.00');
   const [earningsLoading, setEarningsLoading] = useState(false);
   const [periodEarnings, setPeriodEarnings] = useState<PeriodEarningsResponse | null>(null);
   const [periodLoading, setPeriodLoading] = useState(false);
@@ -57,6 +59,16 @@ export default function useEarnings() {
     }
   };
 
+  const loadReferralTotal = async () => {
+    try {
+      const result = await referralAPI.getInvitedUsers();
+      setReferralLifetimeTotal(result.totals?.lifetime ?? '0.00');
+    } catch (error) {
+      // Sessiz başarısızlık — referans toplamı opsiyonel UI, kazanç ekranını bloklamasın
+      setReferralLifetimeTotal('0.00');
+    }
+  };
+
   const loadEarningsList = async (page: number = 1, append: boolean = false) => {
     try {
       if (page === 1) setListLoading(true);
@@ -66,11 +78,14 @@ export default function useEarnings() {
         ? selectedServiceTypes.join(',')
         : undefined;
 
+      // Liste her zaman sadece sürücünün kendi işlerini gösterir; referans pay'leri
+      // ayrı bir özet kartında (ReferralSummaryCard) lifetime toplam olarak görünür.
       const result = await requestsAPI.getEarningsList({
         page,
         page_size: PAGE_SIZE,
         period: range,
         service_type: serviceTypeParam,
+        earning_type: 'job',
       });
 
       if (append) {
@@ -149,6 +164,7 @@ export default function useEarnings() {
       loadTotalEarnings();
       loadPeriodEarnings();
       loadEarningsList(1, false);
+      loadReferralTotal();
     }, [])
   );
 
@@ -158,17 +174,22 @@ export default function useEarnings() {
     loadEarningsList(1, false);
   }, [range, selectedServiceTypes]);
 
-  // Formatlanmış iş listesi
+  // Formatlanmış iş listesi — sadece kendi işleri (`earning_type='job'`)
+  // Backend bu filter'ı destekledikten sonra hiçbir referral kaydı dönmeyecek;
+  // savunma amaçlı client-side filtre de eklenir.
   const formattedJobs: CompletedJob[] = useMemo(() => {
-    return earningsList.map(item => ({
-      id: item.request_id.toString(),
-      finishedAt: item.earned_at,
-      amount: parseFloat(item.net_amount) || 0,
-      distanceKm: 0,
-      pickupAddress: '',
-      dropoffAddress: '',
-      serviceType: item.service_type,
-    }));
+    return earningsList
+      .filter(item => (item.earning_type ?? 'job') === 'job')
+      .map(item => ({
+        id: item.request_id.toString(),
+        finishedAt: item.earned_at,
+        amount: parseFloat(item.net_amount) || 0,
+        distanceKm: 0,
+        pickupAddress: '',
+        dropoffAddress: '',
+        serviceType: item.service_type,
+        earningType: 'job' as const,
+      }));
   }, [earningsList]);
 
   return {
@@ -186,6 +207,7 @@ export default function useEarnings() {
     loadingMore,
     listLoading,
     formattedJobs,
+    referralLifetimeTotal,
     toggleServiceTypeFilter,
     toggleNakliyeFilter,
     clearFilters,

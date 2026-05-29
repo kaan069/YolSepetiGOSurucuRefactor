@@ -29,7 +29,12 @@ export type CompletedJob = {
   pickupAddress: string;
   dropoffAddress: string;
   serviceType: 'towTruck' | 'crane' | 'roadAssistance' | 'homeMoving' | 'cityMoving' | 'homeToHomeMoving' | 'cityToCity' | 'transfer';
+  // Referral pay'leri için: 'job' = sürücünün kendi işi, 'referral' = davet edilen sürücünün işinden gelen pay
+  earningType?: 'job' | 'referral';
 };
+
+// Earnings filtresi: hangi tip kazançlar listelenecek
+export type EarningTypeFilter = 'all' | 'job' | 'referral';
 
 // Earnings ekranı için gösterilen atomik servis tipleri (nakliye group'u
 // STAT_CARDS üzerinden ayrıca handle edilir). Sıra mevcut UI sırasıyla korunur.

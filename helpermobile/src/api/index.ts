@@ -5,6 +5,7 @@ export { default as documentsAPI } from './documents';
 export { default as profileAPI } from './profile';
 export { default as ratingsAPI } from './ratings';
 export { default as paymentAPI } from './payment';
+export { default as referralAPI } from './referral';
 export { default as axiosInstance } from './axiosConfig';
 export * from './types';
 export * from './payment';

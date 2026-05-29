@@ -40,6 +40,7 @@ export default function ProfileMenuScreen({ navigation }: Props) {
   const [completeness, setCompleteness] = useState<ProfileCompletenessResponse | null>(null);
   const [loadingCompleteness, setLoadingCompleteness] = useState(true);
   const [userProviderType, setUserProviderType] = useState<ProviderType | null>(null);
+  const [invitedCount, setInvitedCount] = useState<number>(0);
 
   const loadProfileCompleteness = async () => {
     setLoadingCompleteness(true);
@@ -63,6 +64,7 @@ export default function ProfileMenuScreen({ navigation }: Props) {
           try {
             const user = JSON.parse(userStr);
             setUserProviderType(user.provider_type || null);
+            setInvitedCount(typeof user.invited_count === 'number' ? user.invited_count : 0);
           } catch {}
         }
       });
@@ -197,6 +199,15 @@ export default function ProfileMenuScreen({ navigation }: Props) {
       subtitle: 'Şirket detayları, vergi bilgileri',
       icon: 'office-building',
       onPress: () => navigation.navigate('CompanyInfo'),
+    }] : []),
+    // Referans Kodum - eleman kullanıcılara gösterilmez (kişisel referans kazancı)
+    ...(userProviderType !== 'employee' ? [{
+      title: 'Referans Kodum',
+      subtitle: invitedCount > 0
+        ? `${invitedCount} sürücü davet ettin`
+        : 'Davet et, kazanç pay\'i al',
+      icon: 'gift-outline',
+      onPress: () => navigation.navigate('ReferralCode'),
     }] : []),
     {
       title: 'Uygulama Ayarları',

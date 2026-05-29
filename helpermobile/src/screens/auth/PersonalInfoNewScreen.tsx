@@ -169,6 +169,7 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
         user_type: data.vehicleTypes || ['towTruck', 'crane'],
         provider_type: data.providerType || 'individual',
         verification_token: verificationToken,
+        referral_code: data.referralCode || undefined,
       });
 
       setPersonalInfo({ ...form });

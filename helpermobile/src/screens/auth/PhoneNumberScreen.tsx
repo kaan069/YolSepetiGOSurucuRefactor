@@ -6,7 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useRegistrationDataStore, ServiceType } from '../../store/useRegistrationDataStore';
 import { authAPI } from '../../api';
-import { FkButton, FkFormError, FkPhoneInput } from '../../components/fk';
+import { FkButton, FkFormError, FkPhoneInput, FkTextInput } from '../../components/fk';
 import type { FkCountry } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
@@ -33,6 +33,7 @@ export default function PhoneNumberScreen({ navigation }: Props) {
   // Selective selector — gereksiz re-render'ı engeller
   const savePhoneNumber = useRegistrationDataStore((s) => s.setPhoneNumber);
   const setSelectedVehicleTypes = useRegistrationDataStore((s) => s.setSelectedVehicleTypes);
+  const setReferralCode = useRegistrationDataStore((s) => s.setReferralCode);
 
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedCountry, setSelectedCountry] = useState<FkCountry>({
@@ -47,6 +48,15 @@ export default function PhoneNumberScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(false);
   const [registeredModalVisible, setRegisteredModalVisible] = useState(false);
 
+  // Referans kodu (opsiyonel) — Crockford-tarzı [A-HJ-NP-Z2-9]{8}, case-insensitive
+  // Backend register sırasında geçersiz kodu silent ignore eder; bu yüzden Uygula
+  // sadece client-side format kontrolü + store'a yazma yapar (network çağrısı yok).
+  const REFERRAL_CHARSET = /[A-HJ-NP-Z2-9]/g;
+  const REFERRAL_FORMAT = /^[A-HJ-NP-Z2-9]{8}$/;
+  const [referralInput, setReferralInput] = useState('');
+  const [referralStatus, setReferralStatus] = useState<'idle' | 'applied' | 'error'>('idle');
+  const [referralError, setReferralError] = useState('');
+
   const toggleService = (serviceValue: string) => {
     setSelectedServices(prev =>
       prev.includes(serviceValue)
@@ -54,6 +64,30 @@ export default function PhoneNumberScreen({ navigation }: Props) {
         : [...prev, serviceValue]
     );
     setServiceError('');
+  };
+
+  const handleReferralChange = (raw: string) => {
+    // Sadece izinli karakterler, büyük harf, max 8
+    const cleaned = raw.toUpperCase().match(REFERRAL_CHARSET)?.join('').slice(0, 8) ?? '';
+    setReferralInput(cleaned);
+    // Düzenlemede önceki "uygulandı" / hata feedback'ini sıfırla ve store'dan da temizle
+    if (referralStatus !== 'idle') {
+      setReferralStatus('idle');
+      setReferralError('');
+      setReferralCode('');
+    }
+  };
+
+  const handleApplyReferral = () => {
+    if (!REFERRAL_FORMAT.test(referralInput)) {
+      setReferralStatus('error');
+      setReferralError('Geçersiz format. Referans kodu 8 karakter olmalı.');
+      setReferralCode('');
+      return;
+    }
+    setReferralStatus('applied');
+    setReferralError('');
+    setReferralCode(referralInput);
   };
 
   const handleContinue = async () => {
@@ -291,6 +325,40 @@ export default function PhoneNumberScreen({ navigation }: Props) {
               ) : null}
             </View>
 
+            {/* Referans Kodu - Opsiyonel, hizmet tipi seçiminin altında */}
+            <View style={styles.referralSection}>
+              <Text variant="titleMedium" style={styles.referralTitle}>
+                Referans Kodun Var mı? (Opsiyonel)
+              </Text>
+              <Text variant="bodySmall" style={styles.referralSubtitle}>
+                Seni davet eden sürücünün kodunu gir ve Uygula'ya bas
+              </Text>
+              <View style={styles.referralRow}>
+                <View style={styles.referralInputWrapper}>
+                  <FkTextInput
+                    value={referralInput}
+                    onChange={handleReferralChange}
+                    label="Referans Kodu"
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    maxLength={8}
+                    error={referralStatus === 'error' ? referralError : undefined}
+                    helperText={referralStatus === 'applied' ? '✓ Kod uygulandı' : undefined}
+                    helperColor={referralStatus === 'applied' ? '#26a69a' : undefined}
+                  />
+                </View>
+                <FkButton
+                  variant={referralStatus === 'applied' ? 'success' : 'secondary'}
+                  onPress={handleApplyReferral}
+                  disabled={referralInput.length === 0 || referralStatus === 'applied'}
+                  size="md"
+                  style={styles.referralButton}
+                >
+                  {referralStatus === 'applied' ? 'Uygulandı' : 'Uygula'}
+                </FkButton>
+              </View>
+            </View>
+
             <FkButton
               onPress={handleContinue}
               disabled={phoneNumber.length < 10 || selectedServices.length === 0 || loading}
@@ -447,5 +515,31 @@ const styles = StyleSheet.create({
   transferIcons: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  referralSection: {
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  referralTitle: {
+    fontWeight: 'bold',
+    marginBottom: 4,
+    color: '#333',
+  },
+  referralSubtitle: {
+    opacity: 0.7,
+    marginBottom: 12,
+    fontSize: 12,
+  },
+  referralRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  referralInputWrapper: {
+    flex: 1,
+  },
+  referralButton: {
+    minWidth: 96,
+    marginTop: 6,
   },
 });

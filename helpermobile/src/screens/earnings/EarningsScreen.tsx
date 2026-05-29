@@ -9,6 +9,7 @@ import { RootStackParamList, RootTabParamList } from '../../navigation';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import useEarnings from './hooks/useEarnings';
 import TotalEarningsCard from './components/TotalEarningsCard';
+import ReferralSummaryCard from './components/ReferralSummaryCard';
 import PeriodSelector from './components/PeriodSelector';
 import ServiceTypeFilter from './components/ServiceTypeFilter';
 import PeriodStatsCard from './components/PeriodStatsCard';
@@ -39,12 +40,12 @@ export default function EarningsScreen({ navigation }: Props) {
     loadingMore,
     listLoading,
     formattedJobs,
+    referralLifetimeTotal,
     toggleServiceTypeFilter,
     clearFilters,
     loadMoreEarnings,
   } = useEarnings();
 
-  // İşe tıklandığında doğru detay ekranına git
   const handleJobPress = (job: CompletedJob) => {
     switch (job.serviceType) {
       case 'towTruck':
@@ -84,6 +85,11 @@ export default function EarningsScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <TotalEarningsCard totalEarnings={totalEarnings} loading={earningsLoading} />
+
+        <ReferralSummaryCard
+          total={referralLifetimeTotal}
+          onPress={() => navigation.navigate('InvitedUsers')}
+        />
 
         <PeriodSelector range={range} onRangeChange={setRange} />
 

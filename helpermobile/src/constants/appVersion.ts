@@ -4,13 +4,16 @@
  * Backend her isteğe `X-App-Version`, `X-App-Platform`, `X-App-Client` header'larını
  * bekliyor. Versiyon min'den düşükse 426 Upgrade Required döner.
  *
- * RELEASE PROSEDÜRÜ: Yeni sürüm yayımlarken HEM app.json/package.json (version),
- * HEM de aşağıdaki APP_VERSION sabitini güncelle. Üçü senkron olmalı.
+ * TEK KAYNAK: `app.json` → `expo.version`. Yeni sürüm yayımlarken sadece
+ * app.json'daki version + ios.buildNumber + android.versionCode güncellenir;
+ * APP_VERSION buradan otomatik okunur. iOS/Android native dosyalar
+ * Expo prebuild ile app.json'dan türetilir.
  */
 import { Platform } from 'react-native';
+import appConfig from '../../app.json';
 
-// app.json ve package.json `version` alanı ile senkron tutulmalı.
-export const APP_VERSION = '1.0.7';
+// Tek kaynak — app.json `expo.version` ile her zaman senkron.
+export const APP_VERSION: string = appConfig.expo.version;
 
 // Bu uygulama sürücü tarafı — backend ayrı driver/customer min versiyonları tutuyor.
 export const APP_CLIENT = 'driver' as const;

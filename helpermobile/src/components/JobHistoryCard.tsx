@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { CompletedJob } from '../screens/earnings';
 import { useAppTheme } from '../hooks/useAppTheme';
 
@@ -12,17 +13,39 @@ interface Props {
 
 export default function JobHistoryCard({ job, onPress, serviceTypeLabel }: Props) {
   const { isDarkMode, appColors, cardBg } = useAppTheme();
+  const isReferral = job.earningType === 'referral';
 
   return (
-    <TouchableOpacity style={[styles.card, { backgroundColor: cardBg }]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[styles.card, { backgroundColor: cardBg }]}
+      onPress={onPress}
+      activeOpacity={isReferral ? 1 : 0.7}
+      disabled={isReferral}
+    >
       <View style={styles.topRow}>
         <View style={styles.idContainer}>
-          <Text style={[styles.idLabel, { color: appColors.text.secondary }]}>İş</Text>
+          {isReferral ? (
+            <MaterialCommunityIcons name="gift-outline" size={18} color="#26a69a" />
+          ) : null}
+          <Text style={[styles.idLabel, { color: appColors.text.secondary }]}>
+            {isReferral ? 'Referans' : 'İş'}
+          </Text>
           <Text style={[styles.idValue, { color: appColors.text.primary }]}>#{job.id}</Text>
         </View>
-        {serviceTypeLabel && (
-          <View style={[styles.typeBadge, { backgroundColor: appColors.primary[50] }]}>
-            <Text style={styles.typeBadgeText}>{serviceTypeLabel}</Text>
+        {(isReferral || serviceTypeLabel) && (
+          <View
+            style={[
+              styles.typeBadge,
+              {
+                backgroundColor: isReferral
+                  ? (isDarkMode ? '#1f3f3c' : '#e0f2f1')
+                  : appColors.primary[50],
+              },
+            ]}
+          >
+            <Text style={[styles.typeBadgeText, isReferral && styles.referralBadgeText]}>
+              {isReferral ? 'Referans payı' : serviceTypeLabel}
+            </Text>
           </View>
         )}
       </View>
@@ -110,6 +133,9 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: '#00897b',
+  },
+  referralBadgeText: {
+    color: '#26a69a',
   },
   date: {
     fontSize: 12,

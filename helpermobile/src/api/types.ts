@@ -36,6 +36,12 @@ export interface User {
     provider_type?: ProviderType;  // Sahis / Firma / Eleman
     is_active: boolean;
     created_at: string;
+    // Referral (sürücü-sürücü davet sistemi)
+    referral_code?: string;            // Kendi referans kodu (paylaşılır)
+    referred_by?: number | null;       // Kim davet etti (user id) | null
+    referred_by_name?: string | null;  // Davet edenin adı | null
+    referred_at?: string | null;       // Davet edildiği zaman (ISO 8601)
+    invited_count?: number;            // Bu sürücünün davet ettiği sürücü sayısı
 }
 
 export interface Tokens {
@@ -63,6 +69,7 @@ export interface RegisterRequest {
     provider_type?: ProviderType;  // Sahis / Firma (kayit sirasinda secilir)
     fcm_token?: string;    // Firebase Cloud Messaging token (push notifications için)
     verification_token: string;  // OTP doğrulama sonrası alınan JWT token
+    referral_code?: string;  // Davet eden sürücünün referans kodu (opsiyonel, write-only) — geçersizse backend silent ignore
 }
 
 // OTP Types
@@ -550,6 +557,9 @@ export interface EarningsListItem {
     net_amount: string;                // Net kazanç
     earned_at: string;                 // Kazanç tarihi (ISO 8601)
     created_at: string;
+    // Referans pay'leri için (sürücü-sürücü davet sistemi)
+    earning_type?: 'job' | 'referral'; // 'job' = kendi işi, 'referral' = davet edilenin işinden gelen pay
+    referral_earning_id?: number | null; // referral kaydının id'si (referral ise dolu, job ise null)
 }
 
 export interface EarningsListResponse {
@@ -567,6 +577,44 @@ export interface EarningsListParams {
     period?: EarningsPeriod;
     start_date?: string;               // YYYY-MM-DD
     end_date?: string;                 // YYYY-MM-DD
+    earning_type?: 'job' | 'referral'; // 'job' = sadece kendi işleri, 'referral' = sadece referans pay'leri, undefined = hepsi
+}
+
+// ==================== REFERRAL (Sürücü-Sürücü Davet Sistemi) ====================
+
+// Davet edilen bir kullanıcıdan gelen kazanç özeti
+export interface EarningsFromUser {
+    count: number;          // Bu kullanıcıdan kaç pay kaydı oluştu
+    pending_total: string;  // Bekleyen toplam
+    paid_total: string;     // Ödenen toplam
+}
+
+// Davet edilen tek bir sürücünün detayları
+export interface InvitedUser {
+    id: number;
+    first_name: string;
+    last_name: string;
+    phone_number: string;
+    user_type: string[];
+    is_active: boolean;
+    referred_at: string;
+    created_at: string;
+    is_recently_active: boolean;   // Son 30 günde iş yaptı mı
+    completed_recent_30d: number;  // Son 30 günde tamamlanan iş sayısı
+    total_completed: number;       // Lifetime tamamlanan iş sayısı
+    earnings_from_this_user: EarningsFromUser;
+}
+
+// Davet Ettiklerim (GET /referral/invited/) response
+export interface InvitedUsersResponse {
+    invited_count: number;
+    recently_active_count: number;
+    totals: {
+        pending: string;
+        paid: string;
+        lifetime: string;
+    };
+    results: InvitedUser[];
 }
 
 // Profile Completeness Types (Profil Tamamlama - Backend Gerçek Format)

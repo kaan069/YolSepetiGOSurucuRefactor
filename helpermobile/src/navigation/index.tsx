@@ -26,6 +26,8 @@ import CreditCardInfoScreen from '../screens/profile/CreditCardInfoScreen';
 import AppSettingsScreen from '../screens/profile/AppSettingsScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import ServiceCityScreen from '../screens/profile/ServiceCityScreen';
+import ReferralCodeScreen from '../screens/profile/ReferralCodeScreen';
+import InvitedUsersScreen from '../screens/profile/InvitedUsersScreen';
 import ReportsAndHistoryScreen from '../screens/profile/ReportsAndHistoryScreen';
 import RatingsAndReviewsScreen from '../screens/profile/RatingsAndReviewsScreen';
 import MissingDocumentsScreen from '../screens/profile/MissingDocumentsScreen';
@@ -120,6 +122,10 @@ export type RootStackParamList = {
   EmployeeForm: { employeeId?: number } | undefined;
   EmployeeJobDetail: { requestId: number };
   Onboarding: { isModal?: boolean } | undefined;
+
+  // Referans Sistemi (Sürücü-Sürücü Davet)
+  ReferralCode: undefined;
+  InvitedUsers: undefined;
 };
 
 // Bottom tab navigator için parametre listeleri
@@ -386,6 +392,11 @@ function AppStack() {
       <Stack.Screen name="EmployeeForm" component={EmployeeFormScreen} />
       <Stack.Screen name="EmployeeJobDetail" component={EmployeeJobDetailScreen} />
       <Stack.Screen name="ContractsScreen" component={ContractsListScreen} />
+
+      {/* Referans Sistemi - Sürücü-Sürücü Davet */}
+      <Stack.Screen name="ReferralCode" component={ReferralCodeScreen} />
+      <Stack.Screen name="InvitedUsers" component={InvitedUsersScreen} />
+
       <Stack.Screen
         name="Onboarding"
         component={OnboardingScreen}

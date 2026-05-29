@@ -23,6 +23,9 @@ export interface RegistrationData {
   // Service Type
   selectedServiceTypes: ServiceType[];
 
+  // Referral Code (opsiyonel — davet eden sürücünün kodu, register payload'unda kullanılır)
+  referralCode: string;
+
   // Personal Info
   personalInfo: {
     firstName: string;
@@ -67,6 +70,9 @@ interface RegistrationDataStore {
   // Service Type Actions
   setSelectedServiceTypes: (types: ServiceType[]) => void;
 
+  // Referral Code Actions
+  setReferralCode: (code: string) => void;
+
   // Personal Info Actions
   setPersonalInfo: (info: Partial<RegistrationData['personalInfo']>) => void;
 
@@ -93,6 +99,7 @@ const initialData: RegistrationData = {
   verificationToken: '',
   providerType: 'individual',
   selectedServiceTypes: [],
+  referralCode: '',
   personalInfo: {
     firstName: '',
     lastName: '',
@@ -133,6 +140,10 @@ export const useRegistrationDataStore = create<RegistrationDataStore>()(
 
       setSelectedServiceTypes: (selectedServiceTypes) => set((state) => ({
         data: { ...state.data, selectedServiceTypes }
+      })),
+
+      setReferralCode: (referralCode) => set((state) => ({
+        data: { ...state.data, referralCode }
       })),
       
       setPersonalInfo: (info) => set((state) => ({
@@ -196,6 +207,7 @@ export const useRegistrationDataStore = create<RegistrationDataStore>()(
         ...initialData,
         verificationToken: '',
         providerType: 'individual',
+        referralCode: '',
         registrationStartedAt: new Date().toISOString(),
         vehicleTypes: [],
         vehicleRegistrationProgress: {
