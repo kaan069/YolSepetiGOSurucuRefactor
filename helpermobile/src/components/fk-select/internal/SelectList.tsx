@@ -43,7 +43,7 @@ export default function SelectList<T extends string | number>({
   }, [options, search, searchable]);
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       {searchable ? (
         <View style={{ padding: tokens.spacing.lg }}>
           <View
@@ -71,7 +71,12 @@ export default function SelectList<T extends string | number>({
         </View>
       ) : null}
 
-      <ScrollView style={styles.list} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
         {filtered.length === 0 ? (
           <View style={styles.empty}>
             <MaterialCommunityIcons name="magnify-close" size={36} color={tokens.colors.textHint} />
@@ -133,7 +138,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   searchInput: { flex: 1, fontSize: 15 },
-  list: { maxHeight: 480, paddingHorizontal: 8 },
+  list: { flex: 1, paddingHorizontal: 8 },
+  listContent: { paddingBottom: 16, flexGrow: 1 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   item: {
     flexDirection: 'row',

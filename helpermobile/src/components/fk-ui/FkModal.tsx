@@ -36,7 +36,7 @@ export default function FkModal({
   children,
   variant = 'bottom',
   scrollable = false,
-  maxHeightRatio = 0.8,
+  maxHeightRatio = 0.92,
   contentStyle,
   showHandle = true,
   showClose = true,
@@ -67,7 +67,7 @@ export default function FkModal({
     variant === 'bottom' ? styles.overlayBottom : styles.overlayCenter;
 
   const body = (
-    <SafeAreaView edges={variant === 'bottom' ? ['bottom'] : []} style={contentStyle}>
+    <SafeAreaView edges={variant === 'bottom' ? ['bottom'] : []} style={[{ flex: 1 }, contentStyle]}>
       {(title || showClose) && (
         <View
           style={[
@@ -105,29 +105,42 @@ export default function FkModal({
       )}
       {scrollable ? (
         <ScrollView
+          style={{ flex: 1 }}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: tokens.spacing.lg }}
         >
           {children}
         </ScrollView>
       ) : (
-        <View>{children}</View>
+        <View style={{ flex: 1 }}>{children}</View>
       )}
     </SafeAreaView>
   );
 
   return (
-    <Modal visible={visible} transparent animationType={variant === 'bottom' ? 'slide' : 'fade'} onRequestClose={onDismiss}>
-      <Pressable style={[styles.overlay, overlayStyle]} onPress={onDismiss}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={variant === 'bottom' ? styles.kbBottom : styles.kbCenter}
-        >
-          <Pressable onPress={(e) => e.stopPropagation()} style={containerStyle}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType={variant === 'bottom' ? 'slide' : 'fade'}
+      onRequestClose={onDismiss}
+      statusBarTranslucent
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.kbWrapper}
+      >
+        <Pressable style={[styles.overlay, overlayStyle]} onPress={onDismiss}>
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={[
+              variant === 'bottom' ? styles.kbBottom : styles.kbCenter,
+              containerStyle,
+            ]}
+          >
             {body}
           </Pressable>
-        </KeyboardAvoidingView>
-      </Pressable>
+        </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -139,6 +152,7 @@ const styles = StyleSheet.create({
   },
   overlayBottom: { justifyContent: 'flex-end' },
   overlayCenter: { justifyContent: 'center', alignItems: 'center', padding: 20 },
+  kbWrapper: { flex: 1 },
   kbBottom: { width: '100%' },
   kbCenter: { width: '100%', maxWidth: 460 },
   bottomContainer: { overflow: 'hidden' },

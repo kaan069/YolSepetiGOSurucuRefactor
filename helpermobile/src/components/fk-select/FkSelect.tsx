@@ -108,7 +108,7 @@ export default function FkSelect<T extends string | number = string>({
         onDismiss={() => setOpen(false)}
         title={modalTitle || label || 'Seçiniz'}
         variant="bottom"
-        maxHeightRatio={0.8}
+        maxHeightRatio={0.92}
       >
         <SelectList
           options={options}
