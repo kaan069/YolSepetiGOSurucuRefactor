@@ -4,7 +4,7 @@ import { Card, Text, useTheme, ProgressBar, IconButton } from 'react-native-pape
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
-import { useRegistrationDataStore, ServiceType } from '../../store/useRegistrationDataStore';
+import { useRegistrationDataStore, ServiceType, TransferSubType } from '../../store/useRegistrationDataStore';
 import { authAPI } from '../../api';
 import { FkButton, FkFormError, FkPhoneInput, FkTextInput } from '../../components/fk';
 import type { FkCountry } from '../../components/fk';
@@ -24,7 +24,8 @@ const serviceTypes = [
   { value: 'crane', label: 'Vinç', icon: 'crane', description: 'Vinç ve kaldırma hizmeti' },
   { value: 'roadAssistance', label: 'Yol Yardım', icon: 'car-wrench', description: 'Lastik, akü, yol yardımı' },
   { value: 'nakliye', label: 'Nakliye', icon: 'truck-delivery', description: 'Ev ve yük taşıma' },
-  { value: 'transfer', label: 'Transfer', icon: 'transfer', description: 'VIP ve servis araçları' },
+  { value: 'servis', label: 'Servis', icon: 'bus-multiple', description: 'Personel / okul servisi' },
+  { value: 'vip', label: 'VIP Taşıma', icon: 'car-estate', description: 'VIP / lüks transfer' },
 ];
 
 export default function PhoneNumberScreen({ navigation }: Props) {
@@ -33,6 +34,7 @@ export default function PhoneNumberScreen({ navigation }: Props) {
   // Selective selector — gereksiz re-render'ı engeller
   const savePhoneNumber = useRegistrationDataStore((s) => s.setPhoneNumber);
   const setSelectedVehicleTypes = useRegistrationDataStore((s) => s.setSelectedVehicleTypes);
+  const setTransferSubTypes = useRegistrationDataStore((s) => s.setTransferSubTypes);
   const setReferralCode = useRegistrationDataStore((s) => s.setReferralCode);
 
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -117,18 +119,27 @@ export default function PhoneNumberScreen({ navigation }: Props) {
     const fullNumber = `${selectedCountry.dialCode}${phoneNumber}`;
     savePhoneNumber(fullNumber);
 
-    // Seçilen servisleri backend formatına çevir
-    // 'nakliye' seçilmişse -> homeToHomeMoving ve cityToCity olarak kaydet
+    // Seçilen servisleri backend formatına çevir:
+    // - 'nakliye' -> homeToHomeMoving + cityToCity
+    // - 'servis'/'vip' -> tek bir 'transfer' ServiceType'ı (tekilleştirilmiş);
+    //   seçilen alt tip(ler) ayrıca transferSubTypes olarak taşınır
     const vehicleTypesForStore: ServiceType[] = [];
+    const transferSubTypes: TransferSubType[] = [];
     selectedServices.forEach(service => {
       if (service === 'nakliye') {
         vehicleTypesForStore.push('homeToHomeMoving');
         vehicleTypesForStore.push('cityToCity');
+      } else if (service === 'servis' || service === 'vip') {
+        transferSubTypes.push(service === 'servis' ? 'organization' : 'vip');
+        if (!vehicleTypesForStore.includes('transfer')) {
+          vehicleTypesForStore.push('transfer');
+        }
       } else {
         vehicleTypesForStore.push(service as ServiceType);
       }
     });
     setSelectedVehicleTypes(vehicleTypesForStore);
+    setTransferSubTypes(transferSubTypes);
 
     // OTP gönder
     setLoading(true);
@@ -267,27 +278,11 @@ export default function PhoneNumberScreen({ navigation }: Props) {
                       activeOpacity={0.7}
                     >
                       <View style={styles.serviceCardContent}>
-                        {service.icon === 'transfer' ? (
-                          <View style={styles.transferIcons}>
-                            <MaterialCommunityIcons
-                              name="bus-side"
-                              size={24}
-                              color={isSelected ? '#fff' : SERVICE_COLOR}
-                            />
-                            <MaterialCommunityIcons
-                              name="van-passenger"
-                              size={24}
-                              color={isSelected ? '#fff' : '#FFB300'}
-                              style={{ marginLeft: 10 }}
-                            />
-                          </View>
-                        ) : (
-                          <MaterialCommunityIcons
-                            name={service.icon}
-                            size={28}
-                            color={isSelected ? '#fff' : SERVICE_COLOR}
-                          />
-                        )}
+                        <MaterialCommunityIcons
+                          name={service.icon}
+                          size={28}
+                          color={isSelected ? '#fff' : SERVICE_COLOR}
+                        />
                         <Text
                           style={[
                             styles.serviceCardLabel,
@@ -353,6 +348,7 @@ export default function PhoneNumberScreen({ navigation }: Props) {
                   disabled={referralInput.length === 0 || referralStatus === 'applied'}
                   size="md"
                   style={styles.referralButton}
+                  contentStyle={styles.referralButtonContent}
                 >
                   {referralStatus === 'applied' ? 'Uygulandı' : 'Uygula'}
                 </FkButton>
@@ -512,10 +508,6 @@ const styles = StyleSheet.create({
     top: 8,
     right: 8,
   },
-  transferIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
   referralSection: {
     marginTop: 8,
     marginBottom: 8,
@@ -540,6 +532,10 @@ const styles = StyleSheet.create({
   },
   referralButton: {
     minWidth: 96,
-    marginTop: 6,
+  },
+  // Butonu input kutusuyla (MD3 flat = 56px) aynı yükseklikte tutar; satır
+  // flex-start olduğu için üstten hizalanır ve label dikeyde ortalanır.
+  referralButtonContent: {
+    height: 56,
   },
 });

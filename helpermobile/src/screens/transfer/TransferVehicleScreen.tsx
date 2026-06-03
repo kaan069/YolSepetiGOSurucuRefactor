@@ -97,13 +97,19 @@ const CLASS_LABELS: Record<string, string> = {
 
 export default function TransferVehicleScreen({ navigation, route }: Props) {
   const fromRegistration = route.params?.fromRegistration === true;
-  const { completeVehicleType, getNextVehicleType } = useRegistrationDataStore();
+  const { completeVehicleType, getNextVehicleType, data } = useRegistrationDataStore();
   const { setIsAuthenticated } = useAuthStore();
   const { screenBg, cardBg, textPrimary, textSecondary } = useAppTheme();
 
   const primaryColor = '#5C6BC0';
 
-  const [selectedTransferTypes, setSelectedTransferTypes] = useState<TransferType[]>([]);
+  // Kayıt akışında Servis/VIP seçimi PhoneNumberScreen'de yapıldığı için burada
+  // önceden doldurulur ve "1. Transfer Tipi Seçin" adımı tamamen gizlenir.
+  // Standalone (profilden "Yeni Ekle") yolda ön-seçim olmaz, seçici görünür.
+  const preselectedTransferTypes = (fromRegistration ? (data.transferSubTypes ?? []) : []) as TransferType[];
+  const hideTypeSelection = preselectedTransferTypes.length > 0;
+
+  const [selectedTransferTypes, setSelectedTransferTypes] = useState<TransferType[]>(preselectedTransferTypes);
   const [addedVehicles, setAddedVehicles] = useState<AddedVehicle[]>([]);
   const [expandedVehicleIndex, setExpandedVehicleIndex] = useState<number | null>(null);
   const [documentPhotos, setDocumentPhotos] = useState<Record<string, string | null>>({});
@@ -317,6 +323,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
           </Text>
         </View>
 
+        {!hideTypeSelection && (
         <Card style={[styles.card, { backgroundColor: cardBg }]}>
           <Card.Content style={styles.cardContent}>
             <Text variant="titleMedium" style={[styles.sectionTitle, { color: primaryColor }]}>
@@ -387,6 +394,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
             )}
           </Card.Content>
         </Card>
+        )}
 
         {hasAnyType && (
           <View style={styles.addButtonsRow}>
@@ -494,7 +502,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
         {hasAnyType && requiredDocuments.length > 0 && (
           <View>
             <Text variant="titleMedium" style={[styles.sectionTitle, { color: primaryColor, marginBottom: 4, marginLeft: 4 }]}>
-              2. Belgeler
+              {hideTypeSelection ? 'Belgeler' : '2. Belgeler'}
             </Text>
             <Text variant="bodySmall" style={{ color: textSecondary, marginBottom: 12, marginLeft: 4 }}>
               Gerekli belgeleri yükleyin (hepsi zorunludur)

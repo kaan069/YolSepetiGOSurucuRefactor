@@ -6,6 +6,10 @@ import { logger } from '../utils/logger';
 // Service type definitions
 export type ServiceType = 'towTruck' | 'crane' | 'roadAssistance' | 'homeToHomeMoving' | 'cityToCity' | 'transfer';
 
+// Transfer alt tipi — Servis (organization) / VIP. Kayıt ekranında seçilir,
+// TransferVehicleScreen'i ön-doldurup "Transfer Tipi Seçin" adımını gizlemek için taşınır.
+export type TransferSubType = 'organization' | 'vip';
+
 // Provider type for registration
 export type RegistrationProviderType = 'individual' | 'company';
 
@@ -22,6 +26,10 @@ export interface RegistrationData {
 
   // Service Type
   selectedServiceTypes: ServiceType[];
+
+  // Transfer alt tipleri (kayıt ekranında seçilen Servis/VIP) — transfer
+  // hizmeti için hangi alt tip(ler)in seçildiğini taşır
+  transferSubTypes: TransferSubType[];
 
   // Referral Code (opsiyonel — davet eden sürücünün kodu, register payload'unda kullanılır)
   referralCode: string;
@@ -70,6 +78,9 @@ interface RegistrationDataStore {
   // Service Type Actions
   setSelectedServiceTypes: (types: ServiceType[]) => void;
 
+  // Transfer Sub-Type Actions
+  setTransferSubTypes: (types: TransferSubType[]) => void;
+
   // Referral Code Actions
   setReferralCode: (code: string) => void;
 
@@ -99,6 +110,7 @@ const initialData: RegistrationData = {
   verificationToken: '',
   providerType: 'individual',
   selectedServiceTypes: [],
+  transferSubTypes: [],
   referralCode: '',
   personalInfo: {
     firstName: '',
@@ -140,6 +152,10 @@ export const useRegistrationDataStore = create<RegistrationDataStore>()(
 
       setSelectedServiceTypes: (selectedServiceTypes) => set((state) => ({
         data: { ...state.data, selectedServiceTypes }
+      })),
+
+      setTransferSubTypes: (transferSubTypes) => set((state) => ({
+        data: { ...state.data, transferSubTypes }
       })),
 
       setReferralCode: (referralCode) => set((state) => ({
