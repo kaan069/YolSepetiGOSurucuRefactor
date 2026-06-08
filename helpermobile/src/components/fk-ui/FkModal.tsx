@@ -67,7 +67,7 @@ export default function FkModal({
     variant === 'bottom' ? styles.overlayBottom : styles.overlayCenter;
 
   const body = (
-    <SafeAreaView edges={variant === 'bottom' ? ['bottom'] : []} style={[{ flex: 1 }, contentStyle]}>
+    <SafeAreaView edges={variant === 'bottom' ? ['bottom'] : []} style={contentStyle}>
       {(title || showClose) && (
         <View
           style={[
@@ -105,14 +105,14 @@ export default function FkModal({
       )}
       {scrollable ? (
         <ScrollView
-          style={{ flex: 1 }}
+          style={{ maxHeight: 480 }}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: tokens.spacing.lg }}
         >
           {children}
         </ScrollView>
       ) : (
-        <View style={{ flex: 1 }}>{children}</View>
+        <View>{children}</View>
       )}
     </SafeAreaView>
   );

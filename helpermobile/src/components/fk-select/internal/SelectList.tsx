@@ -43,7 +43,7 @@ export default function SelectList<T extends string | number>({
   }, [options, search, searchable]);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View>
       {searchable ? (
         <View style={{ padding: tokens.spacing.lg }}>
           <View
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   searchInput: { flex: 1, fontSize: 15 },
-  list: { flex: 1, paddingHorizontal: 8 },
+  list: { maxHeight: 480, paddingHorizontal: 8 },
   listContent: { paddingBottom: 16, flexGrow: 1 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   item: {
