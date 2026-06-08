@@ -32,14 +32,14 @@ export default function VehicleTypeSelectionScreen({ navigation }: Props) {
     // Store provider type (Bireysel / Şirket)
     setProviderType(providerType);
 
-    // Araç gerektiren hizmetler
-    const vehicleRequiredServices = ['towTruck', 'crane', 'roadAssistance', 'transfer'];
+    // Araç gerektiren hizmetler (tüm hizmet tipleri araç/detay adımı ister — nakliye dahil)
+    const vehicleRequiredServices = ['towTruck', 'crane', 'roadAssistance', 'transfer', 'homeToHomeMoving', 'cityToCity'];
     const hasVehicleRequiredService = selectedTypes.some(
       (type) => vehicleRequiredServices.includes(type)
     );
 
     if (!hasVehicleRequiredService) {
-      // Sadece nakliye hizmeti seçilmişse, belgelere yönlendir
+      // Hiç araç gerektiren tip seçilmemişse (uç durum), belgelere yönlendir
       navigation.reset({
         index: 0,
         routes: [{ name: 'DocumentsScreen', params: { fromRegistration: true } }],
@@ -50,15 +50,15 @@ export default function VehicleTypeSelectionScreen({ navigation }: Props) {
     // İlk araç gerektiren hizmet türüne yönlendir
     const firstType = selectedTypes.find((t) => vehicleRequiredServices.includes(t)) || selectedTypes[0];
     if (firstType === 'towTruck') {
-      navigation.navigate('TowTruckDetails');
+      navigation.navigate('TowTruckDetails', { fromRegistration: true });
     } else if (firstType === 'crane') {
-      navigation.navigate('CraneDetails');
+      navigation.navigate('CraneDetails', { fromRegistration: true });
     } else if (firstType === 'roadAssistance') {
-      navigation.navigate('RoadAssistanceDetails');
+      navigation.navigate('RoadAssistanceDetails', { fromRegistration: true });
     } else if (firstType === 'transfer') {
       navigation.navigate('TransferVehicleDetails', { fromRegistration: true });
     } else if (firstType === 'homeToHomeMoving' || firstType === 'cityToCity') {
-      navigation.navigate('HomeMovingDetails');
+      navigation.navigate('HomeMovingDetails', { fromRegistration: true });
     }
   };
 
