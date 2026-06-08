@@ -286,6 +286,8 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
               loading={loading}
               disabled={loading}
               style={styles.addButton}
+              contentStyle={styles.addButtonContent}
+              labelStyle={styles.addButtonLabel}
               icon="plus"
             >
               {loading ? 'Araç Ekleniyor...' : 'Aracı Ekle'}
@@ -372,6 +374,13 @@ const styles = StyleSheet.create({
     marginTop: 16,
     borderRadius: 12,
     backgroundColor: '#1565c0',
+  },
+  addButtonContent: {
+    paddingVertical: 10,
+  },
+  addButtonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   buttonContainer: {
     paddingBottom: 20,

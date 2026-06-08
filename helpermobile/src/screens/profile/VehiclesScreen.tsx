@@ -346,11 +346,14 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <IconButton
+                        <Button
+                          mode="text"
                           icon="pencil"
-                          size={20}
+                          compact
                           onPress={() => navigation.navigate('EditVehicle', { vehicleId: truck.id, vehicleType: 'tow' })}
-                        />
+                        >
+                          Düzenle
+                        </Button>
                         <IconButton
                           icon="delete"
                           size={20}
@@ -399,11 +402,14 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <IconButton
+                        <Button
+                          mode="text"
                           icon="pencil"
-                          size={20}
+                          compact
                           onPress={() => navigation.navigate('EditVehicle', { vehicleId: crane.id, vehicleType: 'crane' })}
-                        />
+                        >
+                          Düzenle
+                        </Button>
                         <IconButton
                           icon="delete"
                           size={20}
@@ -453,11 +459,14 @@ export default function VehiclesScreen({ navigation }: Props) {
                         </Text>
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <IconButton
+                        <Button
+                          mode="text"
                           icon="pencil"
-                          size={20}
+                          compact
                           onPress={() => navigation.navigate('EditVehicle', { vehicleId: transport.id, vehicleType: 'transport' })}
-                        />
+                        >
+                          Düzenle
+                        </Button>
                         <IconButton
                           icon="delete"
                           size={20}
@@ -529,11 +538,14 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <IconButton
+                        <Button
+                          mode="text"
                           icon="pencil"
-                          size={20}
+                          compact
                           onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'homeMoving' })}
-                        />
+                        >
+                          Düzenle
+                        </Button>
                         <IconButton
                           icon="delete"
                           size={20}
@@ -599,11 +611,14 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <IconButton
+                        <Button
+                          mode="text"
                           icon="pencil"
-                          size={20}
+                          compact
                           onPress={() => navigation.navigate('EditVehicle', { vehicleId: service.id, vehicleType: 'roadAssistance' })}
-                        />
+                        >
+                          Düzenle
+                        </Button>
                         <IconButton
                           icon="delete"
                           size={20}
@@ -662,11 +677,14 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <IconButton
+                        <Button
+                          mode="text"
                           icon="pencil"
-                          size={20}
+                          compact
                           onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'transfer' })}
-                        />
+                        >
+                          Düzenle
+                        </Button>
                         <IconButton
                           icon="delete"
                           size={20}

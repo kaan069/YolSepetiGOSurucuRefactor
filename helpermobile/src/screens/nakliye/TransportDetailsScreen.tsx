@@ -251,6 +251,8 @@ export default function TransportDetailsScreen({ navigation }: Props) {
               mode="contained"
               onPress={addVehicle}
               style={styles.addButton}
+              contentStyle={styles.addButtonContent}
+              labelStyle={styles.addButtonLabel}
               icon="plus"
             >
               Nakliye Aracını Ekle
@@ -336,6 +338,13 @@ const styles = StyleSheet.create({
   addButton: {
     marginTop: 16,
     borderRadius: 12,
+  },
+  addButtonContent: {
+    paddingVertical: 10,
+  },
+  addButtonLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   buttonContainer: {
     paddingBottom: 20,

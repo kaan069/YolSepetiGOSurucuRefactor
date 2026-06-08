@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, TextInput } from 'react-native-paper';
+import { SelectDropdown } from '../../../components/common';
+import { getVehicleYears } from '../../../data/vehicleData';
 
 interface TransportBasicInfoSectionProps {
   plate: string;
@@ -25,6 +27,8 @@ export default function TransportBasicInfoSection({
   onYearChange,
   errors,
 }: TransportBasicInfoSectionProps) {
+  const yearOptions = getVehicleYears().map((y) => ({ value: y.toString(), label: y.toString() }));
+
   return (
     <View style={styles.formSection}>
       <Text variant="titleSmall" style={styles.subsectionTitle}>Temel Bilgiler</Text>
@@ -57,14 +61,16 @@ export default function TransportBasicInfoSection({
         />
       </View>
 
-      <TextInput
+      <SelectDropdown
         label="Yıl"
         value={year}
-        onChangeText={onYearChange}
-        keyboardType="numeric"
-        maxLength={4}
-        style={styles.input}
-        placeholder="2020"
+        options={yearOptions}
+        onChange={onYearChange}
+        placeholder="Yıl seçiniz"
+        error={errors.year}
+        searchable
+        searchPlaceholder="Yıl ara..."
+        primaryColor="#1565c0"
       />
     </View>
   );
