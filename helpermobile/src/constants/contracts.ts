@@ -8,9 +8,9 @@ export interface Contract {
 export const CONTRACTS: Contract[] = [
   {
     id: 'hizmet_araciligi',
-    title: 'YOL SEPETİ GO HİZMET ARACILIĞI SÖZLEŞMESİ',
+    title: 'YOL SEPETİGO HİZMET ARACILIĞI SÖZLEŞMESİ',
     icon: 'file-document-edit',
-    content: `YOL SEPETİ GO HİZMET ARACILIĞI SÖZLEŞMESİ
+    content: `YOL SEPETİGO HİZMET ARACILIĞI SÖZLEŞMESİ
 
 MADDE 1 – TARAFLAR
 İşbu sözleşme, Yol SepetiGO (yolsepetigo.com) Şirketi ile hizmet sağlayıcılar ve uygulamayı kullanan kullanıcılar arasında akdedilmiştir.
@@ -31,11 +31,11 @@ Platform yalnızca dijital aracılık hizmeti olup, hizmetin fiili ifasını üs
 MADDE 3 – SÖZLEŞMENİN NİTELİĞİ
 3.1. İşbu sözleşme, hukuki niteliği itibarıyla sui generis bir aracılık sözleşmesidir.
 
-3.2. Taraflar arasında (Yol SepetiGo ile Hizmet sağlayıcılar) işçi-işveren, temsil, acentelik, franchise veya ortaklık ilişkisi bulunmamaktadır.
+3.2. Taraflar arasında (Yol SepetiGO ile Hizmet sağlayıcılar) işçi-işveren, temsil, acentelik, franchise veya ortaklık ilişkisi bulunmamaktadır.
 
 3.3. Hizmet Sağlayıcı faaliyetlerini kendi nam ve hesabına yürütür.
 
-3.4. Platform (Yol SepetiGo), aracılık hizmetinin sürekliliğini sağlama teknik ve diğer yeniliklikler için tek taraflı olarak sözleşmeyi değiştirme hakkına sahiptir. Değişiklikler web sitesinde yayımlandığı anda yürürlüğe girer.
+3.4. Platform (Yol SepetiGO), aracılık hizmetinin sürekliliğini sağlama teknik ve diğer yeniliklikler için tek taraflı olarak sözleşmeyi değiştirme hakkına sahiptir. Değişiklikler web sitesinde yayımlandığı anda yürürlüğe girer.
 
 3.5. Doğal afet, savaş, teknik arıza, internet kesintisi gibi mücbir sebeplerden kaynaklanan hizmet aksaklıklarından platform (Yol SepetiGO) sorumlu tutulamaz.
 
@@ -72,7 +72,7 @@ Platform aracılığıyla sunulan hizmetlerden doğan her türlü vergi, resim, 
 
 4.6. Yol SepetiGO platformu kullanıcıya ve hizmet verene e-posta, sms veya bildirim gönderilebilir.
 
-4.7. Hizmet sağlayıcının faaliyetleri nedeniyle kullanıcılara veya üçüncü kişilere verilen zararlardan platform (Yol Sepeti Go) sorumlu tutulamaz.
+4.7. Hizmet sağlayıcının faaliyetleri nedeniyle kullanıcılara veya üçüncü kişilere verilen zararlardan platform (Yol SepetiGO) sorumlu tutulamaz.
 
 4.8. Uygulama kapsamında sunulan hizmetler çerçevesinde, hizmet sağlayıcı ile yolsepetigo.com kullanıcısı arasında tarafların karşılıklı anlaşması ile bir iş ilişkisi kurulmuş sayılır.
 
@@ -80,21 +80,21 @@ Hizmetin ifası amacıyla tarafların kararlaştırılan buluşma noktasında bi
 
 
 MADDE 5 – TAZMİN VE RÜCU
-5.1. Hizmetten kaynaklı olarak üçüncü kişiler tarafından Platform'a (Yol SepetiGo) yöneltilecek her türlü talep, dava ve başvuru bakımından Hizmet Sağlayıcı, Platform'u derhal tazmin etmeyi ve doğabilecek zararları karşılamayı kabul eder.
+5.1. Hizmetten kaynaklı olarak üçüncü kişiler tarafından Platform'a (Yol SepetiGO) yöneltilecek her türlü talep, dava ve başvuru bakımından Hizmet Sağlayıcı, Platform'u derhal tazmin etmeyi ve doğabilecek zararları karşılamayı kabul eder.
 
-5.2. Hizmet verenden kaynaklanan zararlardan ötürü Platform Yol Sepeti Go zarara uğraması halinde, hizmet verene rücu edilecektir.
+5.2. Hizmet verenden kaynaklanan zararlardan ötürü Platform Yol SepetiGO zarara uğraması halinde, hizmet verene rücu edilecektir.
 
 5.3. Taraflar platform üzerinden tanıştıktan sonra platformu devre dışı bırakarak doğrudan anlaşamaz. Aksine bir anlaşma söz konusu olduğu takdirde o iş yapılmış gibi ücret komisyonu her iki taraftan da alınır. Ve cezai şarta ilişkin hükümler uygulanır.
 
 
 MADDE 6 – SİGORTA YÜKÜMLÜLÜĞÜ
-6.1. Hizmet Sağlayıcı, faaliyet konusuna uygun mesleki sorumluluk sigortasını yaptırmak ve sözleşme süresince yürürlükte tutmakla yükümlüdür. Yol Sepeti Go bu sigortanın tarafı değildir.
+6.1. Hizmet Sağlayıcı, faaliyet konusuna uygun mesleki sorumluluk sigortasını yaptırmak ve sözleşme süresince yürürlükte tutmakla yükümlüdür. Yol SepetiGO bu sigortanın tarafı değildir.
 
-6.2. Platform olan Yol Sepeti Go Hizmet Verenler tarafından sunulan hizmetlerin kalitesi, güvenliği, hukuka uygunluğu veya beklentileri karşılayacağı konusunda üzerine düşen her türlü araştırmayı yapar, kayıt altına alır ve saklar ancak herhangi bir garanti vermez.
+6.2. Platform olan Yol SepetiGO, Hizmet Verenler tarafından sunulan hizmetlerin kalitesi, güvenliği, hukuka uygunluğu veya beklentileri karşılayacağı konusunda üzerine düşen her türlü araştırmayı yapar, kayıt altına alır ve saklar ancak herhangi bir garanti vermez.
 
 
 MADDE 7 – ÜCRET VE KOMİSYON
-7.1. Platform, uygulama üzerinden gerçekleşen her işlem için %30 oranında hizmet bedeli/komisyon alma hakkına sahiptir. Acenteler, Yol Sepeti Go uygulaması üzerinden hizmete dahil olursa %10 hizmet bedeli alınacaktır.
+7.1. Platform, uygulama üzerinden gerçekleşen her işlem için %30 oranında hizmet bedeli/komisyon alma hakkına sahiptir. Acenteler, Yol SepetiGO uygulaması üzerinden hizmete dahil olursa %10 hizmet bedeli alınacaktır.
 
 7.2. Taraflar platform üzerinden tanıştıktan sonra platformu devre dışı bırakarak doğrudan anlaşamaz. Aksine bir anlaşma söz konusu olduğu takdirde o iş yapılmış gibi ücret komisyonu her iki taraftan da alınır.
 
@@ -109,15 +109,15 @@ MADDE 7 – ÜCRET VE KOMİSYON
 
 MADDE 8 – BAĞIMSIZLIK
 8.1. Hizmet Sağlayıcının Bağımsızlığı ve Sorumluluğu
-Yol Sepeti Go uygulaması aracılığıyla faaliyet gösteren Hizmet Sağlayıcı; sunduğu hizmetleri tamamen kendi nam ve hesabına bağımsız bir şekilde yürüttüğünü kabul eder. Hizmet Sağlayıcı; kendi personelinden, kullandığı araç ve ekipmanlardan, faaliyetleri kapsamında doğabilecek zararlardan, vergi yükümlülüklerinden, sigorta primlerinden ve SGK dahil tüm yasal yükümlülüklerden münhasıran kendisinin sorumlu olduğunu kabul ve taahhüt eder.
-Hizmet Sağlayıcı ile platform işletmecisi Yol Sepeti Go arasında hiçbir şekilde işçi‑işveren ilişkisi, hizmet sözleşmesi, temsil, acentelik, adi ortaklık veya benzeri bir hukuki ilişki kurulmuş sayılmaz. Hizmet Sağlayıcı ve onun istihdam ettiği personel hiçbir surette Yol Sepeti Go'nun çalışanı olarak kabul edilemez.
+Yol SepetiGO uygulaması aracılığıyla faaliyet gösteren Hizmet Sağlayıcı; sunduğu hizmetleri tamamen kendi nam ve hesabına bağımsız bir şekilde yürüttüğünü kabul eder. Hizmet Sağlayıcı; kendi personelinden, kullandığı araç ve ekipmanlardan, faaliyetleri kapsamında doğabilecek zararlardan, vergi yükümlülüklerinden, sigorta primlerinden ve SGK dahil tüm yasal yükümlülüklerden münhasıran kendisinin sorumlu olduğunu kabul ve taahhüt eder.
+Hizmet Sağlayıcı ile platform işletmecisi Yol SepetiGO arasında hiçbir şekilde işçi‑işveren ilişkisi, hizmet sözleşmesi, temsil, acentelik, adi ortaklık veya benzeri bir hukuki ilişki kurulmuş sayılmaz. Hizmet Sağlayıcı ve onun istihdam ettiği personel hiçbir surette Yol Sepeti Go'nun çalışanı olarak kabul edilemez.
 Yol SepetiGO yalnızca kullanıcılar ile hizmet sağlayıcıları bir araya getiren dijital bir aracılık platformu olup, hizmetin ifasından ve hizmet sağlayıcının personelinden kaynaklanan hiçbir yükümlülükten sorumlu değildir.
 
 8.2. Hizmet sağlayıcı; işbu sözleşme kapsamında çalıştırdığı personelden, kullandığı ekipmanlardan ve faaliyetlerinden doğan vergi, sigorta primi, sosyal güvenlik yükümlülükleri ile diğer tüm yasal ve mali yükümlülüklerden münhasıran kendisinin sorumlu olduğunu, bu yükümlülükleri sözleşmenin yürürlükte bulunduğu süre boyunca eksiksiz şekilde yerine getireceğini kabul, beyan ve taahhüt eder. Bu yükümlülüklerin yerine getirilmemesinden doğabilecek her türlü sorumluluk hizmet sağlayıcıya ait olacaktır.
 
 8.3. Kullanıcı hesap ve şifre güvenliğinden kendisi sorumludur.
 
-8.4. Platform (Yol SepetiGo) gerekli gördüğünde kullanıcı hesabını askıya alabilir veya kapatabilir.
+8.4. Platform (Yol SepetiGO) gerekli gördüğünde kullanıcı hesabını askıya alabilir veya kapatabilir.
 
 8.5. Kullanıcıların platform dışında kurduğu iletişim ve anlaşmalardan platform hiçbir şekilde sorumlu değildir.
 
@@ -172,7 +172,7 @@ Kullanıcı veya Hizmet Sağlayıcı tarafından, platform üzerinden oluşturul
 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kişisel verileriniz; veri sorumlusu olarak YOL SEPETİ ("Platform") tarafından aşağıda açıklanan kapsamda işlenebilecektir.
 
 Veri Sorumlusu:
-YOL SEPETİ
+YOL SEPETİGO
 Adres: [Platform Adresi]
 E-posta: [E-posta Adresi]
 Telefon: [Telefon Numarası]
@@ -187,7 +187,7 @@ Kişisel verileriniz, Platform tarafından sunulan hizmetlerin ifası için aşa
 - Hesap güvenliğinin sağlanması
 
 2.2. Hizmet Sunumu
-- Çekici, vinç ve nakliye hizmetlerinin koordinasyonu
+- Çekici, vinç, nakliye, yol yardım, servis, vip transfer hizmetlerinin koordinasyonu
 - Müşteri talepleriyle eşleştirme işlemlerinin yapılması
 - Hizmet kalitesinin ölçülmesi ve geliştirilmesi
 
