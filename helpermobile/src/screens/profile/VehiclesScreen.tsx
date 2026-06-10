@@ -346,14 +346,16 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <Button
-                          mode="text"
-                          icon="pencil"
-                          compact
-                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: truck.id, vehicleType: 'tow' })}
-                        >
-                          Düzenle
-                        </Button>
+                        {truck.verificationStatus !== 'approved' && (
+                          <Button
+                            mode="text"
+                            icon="pencil"
+                            compact
+                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: truck.id, vehicleType: 'tow' })}
+                          >
+                            Düzenle
+                          </Button>
+                        )}
                         <IconButton
                           icon="delete"
                           size={20}
@@ -402,14 +404,16 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <Button
-                          mode="text"
-                          icon="pencil"
-                          compact
-                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: crane.id, vehicleType: 'crane' })}
-                        >
-                          Düzenle
-                        </Button>
+                        {crane.verificationStatus !== 'approved' && (
+                          <Button
+                            mode="text"
+                            icon="pencil"
+                            compact
+                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: crane.id, vehicleType: 'crane' })}
+                          >
+                            Düzenle
+                          </Button>
+                        )}
                         <IconButton
                           icon="delete"
                           size={20}
@@ -538,14 +542,16 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <Button
-                          mode="text"
-                          icon="pencil"
-                          compact
-                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'homeMoving' })}
-                        >
-                          Düzenle
-                        </Button>
+                        {vehicle.verificationStatus !== 'approved' && (
+                          <Button
+                            mode="text"
+                            icon="pencil"
+                            compact
+                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'homeMoving' })}
+                          >
+                            Düzenle
+                          </Button>
+                        )}
                         <IconButton
                           icon="delete"
                           size={20}
@@ -611,14 +617,16 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <Button
-                          mode="text"
-                          icon="pencil"
-                          compact
-                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: service.id, vehicleType: 'roadAssistance' })}
-                        >
-                          Düzenle
-                        </Button>
+                        {service.verificationStatus !== 'approved' && (
+                          <Button
+                            mode="text"
+                            icon="pencil"
+                            compact
+                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: service.id, vehicleType: 'roadAssistance' })}
+                          >
+                            Düzenle
+                          </Button>
+                        )}
                         <IconButton
                           icon="delete"
                           size={20}
@@ -677,14 +685,16 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <Button
-                          mode="text"
-                          icon="pencil"
-                          compact
-                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'transfer' })}
-                        >
-                          Düzenle
-                        </Button>
+                        {vehicle.verificationStatus !== 'approved' && (
+                          <Button
+                            mode="text"
+                            icon="pencil"
+                            compact
+                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'transfer' })}
+                          >
+                            Düzenle
+                          </Button>
+                        )}
                         <IconButton
                           icon="delete"
                           size={20}
