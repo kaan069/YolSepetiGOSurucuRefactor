@@ -427,6 +427,7 @@ export default function VehiclesScreen({ navigation }: Props) {
                   </Card.Content>
                 </Card>
               ))
+              
             ) : (
               <Text style={styles.emptyText}>Kayıtlı vinç aracınız bulunmuyor.</Text>
             )}
