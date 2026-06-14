@@ -5,6 +5,8 @@ import { View, StyleSheet } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { maskAddressToArea } from '../utils/addressMask';
+import { useDriverStore } from '../store/driverStore';
+import { calculateDistance } from '../screens/jobDetail/utils';
 import type { ServiceGroup } from '../constants/serviceTypes';
 import type { OrderStatus } from '../lib/types';
 
@@ -151,6 +153,7 @@ function getStatusInfo(status: OrderStatus, isDarkMode: boolean) {
 
 export default function OrderCard({ item, onPress }: Props) {
   const { isDarkMode, appColors, cardBg } = useAppTheme();
+  const currentLocation = useDriverStore((s) => s.currentLocation);
 
   const shouldShowFullAddress = item.status === 'in_progress' || item.status === 'completed';
   const fromMasked = shouldShowFullAddress
@@ -159,7 +162,14 @@ export default function OrderCard({ item, onPress }: Props) {
   const toMasked = shouldShowFullAddress
     ? (item.to.address || 'Adres belirtilmemiş')
     : maskAddressToArea(item.to.address);
-  const sameLocation = fromMasked === toMasked;
+  // Lat/lng ile karşılaştırma — maskeli adres aynı ilçede olsa bile gerçek
+  // koordinatlar farklı olabilir (nakliye: aynı il, farklı mahalleler).
+  // Vinç/yol yardımı backend tarafında pickup=dropoff aynı yazıldığı için burada eşit çıkar.
+  const sameLocation =
+    typeof item.from.lat === 'number' &&
+    typeof item.to.lat === 'number' &&
+    item.from.lat === item.to.lat &&
+    item.from.lng === item.to.lng;
 
   const fromSplit = splitMaskedAddress(fromMasked);
   const toSplit = splitMaskedAddress(toMasked);
@@ -169,6 +179,26 @@ export default function OrderCard({ item, onPress }: Props) {
   const showDistance = typeof item.distance === 'number' && item.distance > 0;
   const showPrice = typeof item.estimatedPrice === 'number' && item.estimatedPrice > 0;
   const serviceIcon = getServiceIcon(item.serviceType);
+
+  // Sürücünün anlık konumundan müşterinin pickup noktasına haversine mesafesi.
+  // currentLocation null veya from koordinatları yoksa null döner; null'da satır gizlenir.
+  const distanceToCustomer =
+    currentLocation &&
+    typeof item.from.lat === 'number' &&
+    typeof item.from.lng === 'number'
+      ? calculateDistance(
+          currentLocation.coords.latitude,
+          currentLocation.coords.longitude,
+          item.from.lat,
+          item.from.lng,
+        )
+      : null;
+  // in_progress / completed durumda zaten sürücü yolda — bilgi anlamsızlaşır.
+  const showDistanceToCustomer =
+    distanceToCustomer !== null &&
+    (item.status === 'pending' ||
+      item.status === 'awaiting_approval' ||
+      item.status === 'awaiting_payment');
 
   const subtleBg = isDarkMode ? '#1f2a29' : '#F5F8F8';
   const dividerColor = isDarkMode ? '#2a3a38' : '#E5EEED';
@@ -329,6 +359,26 @@ export default function OrderCard({ item, onPress }: Props) {
             <Text style={[styles.priceLabel, { color: labelColor }]}>Tahmini Fiyat</Text>
             <Text style={[styles.priceValue, { color: valueColor }]}>
               ₺{Number(item.estimatedPrice).toLocaleString('tr-TR')}
+            </Text>
+          </View>
+        )}
+
+        {/* Müşteriye uzaklık (sürücünün konumu → pickup noktası) */}
+        {showDistanceToCustomer && (
+          <View
+            style={[
+              styles.distanceBanner,
+              {
+                backgroundColor: isDarkMode ? '#0d2624' : '#E0F2F1',
+                borderColor: PRIMARY_TEAL,
+              },
+            ]}
+          >
+            <MaterialCommunityIcons name="map-marker-radius" size={16} color={PRIMARY_TEAL} />
+            <Text style={[styles.distanceText, { color: valueColor }]}>
+              Müşteriye{' '}
+              <Text style={styles.distanceValue}>{distanceToCustomer} km</Text>
+              {' '}uzaktasınız
             </Text>
           </View>
         )}
@@ -501,6 +551,24 @@ const styles = StyleSheet.create({
   priceValue: {
     fontSize: 15,
     fontWeight: '700',
+  },
+  distanceBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 10,
+    gap: 8,
+  },
+  distanceText: {
+    fontSize: 13,
+    flex: 1,
+  },
+  distanceValue: {
+    fontWeight: '700',
+    color: '#26a69a',
   },
   descriptionBanner: {
     flexDirection: 'row',
