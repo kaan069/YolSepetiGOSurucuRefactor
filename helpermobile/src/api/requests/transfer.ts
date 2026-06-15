@@ -10,6 +10,7 @@ import type {
   TransferActionResponse,
 } from '../types';
 import { logOrdersError } from './_helpers';
+import { logger } from '../../utils/logger';
 
 class TransferAPI {
   // Bekleyen transfer taleplerini getir
@@ -43,6 +44,15 @@ class TransferAPI {
       const myAwaitingRequests = myAwaitingResponse.data.results;
       const myAwaitingIds = new Set(myAwaitingRequests.map(r => r.id));
       const availableRequests = availableStatusRequests.filter(r => !myAwaitingIds.has(r.id));
+
+      logger.info('orders', '[diagnostic] getAvailableTransferRequests', {
+        allDetailsCount: allDetails.length,
+        pendingOrAwaitingCount: availableStatusRequests.length,
+        myAwaitingIdsCount: myAwaitingIds.size,
+        returnedCount: availableRequests.length,
+        pendingIds: availableStatusRequests.filter(r => r.status === 'pending').map(r => r.id),
+        myAwaitingIds: Array.from(myAwaitingIds),
+      });
 
       return availableRequests;
     } catch (error) {
