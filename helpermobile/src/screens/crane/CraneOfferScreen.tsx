@@ -9,6 +9,8 @@ import { ensureForegroundPermission } from '../../utils/locationPermission';
 import { RootStackParamList } from '../../navigation';
 import { requestsAPI, CraneRequest, CraneListItem, vehiclesAPI, documentsAPI } from '../../api';
 import { useNotificationStore } from '../../store/useNotificationStore';
+import { useDevOverrideStore } from '../../store/useDevOverrideStore';
+import { validateOfferPrice } from '../../utils/offerValidation';
 import AppBar from '../../components/common/AppBar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import {
@@ -31,6 +33,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CraneOffer'>;
 export default function CraneOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
   const { showNotification } = useNotificationStore();
+  const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
 
   // State
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
@@ -171,8 +174,9 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
       showNotification('warning', 'Mesafe hesaplanamadı');
       return;
     }
-    if (!offerPrice || parseFloat(offerPrice) <= 0) {
-      showNotification('warning', 'Lütfen geçerli bir fiyat teklifi girin');
+    const priceCheck = validateOfferPrice(offerPrice, minOfferOverride);
+    if (!priceCheck.valid) {
+      showNotification('warning', priceCheck.error!);
       return;
     }
 

@@ -9,6 +9,8 @@ import { ensureForegroundPermission } from '../../utils/locationPermission';
 import { RootStackParamList } from '../../navigation';
 import { requestsAPI, documentsAPI } from '../../api';
 import { useNotificationStore } from '../../store/useNotificationStore';
+import { useDevOverrideStore } from '../../store/useDevOverrideStore';
+import { validateOfferPrice } from '../../utils/offerValidation';
 import { AppBar, VehicleSelector } from '../../components/common';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { LocationCard, ProblemDetailsCard, PriceOfferCard } from './components';
@@ -27,6 +29,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'RoadAssistanceOffer'>;
 export default function RoadAssistanceOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
   const { showNotification } = useNotificationStore();
+  const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
   const { screenBg, appColors } = useAppTheme();
 
   // Araç seçimi hook
@@ -142,8 +145,9 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
       logger.error('orders', 'Profil kontrol hatas');
     }
 
-    if (!proposedPrice || parseInt(proposedPrice) <= 0) {
-      setPriceError('Lütfen geçerli bir fiyat girin.');
+    const priceCheck = validateOfferPrice(proposedPrice, minOfferOverride);
+    if (!priceCheck.valid) {
+      setPriceError(priceCheck.error!);
       return;
     }
 

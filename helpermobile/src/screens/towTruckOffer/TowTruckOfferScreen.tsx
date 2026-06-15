@@ -38,6 +38,8 @@ import { requestsAPI, documentsAPI } from '../../api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import { useEmployeeStore } from '../../store/useEmployeeStore';
+import { useDevOverrideStore } from '../../store/useDevOverrideStore';
+import { validateOfferPrice } from '../../utils/offerValidation';
 import AppBar from '../../components/common/AppBar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -71,6 +73,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TowTruckOffer'>;
 export default function TowTruckOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
   const { showNotification } = useNotificationStore();
+  const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
   const { screenBg, appColors, cardBg, isDarkMode } = useAppTheme();
 
   // Hooks
@@ -236,11 +239,12 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
       return;
     }
 
-    const parsedPrice = parseFloat(proposedPrice);
-    if (!proposedPrice || isNaN(parsedPrice) || parsedPrice <= 0) {
-      Alert.alert('Hata', 'Lütfen geçerli bir fiyat girin.');
+    const priceCheck = validateOfferPrice(proposedPrice, minOfferOverride);
+    if (!priceCheck.valid) {
+      Alert.alert('Hata', priceCheck.error!);
       return;
     }
+    const parsedPrice = priceCheck.price!;
 
     // Onay dialogu
     Alert.alert(

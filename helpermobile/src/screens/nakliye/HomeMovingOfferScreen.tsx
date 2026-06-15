@@ -10,6 +10,8 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { RootStackParamList } from '../../navigation';
 import { requestsAPI } from '../../api';
 import { useNotificationStore } from '../../store/useNotificationStore';
+import { useDevOverrideStore } from '../../store/useDevOverrideStore';
+import { validateOfferPrice } from '../../utils/offerValidation';
 import AppBar from '../../components/common/AppBar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import {
@@ -31,6 +33,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'HomeMovingOffer'>;
 export default function HomeMovingOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
   const { showNotification } = useNotificationStore();
+  const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
 
   // Araç seçimi hook
   const {
@@ -151,11 +154,12 @@ export default function HomeMovingOfferScreen({ route, navigation }: Props) {
   const handleSubmitOffer = async () => {
     if (!request) return;
 
-    const price = parseInt(proposedPrice);
-    if (!price || price <= 0) {
-      setPriceError('Lütfen geçerli bir fiyat girin.');
+    const priceCheck = validateOfferPrice(proposedPrice, minOfferOverride);
+    if (!priceCheck.valid) {
+      setPriceError(priceCheck.error!);
       return;
     }
+    const price = Math.round(priceCheck.price!);
 
     // Araç kontrolü
     if (!selectedVehicleId) {

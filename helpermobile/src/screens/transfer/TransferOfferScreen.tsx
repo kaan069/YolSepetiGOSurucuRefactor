@@ -20,6 +20,8 @@ import { RootStackParamList } from '../../navigation';
 import { requestsAPI, vehiclesAPI, documentsAPI, TransferRequest, TransferListItem } from '../../api';
 import { ProviderType } from '../../api/types';
 import { useNotificationStore } from '../../store/useNotificationStore';
+import { useDevOverrideStore } from '../../store/useDevOverrideStore';
+import { validateOfferPrice } from '../../utils/offerValidation';
 import { useEmployeeStore } from '../../store/useEmployeeStore';
 import AppBar from '../../components/common/AppBar';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -61,6 +63,7 @@ const VEHICLE_PREFERENCE_LABELS: Record<string, string> = {
 export default function TransferOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
   const { showNotification } = useNotificationStore();
+  const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
   const { isDarkMode, appColors, cardBg, screenBg } = useAppTheme();
 
   // State
@@ -208,8 +211,9 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
       showNotification('warning', 'Lutfen bir arac secin');
       return;
     }
-    if (!offerPrice || parseFloat(offerPrice) <= 0) {
-      showNotification('warning', 'Lutfen gecerli bir fiyat teklifi girin');
+    const priceCheck = validateOfferPrice(offerPrice, minOfferOverride);
+    if (!priceCheck.valid) {
+      showNotification('warning', priceCheck.error!);
       return;
     }
 

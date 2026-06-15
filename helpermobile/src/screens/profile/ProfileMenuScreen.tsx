@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Animated, ScrollView, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Alert, Animated, ScrollView, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
+import { useDevOverrideStore } from '../../store/useDevOverrideStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card, Text, ProgressBar, Chip } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -41,6 +42,31 @@ export default function ProfileMenuScreen({ navigation }: Props) {
   const [loadingCompleteness, setLoadingCompleteness] = useState(true);
   const [userProviderType, setUserProviderType] = useState<ProviderType | null>(null);
   const [invitedCount, setInvitedCount] = useState<number>(0);
+
+  // Gizli geliştirici override toggle: logoya 2sn içinde arka arkaya 10 tap
+  // ile teklif min limiti 1 TL'ye düşer (veya kapanır). UX gözle görünür
+  // gösterge yok — kullanıcı 10. tap'ta Alert ile haberdar edilir.
+  const tapCountRef = useRef(0);
+  const lastTapRef = useRef(0);
+  const toggleOverride = useDevOverrideStore((s) => s.toggleMinOfferOverride);
+  const overrideActive = useDevOverrideStore((s) => s.minOfferOverride);
+
+  const handleLogoPress = () => {
+    const now = Date.now();
+    if (now - lastTapRef.current > 3000) tapCountRef.current = 0;
+    lastTapRef.current = now;
+    tapCountRef.current += 1;
+    if (tapCountRef.current >= 10) {
+      tapCountRef.current = 0;
+      toggleOverride();
+      Alert.alert(
+        'Geliştirici Modu',
+        overrideActive
+          ? 'Geliştirici modu kapatıldı. Minimum teklif 1.000 TL.'
+          : 'Geliştirici modu açıldı. Minimum teklif 1 TL.'
+      );
+    }
+  };
 
   const loadProfileCompleteness = async () => {
     setLoadingCompleteness(true);
@@ -254,7 +280,11 @@ export default function ProfileMenuScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={dynamicStyles.container} edges={["bottom"]}>
       <ScrollView style={dynamicStyles.content}>
-        <View style={{ alignItems: 'center', marginBottom: spacing.md, marginTop: spacing.xl }}>
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={handleLogoPress}
+          style={{ alignItems: 'center', marginBottom: spacing.md, marginTop: spacing.xl }}
+        >
           <View style={{
             width: moderateScale(70),
             height: moderateScale(70),
@@ -278,7 +308,7 @@ export default function ProfileMenuScreen({ navigation }: Props) {
               resizeMode="contain"
             />
           </View>
-        </View>
+        </TouchableOpacity>
         <Text variant="headlineSmall" style={dynamicStyles.header}>
           Profil
         </Text>
