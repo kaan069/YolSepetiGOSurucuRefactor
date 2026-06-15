@@ -1,5 +1,7 @@
 # Backend Görev: Bildirim Payload'ında `service_type` Alanı
 
+Selam Dalyarak Bey,
+
 ## Bağlam
 
 Sürücü mobil uygulaması bildirim/banner ile sürücüyü ilgili iş detayına yönlendiriyor (yeni talep, onay sonucu, ödeme tamamlanma vb.). Yönlendirme için frontend, payload'taki iş ID'sine göre **doğru servisin** detail endpoint'ini çağırması gerekir:

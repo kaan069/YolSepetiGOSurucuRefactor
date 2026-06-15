@@ -1,5 +1,7 @@
 # Backend Görev: Admin Manuel Status Değişimi — Sürücü Atama Temizliği (Transition Logic)
 
+Selam Dalyarak Bey,
+
 ## Bağlam
 
 Admin panelden bir işin status'u manuel olarak değiştirildiğinde, sürücü mobil uygulamasında **status'a göre asimetrik davranış** gözlemleniyor:
