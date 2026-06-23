@@ -50,6 +50,7 @@ import {
   VehicleInfoSection,
   VehicleStatusSection,
   ExtraEquipmentSection,
+  DescriptionSection,
   AcceptButton,
   LoadingOverlay,
 } from './components';
@@ -401,6 +402,9 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         />
 
         <PhotosSection photos={towTruckRequest.photos} />
+
+        {/* Ek Bilgiler — müşterinin eklediği not (sadece doluysa görünür) */}
+        <DescriptionSection description={towTruckRequest.description} />
 
        {/* Araç Bilgileri */}
         <VehicleInfoSection vehicleType={towTruckRequest.vehicle_type} />

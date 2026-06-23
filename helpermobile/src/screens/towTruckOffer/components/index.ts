@@ -10,6 +10,7 @@ export { default as CustomerInfoSection } from './CustomerInfoSection';
 export { default as DistanceEarningsSection } from './DistanceEarningsSection';
 export { default as VehicleInfoSection } from './VehicleInfoSection';
 export { default as VehicleStatusSection } from './VehicleStatusSection';
+export { default as DescriptionSection } from './DescriptionSection';
 export { default as ExtraEquipmentSection } from './ExtraEquipmentSection';
 export { default as AcceptButton } from './AcceptButton';
 export { default as LoadingOverlay } from './LoadingOverlay';

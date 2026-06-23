@@ -439,6 +439,7 @@ export interface TowTruckRequestDetail {
     request_owner_phone?: string;    // DEPRECATED: Talep sahibinin telefon numarası (eski format)
     request_owner_name?: string;     // DEPRECATED: Talep sahibinin adı (eski format)
     photos?: RequestPhoto[];         // Müşterinin yüklediği fotoğraflar
+    description?: string;            // Müşterinin eklediği Ek Bilgiler / açıklama (opsiyonel)
     created_at: string;              // Oluşturulma zamanı
     updated_at: string;              // Güncellenme zamanı
 }
