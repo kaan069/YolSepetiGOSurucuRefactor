@@ -141,7 +141,7 @@ export default function CustomerPaymentWaitingCard({
           </View>
         </View>
 
-        <View style={styles.paymentOption}>
+        {/* <View style={styles.paymentOption}>
           <View style={styles.paymentOptionIcon}>
             <MaterialCommunityIcons name="contactless-payment" size={20} color="#26a69a" />
           </View>
@@ -159,7 +159,7 @@ export default function CustomerPaymentWaitingCard({
             <Text style={styles.paymentOptionLabel}>Araçta QR Ödeme</Text>
             <Text style={styles.paymentOptionDesc}>QR kod okutarak ödeme</Text>
           </View>
-        </View>
+        </View> */}
       </View>
 
       {/* Bilgi Notu */}

@@ -8,6 +8,8 @@ import { useRegistrationDataStore, ServiceType } from '../../store/useRegistrati
 import { useAuthStore } from '../../store/authStore';
 import { vehiclesAPI } from '../../api';
 import AppBar from '../../components/common/AppBar';
+import { SelectDropdown } from '../../components/common';
+import { TRANSPORT_VEHICLE_BRANDS, getVehicleYears, getModelsByBrand } from '../../data/vehicleData';
 
 import {
   AddedServiceCard,
@@ -15,6 +17,8 @@ import {
   VehiclePhotoSection,
 } from './components';
 import { logger } from '../../utils/logger';
+
+const PLATE_REGEX = /^[0-9]{2}[A-Z]{1,3}[0-9]{2,4}$/;
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RoadAssistanceDetails'>;
 
@@ -64,13 +68,24 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
     }
   };
 
+  const brandOptions = TRANSPORT_VEHICLE_BRANDS.map(b => ({ value: b.value, label: b.label }));
+  const availableModels = vehicleForm.brand ? getModelsByBrand(vehicleForm.brand, 'transport') : [];
+  const modelOptions = availableModels.map(m => ({ value: m, label: m }));
+  const yearOptions = getVehicleYears().map(y => ({ value: y.toString(), label: y.toString() }));
+
   const validateService = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    // Araç bilgileri validasyonu
-    if (!vehicleForm.plate.trim()) newErrors.plate = 'Plaka gerekli';
+    const plate = vehicleForm.plate.trim().toUpperCase().replace(/\s/g, '');
+    if (!plate) {
+      newErrors.plate = 'Plaka gerekli';
+    } else if (!PLATE_REGEX.test(plate)) {
+      newErrors.plate = 'Geçerli bir plaka giriniz (örn. 34ABC1234)';
+    }
+
     if (!vehicleForm.brand.trim()) newErrors.brand = 'Marka gerekli';
     if (!vehicleForm.model.trim()) newErrors.model = 'Model gerekli';
+    if (!vehicleForm.year.trim()) newErrors.year = 'Yıl gerekli';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -247,40 +262,56 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
             <TextInput
               label="Plaka *"
               value={vehicleForm.plate}
-              onChangeText={updateVehicleField('plate')}
+              onChangeText={(v) => updateVehicleField('plate')(v.replace(/\s/g, '').toUpperCase())}
               style={styles.input}
               error={!!errors.plate}
               autoCapitalize="characters"
+              maxLength={9}
+              placeholder="34ABC1234"
             />
             {errors.plate && <Text style={styles.errorText}>{errors.plate}</Text>}
 
-            <View style={styles.row}>
-              <TextInput
-                label="Marka *"
-                value={vehicleForm.brand}
-                onChangeText={updateVehicleField('brand')}
-                style={[styles.input, styles.halfInput]}
-                error={!!errors.brand}
-              />
-              <TextInput
-                label="Model *"
-                value={vehicleForm.model}
-                onChangeText={updateVehicleField('model')}
-                style={[styles.input, styles.halfInput]}
-                error={!!errors.model}
-              />
-            </View>
-            {(errors.brand || errors.model) && (
-              <Text style={styles.errorText}>{errors.brand || errors.model}</Text>
-            )}
+            <SelectDropdown
+              label="Marka"
+              value={vehicleForm.brand}
+              options={brandOptions}
+              onChange={(value) => {
+                updateVehicleField('brand')(value);
+                if (vehicleForm.model) updateVehicleField('model')('');
+              }}
+              placeholder="Marka seçiniz"
+              error={errors.brand}
+              searchable
+              searchPlaceholder="Marka ara..."
+              required
+              primaryColor="#26a69a"
+            />
 
-            <TextInput
+            <SelectDropdown
+              label="Model"
+              value={vehicleForm.model}
+              options={modelOptions}
+              onChange={updateVehicleField('model')}
+              placeholder={vehicleForm.brand ? 'Model seçiniz' : 'Önce marka seçiniz'}
+              disabled={!vehicleForm.brand}
+              error={errors.model}
+              searchable
+              searchPlaceholder="Model ara..."
+              required
+              primaryColor="#26a69a"
+            />
+
+            <SelectDropdown
               label="Yıl"
               value={vehicleForm.year}
-              onChangeText={updateVehicleField('year')}
-              style={styles.input}
-              keyboardType="numeric"
-              maxLength={4}
+              options={yearOptions}
+              onChange={updateVehicleField('year')}
+              placeholder="Yıl seçiniz"
+              error={errors.year}
+              searchable
+              searchPlaceholder="Yıl ara..."
+              required
+              primaryColor="#26a69a"
             />
 
             <VehiclePhotoSection
@@ -396,13 +427,6 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 12,
     backgroundColor: 'white',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  halfInput: {
-    flex: 1,
   },
   errorText: {
     color: '#B00020',
