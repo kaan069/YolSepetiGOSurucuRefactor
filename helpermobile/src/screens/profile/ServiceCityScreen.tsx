@@ -5,15 +5,16 @@
  * `service_cities` boş listeyse hiçbir talep listede görünmez ve FCM
  * bildirimi gelmez. Çoklu seçim, limit yok (81 ile sınırlı).
  *
- * UI özellikleri:
- *  - Seçili şehirler kapatılabilir chip olarak gösterilir
- *  - Tüm Şehirleri Seç / Tümünü Temizle hızlı butonları
- *  - 7 coğrafi bölge chip'i (Marmara, Ege, Akdeniz, İç Anadolu, Karadeniz,
- *    Doğu Anadolu, Güneydoğu Anadolu) — tek dokunuşla bölgenin tamamını
- *    ekler/çıkarır
- *  - "Şehir Ekle" modal'ı ile teker teker seçim
+ * Tasarım — tek ekranda bölge accordion + canlı arama:
+ *  - Üstte sayaç + ilerleme çubuğu, "Tümünü Seç / Temizle" hızlı eylemleri
+ *  - Canlı arama: yazınca eşleşen bölgeler otomatik açılır, diğerleri gizlenir
+ *  - 7 coğrafi bölge aç-kapa (accordion); bölge başında "hepsini seç/kaldır",
+ *    içinde şehirler tek tek işaretlenir (checkbox)
+ *  - Altta sabit kaydetme çubuğu (seçili sayısı + auto-save durumu)
  *
  * Kaydetme: Backend PATCH her seferinde TÜM listeyi alır — incremental yok.
+ * Şehir kimliği `foldTr` ile karşılaştırılır (backend Türkçe→ASCII normalize
+ * ettiği için exact-string yerine folded key kullanılır).
  */
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
@@ -24,11 +25,12 @@ import {
   Alert,
   ActivityIndicator,
   View,
-  Modal,
   TouchableOpacity,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, IconButton, Searchbar, Chip } from 'react-native-paper';
+import { Button, Card, Text, Searchbar, ProgressBar } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
@@ -36,19 +38,38 @@ import { useAuthStore } from '../../store/authStore';
 import authAPI from '../../api/auth';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import { useResponsive } from '../../hooks/useResponsive';
 import { getCityNames, TURKEY_REGIONS } from '../../data/turkeyLocations';
 import { logger } from '../../utils/logger';
 import { foldTr, sameCitySet } from '../../utils/turkishText';
+
+// Android'de LayoutAnimation'ı etkinleştir (bölge aç-kapa animasyonu için)
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ServiceCity'>;
 
 export default function ServiceCityScreen({ navigation }: Props) {
   const { screenBg, cardBg, isDarkMode, appColors } = useAppTheme();
+  const { spacing } = useResponsive();
   const { setCurrentUser } = useAuthStore();
+
+  // Tema renk kısayolları — hardcode hex yerine token
+  const primary = appColors.primary[400];
+  const success = appColors.success;
+  const warning = appColors.warning;
+  const danger = appColors.error;
+  const textSec = appColors.text.secondary;
+  const textPri = appColors.text.primary;
+  const divider = isDarkMode ? '#333' : '#eee';
 
   const [serviceCities, setServiceCities] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [search, setSearch] = useState('');
+  // Açık bölgeler (region.name) — başlangıçta hepsi kapalı
+  const [expandedRegions, setExpandedRegions] = useState<Set<string>>(new Set());
 
   // Auto-save için ref'ler — debounce timer, ilk-yükleme bayrağı, son kaydedilen liste
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -58,15 +79,10 @@ export default function ServiceCityScreen({ navigation }: Props) {
   // En güncel serviceCities'i ref'te de tut — unmount flush için
   const latestCitiesRef = useRef<string[]>([]);
 
-  // Modal (şehir ekleme) state
-  const [modalVisible, setModalVisible] = useState(false);
-  const [search, setSearch] = useState('');
   const allCities = useMemo(() => getCityNames(), []);
   const totalCityCount = allCities.length;
 
   // folded key → canonical görünen ad ("istanbul" → "İstanbul").
-  // 81 şehrin statik listesinden türetilir; backend folded form döndürdüğünde
-  // çipleri/karşılaştırmaları canonical isimle eşlemek için kullanılır.
   const keyToDisplay = useMemo(() => {
     const m = new Map<string, string>();
     for (const c of allCities) m.set(foldTr(c), c);
@@ -79,14 +95,9 @@ export default function ServiceCityScreen({ navigation }: Props) {
     () => new Set(serviceCities.map(foldTr)),
     [serviceCities]
   );
-
-  const filteredCities = search
-    ? allCities.filter(c => foldTr(c).includes(foldTr(search)))
-    : allCities;
+  const selectedCount = selectedKeys.size;
 
   // Mevcut hizmet şehirlerini backend'den çek. Boşsa iş ilini default olarak öner.
-  // İlk yüklemede backend'den dönen liste lastSavedRef'e yazılır — auto-save sadece
-  // kullanıcı manuel bir değişiklik yaptığında çalışsın.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -102,27 +113,20 @@ export default function ServiceCityScreen({ navigation }: Props) {
           initial = existing;
         } else if (user.business_address_il) {
           // İlk kez giriş — iş adresinin ilini başlangıç önerisi olarak ekle.
-          // Backend'e de hemen yazılmış sayılır mı? HAYIR — bu sadece UI önerisi;
-          // kullanıcı onaylayana (başka değişiklik yapana) kadar backend'de kayıtlı değil.
-          // lastSavedRef boş listeyle başlasın ki bu öneri auto-save tetiklesin.
           initial = [user.business_address_il];
         } else {
           initial = [];
         }
 
         setServiceCities(initial);
-        // lastSavedRef = backend'den ne döndüyse o
         lastSavedRef.current = existing;
         latestCitiesRef.current = initial;
 
-        // İlk render'da gerçekten değişiklik varsa (default öneri) auto-save çalışsın.
         // sameCitySet: canonical öneri ("İstanbul") ile backend'in folded formu
         // ("istanbul") eşit sayılır → reload'da spurious save tetiklenmez.
         if (sameCitySet(initial, existing)) {
-          // Hiçbir değişiklik yok — auto-save tetiklenmemeli
           isFirstLoadRef.current = true;
         } else {
-          // Default öneri eklendi — auto-save akışına bırak
           isFirstLoadRef.current = false;
         }
       } catch {
@@ -137,18 +141,15 @@ export default function ServiceCityScreen({ navigation }: Props) {
   }, []);
 
   // Auto-save: kullanıcı her değişiklikte 600ms sonra backend'e PATCH gönderilir.
-  // Hızlı ardışık tıklamalarda timer reset olur — yalnızca son state kaydedilir.
   useEffect(() => {
     latestCitiesRef.current = serviceCities;
 
-    // İlk yükleme (backend'den geldiği gibi) durumunda save tetiklenmesin
     if (isFirstLoadRef.current) {
       isFirstLoadRef.current = false;
       return;
     }
 
-    // Değişiklik yoksa save atma (aynı listenin gönderilmesi gereksiz API çağrısı).
-    // sameCitySet biçim-bağımsız: yalnızca gerçek ekle/çıkar PATCH tetikler.
+    // Değişiklik yoksa save atma. sameCitySet biçim-bağımsız.
     if (sameCitySet(serviceCities, lastSavedRef.current)) {
       return;
     }
@@ -166,8 +167,7 @@ export default function ServiceCityScreen({ navigation }: Props) {
     };
   }, [serviceCities]);
 
-  // Unmount sırasında pending bir save varsa hemen gönder — kullanıcı geri tuşuna
-  // 600ms içinde basarsa son değişiklik kaybolmasın.
+  // Unmount sırasında pending bir save varsa hemen gönder.
   useEffect(() => {
     return () => {
       if (statusTimeoutRef.current) {
@@ -178,7 +178,6 @@ export default function ServiceCityScreen({ navigation }: Props) {
         saveTimeoutRef.current = null;
         const pending = latestCitiesRef.current;
         if (!sameCitySet(pending, lastSavedRef.current)) {
-          // Fire and forget — promise sonucunu beklemiyoruz; ekran kapanıyor
           authAPI.updateProfile({ service_cities: pending }).catch(() => {
             logger.warn('general', 'ServiceCityScreen.flushOnUnmount failed');
           });
@@ -188,7 +187,6 @@ export default function ServiceCityScreen({ navigation }: Props) {
   }, []);
 
   const performSave = async (cities: string[]) => {
-    // Kaydedilen ile aynıysa atla (race condition önlemi)
     if (sameCitySet(cities, lastSavedRef.current)) return;
     try {
       setSaveStatus('saving');
@@ -200,7 +198,6 @@ export default function ServiceCityScreen({ navigation }: Props) {
       }
       lastSavedRef.current = cities;
       setSaveStatus('saved');
-      // 1.8s sonra "Kaydedildi" göstergesi sönsün
       if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
       statusTimeoutRef.current = setTimeout(() => setSaveStatus('idle'), 1800);
     } catch (err: any) {
@@ -208,30 +205,20 @@ export default function ServiceCityScreen({ navigation }: Props) {
       setSaveStatus('error');
       // Local state'i son başarılı kayda geri al — UI ile backend tutarsız kalmasın
       setServiceCities(lastSavedRef.current);
-      // Hata göstergesi 3s sonra söner; kullanıcı tekrar dener
       if (statusTimeoutRef.current) clearTimeout(statusTimeoutRef.current);
       statusTimeoutRef.current = setTimeout(() => setSaveStatus('idle'), 3000);
     }
   };
 
-  const handleAddCity = (city: string) => {
-    // Folded key ile dedupe — reload sonrası listede folded "istanbul" varken
-    // canonical "İstanbul" eklenmesini engeller.
-    if (selectedKeys.has(foldTr(city))) {
-      setModalVisible(false);
-      setSearch('');
-      return;
-    }
-    // city her zaman allCities'ten (canonical) gelir → canonical eklenir.
-    setServiceCities(prev => [...prev, city]);
-    setSearch('');
-    setModalVisible(false);
-  };
-
-  const handleRemoveCity = (city: string) => {
-    // Folded key ile çıkar — depo değeri canonical ya da folded olabilir, fark etmez.
+  // Tek bir şehri aç/kapa — folded key ile üyelik testi.
+  const handleToggleCity = (city: string) => {
     const key = foldTr(city);
-    setServiceCities(prev => prev.filter(c => foldTr(c) !== key));
+    if (selectedKeys.has(key)) {
+      setServiceCities(prev => prev.filter(c => foldTr(c) !== key));
+    } else {
+      // city allCities/TURKEY_REGIONS'tan (canonical) gelir → canonical eklenir.
+      setServiceCities(prev => [...prev, city]);
+    }
   };
 
   const handleSelectAll = () => {
@@ -250,8 +237,7 @@ export default function ServiceCityScreen({ navigation }: Props) {
     );
   };
 
-  // Bölgedeki tüm şehirler seçili mi? Folded key ile karşılaştırılır; reload
-  // sonrası backend'in folded formu ile canonical region.cities eşleşir.
+  // Bölgedeki tüm şehirler seçili mi? Folded key ile karşılaştırılır.
   const getRegionStatus = (regionCities: string[]): 'all' | 'some' | 'none' => {
     const selected = regionCities.filter(c => selectedKeys.has(foldTr(c))).length;
     if (selected === 0) return 'none';
@@ -264,11 +250,8 @@ export default function ServiceCityScreen({ navigation }: Props) {
     const status = getRegionStatus(regionCities);
     const regionKeys = new Set(regionCities.map(foldTr));
     if (status === 'all') {
-      // Bu bölgenin tüm şehirlerini çıkar (canonical ve folded formları kapsar)
       setServiceCities(prev => prev.filter(c => !regionKeys.has(foldTr(c))));
     } else {
-      // Eksik olanları ekle — folded key ile dedupe, yalnız canonical isim eklenir
-      // (folded/canonical duplicate önlenir).
       setServiceCities(prev => {
         const seen = new Set(prev.map(foldTr));
         const next = [...prev];
@@ -284,19 +267,40 @@ export default function ServiceCityScreen({ navigation }: Props) {
     }
   };
 
+  // Bölge aç-kapa (animasyonlu)
+  const toggleRegionExpand = (name: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setExpandedRegions(prev => {
+      const next = new Set(prev);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centerContent, { backgroundColor: screenBg }]} edges={["bottom"]}>
-        <ActivityIndicator size="large" color="#26a69a" />
-        <Text style={[styles.loadingText, { color: appColors.text.secondary }]}>
-          Yükleniyor...
-        </Text>
+        <ActivityIndicator size="large" color={primary} />
+        <Text style={[styles.loadingText, { color: textSec }]}>Yükleniyor...</Text>
       </SafeAreaView>
     );
   }
 
-  // Folded set boyutu ile — olası duplicate/folded girdilere karşı sağlam.
-  const allSelected = selectedKeys.size === totalCityCount;
+  const allSelected = selectedCount === totalCityCount;
+  const progress = totalCityCount ? selectedCount / totalCityCount : 0;
+
+  // Arama: folded query ile her bölgeyi filtrele
+  const q = foldTr(search);
+  const regionViews = TURKEY_REGIONS.map((region) => {
+    const visibleCities = q ? region.cities.filter(c => foldTr(c).includes(q)) : region.cities;
+    return { region, visibleCities };
+  }).filter(rv => !q || rv.visibleCities.length > 0);
+  const noResults = q.length > 0 && regionViews.length === 0;
+
+  // Bölge durum rengi
+  const statusColor = (status: 'all' | 'some' | 'none') =>
+    status === 'all' ? primary : status === 'some' ? warning : textSec;
 
   return (
     <KeyboardAvoidingView
@@ -306,50 +310,39 @@ export default function ServiceCityScreen({ navigation }: Props) {
       <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
         <AppBar title="Hizmet Alanı" />
 
-        {/* Otomatik kaydetme durum göstergesi — değişiklik yaptığında 600ms sonra aktif olur */}
-        {saveStatus !== 'idle' && (
-          <View style={[
-            styles.statusBanner,
-            saveStatus === 'saving' && styles.statusBannerSaving,
-            saveStatus === 'saved' && styles.statusBannerSaved,
-            saveStatus === 'error' && styles.statusBannerError,
-          ]}>
-            {saveStatus === 'saving' && (
-              <>
-                <ActivityIndicator size="small" color="#1565c0" />
-                <Text style={[styles.statusText, { color: '#1565c0' }]}>Kaydediliyor...</Text>
-              </>
-            )}
-            {saveStatus === 'saved' && (
-              <>
-                <MaterialCommunityIcons name="check-circle" size={18} color="#2e7d32" />
-                <Text style={[styles.statusText, { color: '#2e7d32' }]}>Kaydedildi</Text>
-              </>
-            )}
-            {saveStatus === 'error' && (
-              <>
-                <MaterialCommunityIcons name="alert-circle" size={18} color="#c62828" />
-                <Text style={[styles.statusText, { color: '#c62828' }]}>Kaydedilemedi — bağlantınızı kontrol edin</Text>
-              </>
-            )}
-          </View>
-        )}
-
-        <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {/* Ana kart - başlık ve mevcut seçim */}
-          <Card style={[styles.formCard, { backgroundColor: cardBg }]}>
-            <Card.Content style={styles.cardContent}>
-              <View style={styles.iconHeader}>
-                <MaterialCommunityIcons name="map-marker-radius" size={32} color="#26a69a" />
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={{ padding: spacing.md, paddingBottom: spacing.xl }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Başlık + sayaç + ilerleme + hızlı eylemler */}
+          <Card style={[styles.card, { backgroundColor: cardBg }]}>
+            <Card.Content style={styles.headerCardContent}>
+              <View style={styles.headerTop}>
+                <View style={[styles.headerIconWrap, { backgroundColor: `${primary}1A` }]}>
+                  <MaterialCommunityIcons name="map-marker-radius" size={26} color={primary} />
+                </View>
+                <View style={styles.headerTexts}>
+                  <Text variant="titleMedium" style={[styles.headerTitle, { color: textPri }]}>
+                    Hizmet Şehirlerim
+                  </Text>
+                  <Text variant="bodySmall" style={{ color: textSec, lineHeight: 17 }}>
+                    Yalnızca bu şehirlerden gelen yeni talepler size bildirilir.
+                  </Text>
+                </View>
               </View>
 
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                Hizmet Şehirlerim
-              </Text>
-              <Text variant="bodySmall" style={[styles.sectionSubtitle, { color: appColors.text.secondary }]}>
-                Yalnızca bu listedeki şehirlerden gelen yeni iş talepleri size bildirilir.
-                Liste boşsa hiçbir talep alamazsınız.
-              </Text>
+              {/* Sayaç + ilerleme */}
+              <View style={styles.counterRow}>
+                <Text style={[styles.counterBig, { color: primary }]}>{selectedCount}</Text>
+                <Text style={[styles.counterTotal, { color: textSec }]}> / {totalCityCount} şehir</Text>
+              </View>
+              <ProgressBar
+                progress={progress}
+                color={progress === 1 ? success : primary}
+                style={styles.progressBar}
+              />
 
               {/* Hızlı eylemler */}
               <View style={styles.quickActions}>
@@ -359,189 +352,166 @@ export default function ServiceCityScreen({ navigation }: Props) {
                   onPress={handleSelectAll}
                   disabled={allSelected}
                   style={styles.quickActionButton}
+                  textColor={allSelected ? undefined : primary}
+                  buttonColor={allSelected ? primary : undefined}
                   compact
                 >
-                  Tüm Şehirleri Seç
+                  Tümünü Seç
                 </Button>
                 <Button
                   mode="outlined"
                   icon="close-circle-outline"
                   onPress={handleClearAll}
-                  disabled={serviceCities.length === 0}
+                  disabled={selectedCount === 0}
                   style={styles.quickActionButton}
-                  textColor="#d32f2f"
+                  textColor={danger}
                   compact
                 >
-                  Tümünü Temizle
+                  Temizle
                 </Button>
               </View>
-
-              <Text variant="bodySmall" style={[styles.counterText, { color: appColors.text.secondary }]}>
-                {serviceCities.length} / {totalCityCount} şehir seçili
-              </Text>
             </Card.Content>
           </Card>
 
-          {/* Bölge kartı - 7 coğrafi bölge */}
-          <Card style={[styles.formCard, { backgroundColor: cardBg }]}>
-            <Card.Content style={styles.cardContent}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                Bölge Seçimi
-              </Text>
-              <Text variant="bodySmall" style={[styles.sectionSubtitle, { color: appColors.text.secondary }]}>
-                Bir bölgeye dokunarak içindeki tüm illeri tek seferde ekleyip çıkarabilirsiniz.
-              </Text>
+          {/* Canlı arama */}
+          <Searchbar
+            placeholder="Şehir ara..."
+            onChangeText={setSearch}
+            value={search}
+            style={[styles.searchBar, { backgroundColor: cardBg }]}
+            inputStyle={{ color: textPri, minHeight: 0 }}
+            iconColor={textSec}
+            placeholderTextColor={textSec}
+            elevation={1}
+          />
 
-              <View style={styles.regionsContainer}>
-                {TURKEY_REGIONS.map((region) => {
-                  const status = getRegionStatus(region.cities);
-                  const selectedCount = region.cities.filter(c => selectedKeys.has(foldTr(c))).length;
-                  return (
-                    <Chip
-                      key={region.name}
-                      mode={status === 'all' ? 'flat' : 'outlined'}
-                      selected={status === 'all'}
-                      icon={
-                        status === 'all' ? 'check-circle'
-                        : status === 'some' ? 'circle-slice-4'
-                        : undefined
-                      }
-                      onPress={() => handleRegionToggle(region.cities)}
-                      style={[
-                        styles.regionChip,
-                        status === 'all' && styles.regionChipFull,
-                        status === 'some' && styles.regionChipPartial,
-                      ]}
-                      textStyle={status === 'all' ? styles.regionChipTextFull : undefined}
-                    >
-                      {region.name} ({selectedCount}/{region.cities.length})
-                    </Chip>
-                  );
-                })}
+          {/* Bölge accordion listesi */}
+          <Card style={[styles.card, { backgroundColor: cardBg }]}>
+            {noResults ? (
+              <View style={styles.noResults}>
+                <MaterialCommunityIcons name="map-search-outline" size={32} color={textSec} />
+                <Text style={{ color: textSec, marginTop: 8 }}>"{search}" için il bulunamadı</Text>
               </View>
-            </Card.Content>
-          </Card>
-
-          {/* Seçili şehirler kartı */}
-          <Card style={[styles.formCard, { backgroundColor: cardBg }]}>
-            <Card.Content style={styles.cardContent}>
-              <Text variant="titleMedium" style={styles.sectionTitle}>
-                Seçili Şehirler
-              </Text>
-
-              {serviceCities.length === 0 ? (
-                <View style={[styles.emptyState, { borderColor: isDarkMode ? '#444' : '#e0e0e0' }]}>
-                  <Text style={[styles.emptyStateText, { color: appColors.text.secondary }]}>
-                    Henüz şehir seçmediniz
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.chipsContainer}>
-                  {serviceCities.map((city) => {
-                    // Backend folded form döndürebilir ("istanbul") — canonical adı
-                    // göster ("İstanbul"). 81-listede yoksa raw değere düş.
-                    const display = keyToDisplay.get(foldTr(city)) ?? city;
-                    return (
-                      <Chip
-                        key={foldTr(city)}
-                        style={styles.chip}
-                        onClose={() => handleRemoveCity(city)}
-                        closeIcon="close-circle"
-                        mode="flat"
+            ) : (
+              regionViews.map(({ region, visibleCities }, idx) => {
+                const status = getRegionStatus(region.cities);
+                const regSel = region.cities.filter(c => selectedKeys.has(foldTr(c))).length;
+                const isOpen = q ? true : expandedRegions.has(region.name);
+                const sc = statusColor(status);
+                return (
+                  <View key={region.name} style={idx > 0 ? { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: divider } : undefined}>
+                    {/* Bölge başlığı */}
+                    <View style={styles.regionHeader}>
+                      <TouchableOpacity
+                        style={styles.regionHeaderMain}
+                        onPress={() => toggleRegionExpand(region.name)}
+                        activeOpacity={0.6}
+                        disabled={!!q}
                       >
-                        {display}
-                      </Chip>
-                    );
-                  })}
-                </View>
-              )}
+                        <MaterialCommunityIcons
+                          name={isOpen ? 'chevron-down' : 'chevron-right'}
+                          size={24}
+                          color={textSec}
+                        />
+                        <Text style={[styles.regionName, { color: textPri }]} numberOfLines={1}>
+                          {region.name}
+                        </Text>
+                        <View style={[styles.regionBadge, { backgroundColor: `${sc}1A` }]}>
+                          <Text style={[styles.regionBadgeText, { color: sc }]}>
+                            {regSel}/{region.cities.length}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleRegionToggle(region.cities)}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                        style={styles.regionToggle}
+                      >
+                        <MaterialCommunityIcons
+                          name={
+                            status === 'all' ? 'check-circle'
+                            : status === 'some' ? 'minus-circle'
+                            : 'checkbox-blank-circle-outline'
+                          }
+                          size={26}
+                          color={status === 'none' ? textSec : primary}
+                        />
+                      </TouchableOpacity>
+                    </View>
 
-              <Button
-                mode="outlined"
-                icon="plus"
-                onPress={() => setModalVisible(true)}
-                disabled={allSelected}
-                style={styles.addButton}
-              >
-                {allSelected ? 'Tüm şehirler eklendi' : 'Tek Tek Şehir Ekle'}
-              </Button>
-            </Card.Content>
-          </Card>
-
-          <Card style={[styles.infoCard, { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }]}>
-            <Card.Content>
-              <Text variant="bodySmall" style={styles.infoText}>
-                ℹ️ Şehir/bölge ekleyip çıkardığınızda değişiklikler otomatik olarak kaydedilir.
-                Listeden bir şehri çıkardığınızda o şehirdeki bekleyen talepleri görmezsiniz.
-              </Text>
-            </Card.Content>
+                    {/* Açıkken şehirler */}
+                    {isOpen && (
+                      <View style={styles.cityList}>
+                        {visibleCities.map((city) => {
+                          const isSel = selectedKeys.has(foldTr(city));
+                          const display = keyToDisplay.get(foldTr(city)) ?? city;
+                          return (
+                            <TouchableOpacity
+                              key={foldTr(city)}
+                              style={styles.cityRow}
+                              onPress={() => handleToggleCity(city)}
+                              activeOpacity={0.6}
+                            >
+                              <MaterialCommunityIcons
+                                name={isSel ? 'checkbox-marked' : 'checkbox-blank-outline'}
+                                size={22}
+                                color={isSel ? primary : textSec}
+                              />
+                              <Text style={[styles.cityRowText, { color: isSel ? primary : textPri, fontWeight: isSel ? '600' : '400' }]}>
+                                {display}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+                );
+              })
+            )}
           </Card>
         </ScrollView>
 
-        {/* Şehir Seçim Modal */}
-        <Modal
-          visible={modalVisible}
-          transparent
-          animationType="slide"
-          onRequestClose={() => setModalVisible(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: cardBg }]}>
-              <View style={styles.modalHeader}>
-                <Text variant="titleLarge" style={styles.modalTitle}>Şehir Ekle</Text>
-                <IconButton
-                  icon="close"
-                  size={24}
-                  onPress={() => { setModalVisible(false); setSearch(''); }}
-                />
-              </View>
-
-              <Searchbar
-                placeholder="İl ara..."
-                onChangeText={setSearch}
-                value={search}
-                style={styles.searchBar}
-              />
-
-              {filteredCities.length === 0 ? (
-                <View style={{ padding: 20, alignItems: 'center' }}>
-                  <Text style={{ color: appColors.text.secondary }}>İl bulunamadı</Text>
-                </View>
-              ) : (
-                <ScrollView style={styles.modalList}>
-                  {filteredCities.map((city, index) => {
-                    const alreadySelected = selectedKeys.has(foldTr(city));
-                    return (
-                      <TouchableOpacity
-                        key={`service-city-${index}-${city}`}
-                        style={[
-                          styles.modalItem,
-                          alreadySelected && { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }
-                        ]}
-                        onPress={() => alreadySelected ? null : handleAddCity(city)}
-                        disabled={alreadySelected}
-                        activeOpacity={alreadySelected ? 1 : 0.6}
-                      >
-                        <Text style={[
-                          styles.modalItemText,
-                          alreadySelected && styles.modalItemTextSelected
-                        ]}>
-                          {city}
-                        </Text>
-                        {alreadySelected && (
-                          <View style={styles.modalItemRight}>
-                            <Text style={styles.modalItemSelectedLabel}>Seçili</Text>
-                            <MaterialCommunityIcons name="check" size={20} color="#26a69a" />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              )}
-            </View>
+        {/* Sabit alt çubuk — seçili sayısı + auto-save durumu */}
+        <View style={[styles.footer, { backgroundColor: cardBg, borderTopColor: divider }]}>
+          <View style={styles.footerLeft}>
+            {selectedCount === 0 ? (
+              <>
+                <MaterialCommunityIcons name="alert-circle-outline" size={18} color={warning} />
+                <Text style={[styles.footerText, { color: warning }]} numberOfLines={1}>
+                  Şehir seçilmedi — iş alamazsınız
+                </Text>
+              </>
+            ) : (
+              <>
+                <MaterialCommunityIcons name="map-marker-check" size={18} color={primary} />
+                <Text style={[styles.footerText, { color: textPri }]}>
+                  {selectedCount} şehir seçili
+                </Text>
+              </>
+            )}
           </View>
-        </Modal>
+
+          {/* Kaydetme durumu pill'i */}
+          {saveStatus === 'saving' && (
+            <View style={styles.savePill}>
+              <ActivityIndicator size={14} color={appColors.info} />
+              <Text style={[styles.savePillText, { color: appColors.info }]}>Kaydediliyor</Text>
+            </View>
+          )}
+          {saveStatus === 'saved' && (
+            <View style={styles.savePill}>
+              <MaterialCommunityIcons name="check-circle" size={16} color={success} />
+              <Text style={[styles.savePillText, { color: success }]}>Kaydedildi</Text>
+            </View>
+          )}
+          {saveStatus === 'error' && (
+            <View style={styles.savePill}>
+              <MaterialCommunityIcons name="alert-circle" size={16} color={danger} />
+              <Text style={[styles.savePillText, { color: danger }]}>Kaydedilemedi</Text>
+            </View>
+          )}
+        </View>
       </SafeAreaView>
     </KeyboardAvoidingView>
   );
@@ -551,108 +521,59 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   centerContent: { justifyContent: 'center', alignItems: 'center' },
   loadingText: { marginTop: 16, fontSize: 16 },
-  content: { flex: 1, padding: 16 },
-  scrollContent: { paddingBottom: 100 },
-  formCard: { marginBottom: 16, borderRadius: 12, elevation: 2 },
-  cardContent: { padding: 20 },
-  iconHeader: { alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { fontWeight: 'bold', marginBottom: 4, color: '#26a69a', textAlign: 'center' },
-  sectionSubtitle: { marginBottom: 16, textAlign: 'center', lineHeight: 18 },
-  quickActions: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 12,
+  content: { flex: 1 },
+  card: { marginBottom: 12, borderRadius: 12, elevation: 2, overflow: 'hidden' },
+  // Header card
+  headerCardContent: { padding: 16 },
+  headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerIconWrap: {
+    width: 46, height: 46, borderRadius: 23,
+    alignItems: 'center', justifyContent: 'center',
   },
-  quickActionButton: {
-    flex: 1,
-  },
-  regionsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  regionChip: {
-    marginBottom: 4,
-  },
-  regionChipFull: {
-    backgroundColor: '#26a69a',
-  },
-  regionChipPartial: {
-    backgroundColor: '#e0f2f1',
-    borderColor: '#26a69a',
-  },
-  regionChipTextFull: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  chipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 16,
-  },
-  chip: {
-    backgroundColor: '#e0f2f1',
-  },
-  emptyState: {
-    padding: 24,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  emptyStateText: { fontSize: 14, fontStyle: 'italic' },
-  addButton: { marginTop: 4 },
-  counterText: { textAlign: 'center', fontSize: 12, marginTop: 4 },
-  infoCard: { marginBottom: 20, borderRadius: 12 },
-  infoText: { color: '#1565c0', lineHeight: 20 },
-  // Status banner
-  statusBanner: {
+  headerTexts: { flex: 1 },
+  headerTitle: { fontWeight: 'bold', marginBottom: 2 },
+  counterRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 16 },
+  counterBig: { fontSize: 30, fontWeight: 'bold', lineHeight: 34 },
+  counterTotal: { fontSize: 15, marginBottom: 4 },
+  progressBar: { height: 8, borderRadius: 4, marginTop: 8 },
+  quickActions: { flexDirection: 'row', gap: 8, marginTop: 16 },
+  quickActionButton: { flex: 1, borderRadius: 8 },
+  // Search
+  searchBar: { marginBottom: 12, borderRadius: 12, height: 48 },
+  // Region accordion
+  regionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    paddingVertical: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  regionHeaderMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  regionName: { fontSize: 15, fontWeight: '600', flexShrink: 1 },
+  regionBadge: { borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2, marginLeft: 6 },
+  regionBadgeText: { fontSize: 12, fontWeight: '700' },
+  regionToggle: { paddingLeft: 12 },
+  cityList: { paddingBottom: 6 },
+  cityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 11,
+    paddingLeft: 44,
+    paddingRight: 16,
+  },
+  cityRowText: { fontSize: 15 },
+  noResults: { alignItems: 'center', justifyContent: 'center', paddingVertical: 36 },
+  // Footer (sticky save bar)
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
-  statusBannerSaving: { backgroundColor: '#e3f2fd' },
-  statusBannerSaved: { backgroundColor: '#e8f5e9' },
-  statusBannerError: { backgroundColor: '#ffebee' },
-  statusText: { fontSize: 13, fontWeight: '500' },
-  // Modal
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    height: '80%',
-    paddingBottom: 20,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  modalTitle: { fontWeight: 'bold', color: '#26a69a' },
-  searchBar: { margin: 16, elevation: 0 },
-  modalList: { maxHeight: 500 },
-  modalItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  modalItemText: { fontSize: 16, color: '#000' },
-  modalItemTextSelected: { fontWeight: 'bold', color: '#26a69a' },
-  modalItemRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  modalItemSelectedLabel: { fontSize: 12, color: '#26a69a', fontStyle: 'italic' },
+  footerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+  footerText: { fontSize: 14, fontWeight: '600' },
+  savePill: { flexDirection: 'row', alignItems: 'center', gap: 6, marginLeft: 12 },
+  savePillText: { fontSize: 13, fontWeight: '600' },
 });
