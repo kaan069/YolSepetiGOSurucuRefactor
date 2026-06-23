@@ -38,16 +38,9 @@ import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { getCityNames, TURKEY_REGIONS } from '../../data/turkeyLocations';
 import { logger } from '../../utils/logger';
+import { foldTr, sameCitySet } from '../../utils/turkishText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ServiceCity'>;
-
-// İki liste aynı şehirleri içeriyor mu? (sıra önemsiz)
-function arraysEqual(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  const sa = new Set(a);
-  for (const x of b) if (!sa.has(x)) return false;
-  return true;
-}
 
 export default function ServiceCityScreen({ navigation }: Props) {
   const { screenBg, cardBg, isDarkMode, appColors } = useAppTheme();
@@ -71,8 +64,24 @@ export default function ServiceCityScreen({ navigation }: Props) {
   const allCities = useMemo(() => getCityNames(), []);
   const totalCityCount = allCities.length;
 
+  // folded key → canonical görünen ad ("istanbul" → "İstanbul").
+  // 81 şehrin statik listesinden türetilir; backend folded form döndürdüğünde
+  // çipleri/karşılaştırmaları canonical isimle eşlemek için kullanılır.
+  const keyToDisplay = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of allCities) m.set(foldTr(c), c);
+    return m;
+  }, [allCities]);
+
+  // Seçili şehirlerin folded key seti — üyelik/bölge testleri O(1) ve biçimden
+  // bağımsız (canonical "İstanbul" ile backend'in folded "istanbul"u eşleşir).
+  const selectedKeys = useMemo(
+    () => new Set(serviceCities.map(foldTr)),
+    [serviceCities]
+  );
+
   const filteredCities = search
-    ? allCities.filter(c => c.toLowerCase().includes(search.toLowerCase()))
+    ? allCities.filter(c => foldTr(c).includes(foldTr(search)))
     : allCities;
 
   // Mevcut hizmet şehirlerini backend'den çek. Boşsa iş ilini default olarak öner.
@@ -107,7 +116,9 @@ export default function ServiceCityScreen({ navigation }: Props) {
         latestCitiesRef.current = initial;
 
         // İlk render'da gerçekten değişiklik varsa (default öneri) auto-save çalışsın.
-        if (arraysEqual(initial, existing)) {
+        // sameCitySet: canonical öneri ("İstanbul") ile backend'in folded formu
+        // ("istanbul") eşit sayılır → reload'da spurious save tetiklenmez.
+        if (sameCitySet(initial, existing)) {
           // Hiçbir değişiklik yok — auto-save tetiklenmemeli
           isFirstLoadRef.current = true;
         } else {
@@ -136,8 +147,9 @@ export default function ServiceCityScreen({ navigation }: Props) {
       return;
     }
 
-    // Değişiklik yoksa save atma (aynı listenin gönderilmesi gereksiz API çağrısı)
-    if (arraysEqual(serviceCities, lastSavedRef.current)) {
+    // Değişiklik yoksa save atma (aynı listenin gönderilmesi gereksiz API çağrısı).
+    // sameCitySet biçim-bağımsız: yalnızca gerçek ekle/çıkar PATCH tetikler.
+    if (sameCitySet(serviceCities, lastSavedRef.current)) {
       return;
     }
 
@@ -165,7 +177,7 @@ export default function ServiceCityScreen({ navigation }: Props) {
         clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = null;
         const pending = latestCitiesRef.current;
-        if (!arraysEqual(pending, lastSavedRef.current)) {
+        if (!sameCitySet(pending, lastSavedRef.current)) {
           // Fire and forget — promise sonucunu beklemiyoruz; ekran kapanıyor
           authAPI.updateProfile({ service_cities: pending }).catch(() => {
             logger.warn('general', 'ServiceCityScreen.flushOnUnmount failed');
@@ -177,7 +189,7 @@ export default function ServiceCityScreen({ navigation }: Props) {
 
   const performSave = async (cities: string[]) => {
     // Kaydedilen ile aynıysa atla (race condition önlemi)
-    if (arraysEqual(cities, lastSavedRef.current)) return;
+    if (sameCitySet(cities, lastSavedRef.current)) return;
     try {
       setSaveStatus('saving');
       const response = await authAPI.updateProfile({
@@ -203,18 +215,23 @@ export default function ServiceCityScreen({ navigation }: Props) {
   };
 
   const handleAddCity = (city: string) => {
-    if (serviceCities.includes(city)) {
+    // Folded key ile dedupe — reload sonrası listede folded "istanbul" varken
+    // canonical "İstanbul" eklenmesini engeller.
+    if (selectedKeys.has(foldTr(city))) {
       setModalVisible(false);
       setSearch('');
       return;
     }
+    // city her zaman allCities'ten (canonical) gelir → canonical eklenir.
     setServiceCities(prev => [...prev, city]);
     setSearch('');
     setModalVisible(false);
   };
 
   const handleRemoveCity = (city: string) => {
-    setServiceCities(prev => prev.filter(c => c !== city));
+    // Folded key ile çıkar — depo değeri canonical ya da folded olabilir, fark etmez.
+    const key = foldTr(city);
+    setServiceCities(prev => prev.filter(c => foldTr(c) !== key));
   };
 
   const handleSelectAll = () => {
@@ -233,9 +250,10 @@ export default function ServiceCityScreen({ navigation }: Props) {
     );
   };
 
-  // Bölgedeki tüm şehirler seçili mi?
+  // Bölgedeki tüm şehirler seçili mi? Folded key ile karşılaştırılır; reload
+  // sonrası backend'in folded formu ile canonical region.cities eşleşir.
   const getRegionStatus = (regionCities: string[]): 'all' | 'some' | 'none' => {
-    const selected = regionCities.filter(c => serviceCities.includes(c)).length;
+    const selected = regionCities.filter(c => selectedKeys.has(foldTr(c))).length;
     if (selected === 0) return 'none';
     if (selected === regionCities.length) return 'all';
     return 'some';
@@ -244,15 +262,24 @@ export default function ServiceCityScreen({ navigation }: Props) {
   // Bölge toggle: hepsi seçiliyse hepsini çıkar, değilse eksik olanları ekle.
   const handleRegionToggle = (regionCities: string[]) => {
     const status = getRegionStatus(regionCities);
+    const regionKeys = new Set(regionCities.map(foldTr));
     if (status === 'all') {
-      // Bu bölgenin tüm şehirlerini çıkar
-      setServiceCities(prev => prev.filter(c => !regionCities.includes(c)));
+      // Bu bölgenin tüm şehirlerini çıkar (canonical ve folded formları kapsar)
+      setServiceCities(prev => prev.filter(c => !regionKeys.has(foldTr(c))));
     } else {
-      // Eksik olanları ekle (zaten seçili olanları koru)
+      // Eksik olanları ekle — folded key ile dedupe, yalnız canonical isim eklenir
+      // (folded/canonical duplicate önlenir).
       setServiceCities(prev => {
-        const set = new Set(prev);
-        regionCities.forEach(c => set.add(c));
-        return Array.from(set);
+        const seen = new Set(prev.map(foldTr));
+        const next = [...prev];
+        for (const c of regionCities) {
+          const k = foldTr(c);
+          if (!seen.has(k)) {
+            seen.add(k);
+            next.push(c);
+          }
+        }
+        return next;
       });
     }
   };
@@ -268,7 +295,8 @@ export default function ServiceCityScreen({ navigation }: Props) {
     );
   }
 
-  const allSelected = serviceCities.length === totalCityCount;
+  // Folded set boyutu ile — olası duplicate/folded girdilere karşı sağlam.
+  const allSelected = selectedKeys.size === totalCityCount;
 
   return (
     <KeyboardAvoidingView
@@ -367,7 +395,7 @@ export default function ServiceCityScreen({ navigation }: Props) {
               <View style={styles.regionsContainer}>
                 {TURKEY_REGIONS.map((region) => {
                   const status = getRegionStatus(region.cities);
-                  const selectedCount = region.cities.filter(c => serviceCities.includes(c)).length;
+                  const selectedCount = region.cities.filter(c => selectedKeys.has(foldTr(c))).length;
                   return (
                     <Chip
                       key={region.name}
@@ -409,17 +437,22 @@ export default function ServiceCityScreen({ navigation }: Props) {
                 </View>
               ) : (
                 <View style={styles.chipsContainer}>
-                  {serviceCities.map((city) => (
-                    <Chip
-                      key={city}
-                      style={styles.chip}
-                      onClose={() => handleRemoveCity(city)}
-                      closeIcon="close-circle"
-                      mode="flat"
-                    >
-                      {city}
-                    </Chip>
-                  ))}
+                  {serviceCities.map((city) => {
+                    // Backend folded form döndürebilir ("istanbul") — canonical adı
+                    // göster ("İstanbul"). 81-listede yoksa raw değere düş.
+                    const display = keyToDisplay.get(foldTr(city)) ?? city;
+                    return (
+                      <Chip
+                        key={foldTr(city)}
+                        style={styles.chip}
+                        onClose={() => handleRemoveCity(city)}
+                        closeIcon="close-circle"
+                        mode="flat"
+                      >
+                        {display}
+                      </Chip>
+                    );
+                  })}
                 </View>
               )}
 
@@ -477,7 +510,7 @@ export default function ServiceCityScreen({ navigation }: Props) {
               ) : (
                 <ScrollView style={styles.modalList}>
                   {filteredCities.map((city, index) => {
-                    const alreadySelected = serviceCities.includes(city);
+                    const alreadySelected = selectedKeys.has(foldTr(city));
                     return (
                       <TouchableOpacity
                         key={`service-city-${index}-${city}`}
