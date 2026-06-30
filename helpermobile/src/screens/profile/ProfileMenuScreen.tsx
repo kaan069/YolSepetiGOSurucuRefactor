@@ -43,9 +43,10 @@ export default function ProfileMenuScreen({ navigation }: Props) {
   const [userProviderType, setUserProviderType] = useState<ProviderType | null>(null);
   const [invitedCount, setInvitedCount] = useState<number>(0);
 
-  // Gizli geliştirici override toggle: logoya 2sn içinde arka arkaya 10 tap
-  // ile teklif min limiti 1 TL'ye düşer (veya kapanır). UX gözle görünür
-  // gösterge yok — kullanıcı 10. tap'ta Alert ile haberdar edilir.
+  // Geliştirici modu (logoya arka arkaya tap → minimum teklif override) DEVRE DIŞI.
+  // İstek üzerine yorum satırına alındı. Geri açmak için aşağıdaki bloğun yorumunu
+  // kaldır ve logo <TouchableOpacity>'sindeki onPress={handleLogoPress}'i geri ekle.
+  /*
   const tapCountRef = useRef(0);
   const lastTapRef = useRef(0);
   const toggleOverride = useDevOverrideStore((s) => s.toggleMinOfferOverride);
@@ -67,6 +68,7 @@ export default function ProfileMenuScreen({ navigation }: Props) {
       );
     }
   };
+  */
 
   const loadProfileCompleteness = async () => {
     setLoadingCompleteness(true);
@@ -282,7 +284,7 @@ export default function ProfileMenuScreen({ navigation }: Props) {
       <ScrollView style={dynamicStyles.content}>
         <TouchableOpacity
           activeOpacity={1}
-          onPress={handleLogoPress}
+          // onPress={handleLogoPress}  // Geliştirici modu devre dışı bırakıldı
           style={{ alignItems: 'center', marginBottom: spacing.md, marginTop: spacing.xl }}
         >
           <View style={{

@@ -19,10 +19,12 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   completeOnboarding: () => {
     set({ hasSeenOnboarding: true });
     AsyncStorage.setItem(ONBOARDING_STORAGE_KEY, 'true');
-    // Onboarding tamamlaninca rehberi baslat (kisa gecikme ile ekranin yuklenmesini bekle)
-    setTimeout(() => {
-      useGuideStore.getState().startGuide();
-    }, 800);
+    // Onboarding tamamlaninca rehberi baslat — DEVRE DISI (istek uzerine).
+    // Slaytlar kalsin; ilk acilista uygulama rehberi (GuideOverlay) gosterilmesin.
+    // Geri acmak icin asagidaki blogun yorumunu kaldir.
+    // setTimeout(() => {
+    //   useGuideStore.getState().startGuide();
+    // }, 800);
   },
 
   loadOnboardingStatus: async () => {
