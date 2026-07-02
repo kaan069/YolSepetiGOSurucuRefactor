@@ -68,6 +68,7 @@ import {
 // Utils
 import { calculateDistance, parseRouteDistance, getRequestId } from './utils';
 import { logger } from '../../utils/logger';
+import { formatThousands, digitsOnly } from '../../utils/priceFormat';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TowTruckOffer'>;
 
@@ -447,8 +448,8 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
                 color: appColors.text.primary,
               },
             ]}
-            value={proposedPrice}
-            onChangeText={setProposedPrice}
+            value={formatThousands(proposedPrice)}
+            onChangeText={(t) => setProposedPrice(digitsOnly(t))}
             keyboardType="numeric"
             placeholder="Fiyat giriniz"
             placeholderTextColor={appColors.text.disabled}

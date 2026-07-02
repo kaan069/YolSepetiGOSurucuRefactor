@@ -29,6 +29,7 @@ import { VehicleSelector, EmployeeSelector } from '../../components/common';
 import PhotosSection from '../../components/PhotosSection';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import { formatThousands, digitsOnly } from '../../utils/priceFormat';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferOffer'>;
 
@@ -523,8 +524,8 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
                     placeholder="Fiyat teklifinizi girin"
                     placeholderTextColor={isDarkMode ? '#888' : '#999'}
                     keyboardType="numeric"
-                    value={offerPrice}
-                    onChangeText={setOfferPrice}
+                    value={formatThousands(offerPrice)}
+                    onChangeText={(t) => setOfferPrice(digitsOnly(t))}
                   />
                   <Text style={[styles.currencyLabel, { color: appColors.text.secondary }]}>TL</Text>
                 </View>
