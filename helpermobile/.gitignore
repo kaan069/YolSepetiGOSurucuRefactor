@@ -4,3 +4,8 @@ node_modules/
 build/
 .cxx/
 .gradle/
+
+# Ortam değişkenleri — gerçek anahtarlar; .env.example commit'lenir, .env edilmez
+.env
+.env.local
+.env.*.local
