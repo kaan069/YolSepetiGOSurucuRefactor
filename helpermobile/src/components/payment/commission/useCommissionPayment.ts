@@ -6,11 +6,23 @@
  * - 3DS doğrulama (WebView)
  * - Ödeme durumu polling
  * - Animasyonlar
+ * - Talep iptali / işin sürücüden alınması: WebSocket/FCM/banka dönüşü/durum sorgusu ile
+ *   anında algılanır, modal kapanır ve sebep koduna göre popup gösterilir (bkz. cancelReason.ts)
  */
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Animated, Easing } from 'react-native';
+import { Alert, Animated, Easing } from 'react-native';
+import { useCancellationEventStore } from '../../../store/useCancellationEventStore';
+import { jobsWebSocket } from '../../../services/jobsWebSocket';
 import { paymentAPI, SavedCard } from '../../../api/payment';
 import { getReadablePaymentError } from './paymentUtils';
+import {
+  CommissionCancel,
+  cancelFromEventReason,
+  getCancelAlertMessage,
+  getCancelAlertTitle,
+  getUrlParam,
+  toCommissionCancel,
+} from './cancelReason';
 import { logger } from '../../../utils/logger';
 
 export type PaymentStep = 'select' | 'processing' | 'threeds' | 'success' | 'failed';
@@ -22,9 +34,12 @@ interface UseCommissionPaymentProps {
   onPaymentSuccess: () => void;
   onPaymentFailed: (error: string) => void;
   onClose: () => void;
-  // Backend job status'unu doğrular: true dönerse iş artık 'awaiting_payment' değildir.
+  // Backend job status'unu doğrular:
+  //   true             -> ödeme işlendi, iş devam ediyor (in_progress / completed)
+  //   CommissionCancel -> talep iptal edildi / iş sürücüden alındı (detaydaki cancelReason)
+  //   false            -> henüz değişmedi (beklemeye devam)
   // Verilmezse modal 1500ms sonra success'i tetikler (geriye dönük uyumlu).
-  verifyJobCleared?: () => Promise<boolean>;
+  verifyJobCleared?: () => Promise<boolean | CommissionCancel>;
 }
 
 export function useCommissionPayment({
@@ -67,6 +82,12 @@ export function useCommissionPayment({
   const callbackProcessedRef = useRef(false);
   const pollingCountRef = useRef(0);
   const maxPollingAttempts = 30;
+  // İptal bir kez işlensin (WS + FCM + polling aynı anda gelebilir)
+  const cancelledHandledRef = useRef(false);
+  // Modal açılış zamanı: bundan önceki iptal event'leri yok sayılır
+  const openedAtRef = useRef(0);
+  // Modal açık mı: kapandıktan sonra bekleyen polling / doğrulama döngüleri durur
+  const activeRef = useRef(false);
 
   // Spin interpolation
   const spin = spinValue.interpolate({
@@ -76,8 +97,11 @@ export function useCommissionPayment({
 
   // Kayıtlı kartları getir
   useEffect(() => {
+    activeRef.current = visible;
     if (visible) {
       setStep('select');
+      cancelledHandledRef.current = false;
+      openedAtRef.current = Date.now();
       fetchSavedCards();
     }
   }, [visible]);
@@ -159,42 +183,104 @@ export function useCommissionPayment({
   }, []);
 
   const handleClose = useCallback(() => {
+    activeRef.current = false;
     resetForm();
     setVerifyingJobStatus(false);
     onClose();
   }, [resetForm, onClose]);
 
+  // Ekranlar fonksiyonları her render'da yeniden oluşturduğu için ref kullanılır
+  // (aksi halde aşağıdaki interval sürekli sıfırlanır ve hiç tetiklenmezdi).
+  const verifyRef = useRef(verifyJobCleared);
+  verifyRef.current = verifyJobCleared;
+
+  // Talep iptal edildi / iş sürücüden alındı: modalı (3DS dahil) kapat, popup göster.
+  // Backend bu durumlarda banka dönüşünde tahsilatı tamamlamaz.
+  const handleRequestCancelled = useCallback((cancel: CommissionCancel) => {
+    if (cancelledHandledRef.current) return;
+    cancelledHandledRef.current = true;
+    logger.info('payment', 'useCommissionPayment.requestCancelled', { requestId, code: cancel.code });
+    handleClose();
+    // Ekran hâlâ "ödeme bekliyor" gösteriyor olabilir: detayı tazele (setRequest)
+    verifyRef.current?.().catch(() => {});
+    // iOS: Modal kapanırken açılan Alert yutulabiliyor, kapanış animasyonundan sonra göster
+    setTimeout(() => {
+      Alert.alert(
+        getCancelAlertTitle(cancel.code),
+        getCancelAlertMessage(cancel),
+        [{ text: 'Tamam' }]
+      );
+    }, 400);
+  }, [handleClose, requestId]);
+
+  // WebSocket job_cancelled veya FCM request_cancelled -> anında kapat
+  const { lastCancelledJobId, lastCancelledAt, lastCancelledReason } = useCancellationEventStore();
+  useEffect(() => {
+    if (!visible || !lastCancelledJobId || !lastCancelledAt) return;
+    if (lastCancelledAt < openedAtRef.current) return;
+    if (Number(lastCancelledJobId) === Number(requestId)) {
+      handleRequestCancelled(cancelFromEventReason(lastCancelledReason));
+    }
+  }, [visible, lastCancelledJobId, lastCancelledAt, lastCancelledReason, requestId, handleRequestCancelled]);
+
+  // Yedek kontrol: WebSocket bağlı değilse modal açıkken iş durumunu yokla.
+  const cancelHandlerRef = useRef(handleRequestCancelled);
+  cancelHandlerRef.current = handleRequestCancelled;
+  const hasVerifier = !!verifyJobCleared;
+  useEffect(() => {
+    if (!visible || !hasVerifier || step === 'success') return;
+    const interval = setInterval(async () => {
+      if (cancelledHandledRef.current || jobsWebSocket.hasActiveConnections()) return;
+      try {
+        const result = await verifyRef.current?.();
+        if (result && typeof result === 'object') {
+          cancelHandlerRef.current(result);
+        }
+      } catch {
+        // ağ hatası: bir sonraki denemede tekrar
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [visible, step, hasVerifier]);
+
   // Backend job status'unun güncel olduğunu doğrula.
   // Race condition: backend WebSocket event'ini transaction commit ÖNCESİ atabiliyor.
   // Bu yüzden iyzico success URL'inden sonra hemen onPaymentSuccess'i tetiklemek yerine
   // verifyJobCleared() ile DB'nin gerçekten 'in_progress'e döndüğünü garantiliyoruz.
-  const waitForJobStatusUpdate = useCallback(async () => {
+  // true: iş devam ediyor (başarı akışına geç); false: iptal edildi / modal kapandı
+  const waitForJobStatusUpdate = useCallback(async (): Promise<boolean> => {
     if (!verifyJobCleared) {
       await new Promise(resolve => setTimeout(resolve, 1500));
-      return;
+      return true;
     }
 
     setVerifyingJobStatus(true);
     try {
-      // Sürücü manuel modal'ı kapatmadığı sürece status değişene kadar polle.
-      // Backend fix sonrası bu loop tipik olarak 1-2 saniyede biter.
-      while (true) {
+      // Status değişene kadar polle. Backend fix sonrası tipik olarak 1-2 saniyede biter.
+      // İptal gelirse veya modal kapandıysa döngüden çık.
+      while (activeRef.current && !cancelledHandledRef.current) {
         try {
-          const cleared = await verifyJobCleared();
-          if (cleared) return;
+          const result = await verifyJobCleared();
+          if (result && typeof result === 'object') {
+            handleRequestCancelled(result);
+            return false;
+          }
+          if (result) return true;
         } catch {
           // Network hatası vs. → yine de polling'e devam et
         }
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
+      return false;
     } finally {
       setVerifyingJobStatus(false);
     }
-  }, [verifyJobCleared]);
+  }, [verifyJobCleared, handleRequestCancelled]);
 
   const completeSuccessFlow = useCallback(async () => {
     setStep('success');
-    await waitForJobStatusUpdate();
+    const jobActive = await waitForJobStatusUpdate();
+    if (!jobActive) return;
     onPaymentSuccess();
     handleClose();
   }, [waitForJobStatusUpdate, onPaymentSuccess, handleClose]);
@@ -236,10 +322,22 @@ export function useCommissionPayment({
     } catch (error: any) {
       logger.error('payment', 'useCommissionPayment.handlePayment failure', { status: error?.response?.status });
 
+      // Ödeme isteği responseType 'text' ile atılıyor: hata gövdesi JSON string gelir
+      let errorData = error?.response?.data;
+      if (typeof errorData === 'string') {
+        try { errorData = JSON.parse(errorData); } catch { /* düz metin */ }
+      }
+      // 409: talep iptal edildi / iş bu sürücüden alındı
+      const cancel = toCommissionCancel(errorData?.error?.code, errorData?.error?.message);
+      if (cancel) {
+        handleRequestCancelled(cancel);
+        return;
+      }
+
       let message = 'Ödeme işlemi başarısız oldu';
 
-      if (error?.response?.data) {
-        const data = error.response.data;
+      if (errorData) {
+        const data = errorData;
         if (data.error?.message) {
           message = data.error.message;
         } else if (typeof data.error === 'string') {
@@ -282,6 +380,8 @@ export function useCommissionPayment({
 
   // Ödeme durumunu kontrol et (polling)
   const checkPaymentStatus = async () => {
+    // Modal kapandı / iptal işlendi: bekleyen zamanlayıcılar sorgu atmasın
+    if (!activeRef.current || cancelledHandledRef.current) return;
     try {
       pollingCountRef.current += 1;
 
@@ -294,7 +394,16 @@ export function useCommissionPayment({
 
       setStep('processing');
       const response = await paymentAPI.getCommissionPaymentStatus(requestId);
-      const paymentStatus: string = response.status;
+      const paymentStatus = response.status;
+
+      // Ödeme alınamayan durum (iptal / iş sürücüden alındı / ödeme geçersiz).
+      // Tamamlanmış ödemede backend sebep eklemez.
+      const cancel = toCommissionCancel(response.cancel_reason, response.cancel_message);
+      if (cancel) {
+        pollingCountRef.current = 0;
+        handleRequestCancelled(cancel);
+        return;
+      }
 
       if (paymentStatus === 'completed') {
         if (callbackProcessedRef.current) return;
@@ -303,16 +412,23 @@ export function useCommissionPayment({
         completeSuccessFlow();
       } else if (paymentStatus === 'failed') {
         pollingCountRef.current = 0;
-        const readableError = getReadablePaymentError(response.error_message || 'Ödeme başarısız oldu');
-        setErrorMessage(readableError);
+        // Bu uç hata mesajı döndürmüyor
+        setErrorMessage('Ödeme başarısız oldu. Lütfen tekrar deneyin.');
         setStep('failed');
+      } else if (paymentStatus === 'refunded') {
+        pollingCountRef.current = 0;
+        setErrorMessage('Bu ödeme iade edildi. Lütfen tekrar deneyin.');
+        setStep('failed');
+      } else if (paymentStatus === 'cancelled') {
+        // Sebep kodu gelmeyen iptal edilmiş ödeme kaydı
+        pollingCountRef.current = 0;
+        handleRequestCancelled(toCommissionCancel('PAYMENT_NOT_ACTIVE')!);
       } else if (paymentStatus === 'no_payment') {
         pollingCountRef.current = 0;
         setErrorMessage('Ödeme işlemi başlatılamadı. Lütfen tekrar deneyin.');
         setStep('failed');
-      } else if (paymentStatus === 'pending' || paymentStatus === 'processing' || paymentStatus === 'initiated') {
-        setTimeout(() => checkPaymentStatus(), 2000);
       } else {
+        // pending / initiated / processing
         setTimeout(() => checkPaymentStatus(), 2000);
       }
     } catch (error: any) {
@@ -339,6 +455,14 @@ export function useCommissionPayment({
   const handleWebViewNavigationChange = useCallback((navState: any) => {
     const { url } = navState;
 
+    // 0. Banka dönüşü: talep iptal edildi / iş sürücüden alındı (backend tahsilatı tamamlamadı).
+    // Backend her durumda reason=<KOD>&error=<mesaj> ekler.
+    const cancel = toCommissionCancel(getUrlParam(url, 'reason'), getUrlParam(url, 'error'));
+    if (cancel) {
+      handleRequestCancelled(cancel);
+      return;
+    }
+
     // 1. Kesin sonuçlar: payment=success/failed
     if (url.includes('payment=success')) {
       if (step !== 'success') {
@@ -352,8 +476,7 @@ export function useCommissionPayment({
       if (step !== 'failed') {
         callbackProcessedRef.current = true;
         pollingCountRef.current = 0;
-        const errorMatch = url.match(/error=([^&]+)/);
-        const rawError = errorMatch ? decodeURIComponent(errorMatch[1]) : 'Ödeme başarısız oldu';
+        const rawError = getUrlParam(url, 'error') || 'Ödeme başarısız oldu';
         const errorMsg = getReadablePaymentError(rawError);
         setErrorMessage(errorMsg);
         setStep('failed');
@@ -378,7 +501,7 @@ export function useCommissionPayment({
         checkPaymentStatus();
       }, 2000);
     }
-  }, [step, completeSuccessFlow]);
+  }, [step, completeSuccessFlow, handleRequestCancelled]);
 
   const isFormValid = useCallback((): boolean => {
     return (

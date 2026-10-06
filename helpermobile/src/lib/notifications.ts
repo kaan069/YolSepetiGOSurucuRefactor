@@ -2,6 +2,7 @@ import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messag
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { logger } from '../utils/logger';
+import { useCancellationEventStore } from '../store/useCancellationEventStore';
 
 /**
  * Notification handler configuration
@@ -64,6 +65,19 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
  */
 export function setupForegroundNotificationHandler() {
   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+    // Talep iptali: açık iş / komisyon ödeme ekranları anında kapansın diye
+    // WebSocket job_cancelled ile aynı store'a iletilir (WS bağlı olmasa da çalışır).
+    const data = remoteMessage.data || {};
+    const type = data.type;
+    const requestId = Number(data.request_id);
+    if ((type === 'request_cancelled' || type === 'request_auto_cancelled') && requestId) {
+      useCancellationEventStore.getState().setCancelledJob(
+        requestId,
+        data.service_type ? String(data.service_type) : 'fcm',
+        data.reason ? String(data.reason) : null,
+      );
+    }
+
     if (remoteMessage.notification) {
       try {
         await Notifications.scheduleNotificationAsync({

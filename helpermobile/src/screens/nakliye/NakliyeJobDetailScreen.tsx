@@ -14,6 +14,7 @@ import { useNakliyeLocationStore } from '../../store/useNakliyeLocationStore';
 import AppBar from '../../components/common/AppBar';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { CommissionPaymentModal, CommissionPaymentCard, InsurancePricingCard } from '../../components/payment';
+import { cancelFromDetail } from '../../components/payment/commission/cancelReason';
 import CancelJobModal from '../../components/cancellation/CancelJobModal';
 import { useCancellationEventStore } from '../../store/useCancellationEventStore';
 import { useJobUpdateEventStore } from '../../store/useJobUpdateEventStore';
@@ -538,7 +539,11 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
               ? await requestsAPI.getCityMovingRequestDetail(parseInt(jobId))
               : await requestsAPI.getHomeMovingRequestDetail(parseInt(jobId));
             setRequest(fresh);
-            return getStatus(fresh) !== 'awaiting_payment';
+            const freshStatus = getStatus(fresh);
+            // İptal / iş sürücüden alındı: sebebi detaydaki cancelReason belirler
+            const cancel = cancelFromDetail(fresh, freshStatus);
+            if (cancel) return cancel;
+            return freshStatus === 'in_progress' || freshStatus === 'completed';
           } catch {
             return false;
           }

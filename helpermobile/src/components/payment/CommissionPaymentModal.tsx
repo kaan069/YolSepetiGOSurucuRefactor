@@ -23,6 +23,7 @@ import { WebView } from 'react-native-webview';
 import { useCommissionPayment } from './commission/useCommissionPayment';
 import PaymentSelectScreen from './commission/PaymentSelectScreen';
 import { ProcessingScreen, SuccessScreen, FailedScreen } from './commission/PaymentResultScreens';
+import type { CommissionCancel } from './commission/cancelReason';
 
 interface CommissionPaymentModalProps {
   visible: boolean;
@@ -34,7 +35,7 @@ interface CommissionPaymentModalProps {
   commissionVatAmount?: number;
   onPaymentSuccess: () => void;
   onPaymentFailed: (error: string) => void;
-  verifyJobCleared?: () => Promise<boolean>;
+  verifyJobCleared?: () => Promise<boolean | CommissionCancel>;
 }
 
 export default function CommissionPaymentModal({

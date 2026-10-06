@@ -2,6 +2,8 @@
 
 Selam Dalyarak Bey,
 
+> **Güncelleme (2026-10-06):** Backend ekibi teyit etti — detay, ödeme uçları ve bildirimler **ortak talep tablosunun ID'sini** kullanıyor; aynı ID iki serviste bulunamaz. Aşağıdaki "ayrı ID dizisi / yanlış iş açılması (Risk 1)" varsayımı geçersiz. `request_cancelled` / `request_auto_cancelled` FCM payload'larına `service_type` eklendi; diğer bildirim tipleri için istek geçerliliğini koruyor.
+
 ## Bağlam
 
 Sürücü mobil uygulaması bildirim/banner ile sürücüyü ilgili iş detayına yönlendiriyor (yeni talep, onay sonucu, ödeme tamamlanma vb.). Yönlendirme için frontend, payload'taki iş ID'sine göre **doğru servisin** detail endpoint'ini çağırması gerekir:

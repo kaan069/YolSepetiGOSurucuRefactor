@@ -95,15 +95,37 @@ export interface CommissionPaymentSavedCardRequest {
   use_default_card?: boolean;
 }
 
+// Ödeme alınamayan durumların ortak sebep kodları (backend: apps/request/services/cancel_reason.py).
+// Banka dönüşü (?reason=), ödeme başlatma hatası (error.code), ödeme durumu (cancel_reason)
+// ve iş detayı (cancelReason) aynı kodları kullanır.
+export type CommissionCancelCode =
+  | 'REQUEST_CANCELLED'   // müşteri iptal etti
+  | 'REQUEST_CLOSED'      // yönetici / sistem iptal etti
+  | 'JOB_REASSIGNED'      // iş bu sürücüden alındı
+  | 'ALREADY_ACTIVE'      // iş zaten başlamış
+  | 'PAYMENT_NOT_ACTIVE'; // ödeme kaydı artık geçerli değil
+
 // Komisyon Ödeme Durumu
+// Kayıt yoksa sadece status: 'no_payment' + message (+ varsa cancel_reason/cancel_message) döner.
 export interface CommissionPaymentStatus {
-  id: number;
-  amount: string;
-  status: 'pending' | 'processing' | 'completed' | 'failed';
-  payment_method: 'credit_card' | 'debit_card';
-  created_at: string;
-  paid_at: string | null;
-  error_message?: string;
+  id?: number;
+  amount?: string;
+  status:
+    | 'pending'
+    | 'initiated'
+    | 'processing'
+    | 'completed'
+    | 'failed'
+    | 'refunded'
+    | 'cancelled'
+    | 'no_payment';
+  payment_method?: 'iyzico' | 'stripe' | 'manual' | 'nfc';
+  created_at?: string;
+  paid_at?: string | null;
+  message?: string;
+  request_status?: string;
+  cancel_reason?: CommissionCancelCode;
+  cancel_message?: string;
 }
 
 // 3DS Response - Backend direkt HTML string donuyor

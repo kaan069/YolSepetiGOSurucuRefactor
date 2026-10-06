@@ -188,8 +188,16 @@ export interface RequestIdInfo {
     updated_at: string;
 }
 
+// Tekil iş detayı yanıtındaki iptal / işin sürücüden alınma sebebi.
+// Görüntüleyen sürücüye göre hesaplanır; liste yanıtlarında bu alanlar yoktur.
+// Kodlar: REQUEST_CANCELLED | REQUEST_CLOSED | JOB_REASSIGNED (bkz. CommissionCancelCode)
+export interface DetailCancelInfo {
+    cancelReason?: string | null;
+    cancelMessage?: string | null;
+}
+
 // Request Types - Crane Request (Vinç Talebi)
-export interface CraneRequest {
+export interface CraneRequest extends DetailCancelInfo {
     id: number;
     request_id: RequestIdInfo;  // Backend'den object olarak geliyor
     requestOwnerNameSurname?: string;    // Müşteri adı soyadı (ana response'da)
@@ -1004,7 +1012,7 @@ export interface MovingMyOffer {
   pricing_breakdown?: PricingBreakdown;
 }
 
-export interface MovingRequestDetail extends MovingRequest {
+export interface MovingRequestDetail extends MovingRequest, DetailCancelInfo {
   // İş türü (home / city) — bazı response'larda detail içinde gelir
   moving_type?: 'home' | 'city';
 
@@ -1074,7 +1082,7 @@ export interface RoadAssistanceMyOffer {
   pricing_breakdown?: PricingBreakdown;
 }
 
-export interface RoadAssistanceRequestDetail extends RoadAssistanceRequest {
+export interface RoadAssistanceRequestDetail extends RoadAssistanceRequest, DetailCancelInfo {
   // İlişkili request_id — backend object ya da number döndürebilir
   request_id?: RequestIdInfo | number;
 
@@ -1152,7 +1160,7 @@ export interface TransferMyOffer {
  * beyan edilir (şu an için TransferRequest üzerinde ek alana ihtiyaç yok —
  * fakat ileride detail-only alanlar eklendiğinde bu interface uzatılabilir).
  */
-export interface TransferRequestDetail extends TransferRequest {}
+export interface TransferRequestDetail extends TransferRequest, DetailCancelInfo {}
 
 /** Transfer teklif gönderim payload'ı (submit-offer endpoint body). */
 export interface TransferOfferPayload {

@@ -218,7 +218,7 @@ export default function OrdersScreen() {
 
       refreshByServiceType(serviceType);
       if (data?.job_id) {
-        useCancellationEventStore.getState().setCancelledJob(data.job_id, serviceType);
+        useCancellationEventStore.getState().setCancelledJob(data.job_id, serviceType, data?.reason);
       }
     }, [refreshByServiceType, fetchAllServicesJobCounts]),
     enabled: true,
