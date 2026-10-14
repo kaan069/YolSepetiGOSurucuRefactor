@@ -21,6 +21,7 @@
  */
 
 import type { ServiceGroup } from './serviceTypes';
+import { colors } from '../theme/design';
 
 /**
  * İnsan-okur Türkçe label — tab, kart başlığı, liste satırı.
@@ -82,25 +83,24 @@ export const SERVICE_ICON: Record<ServiceGroup, string> = {
  * Kaynak: screens/earnings/constants.ts (SERVICE_TYPES + STAT_CARDS).
  */
 export const SERVICE_COLOR: Record<ServiceGroup, string> = {
-  towTruck: '#1976D2',
-  crane: '#F57C00',
-  roadAssistance: '#388E3C',
-  homeToHomeMoving: '#7B1FA2',
-  cityToCity: '#9C27B0',
-  transfer: '#5C6BC0',
-  nakliye: '#7B1FA2', // STAT_CARDS 'nakliye' card color
+  towTruck: colors.primary[600],
+  crane: colors.info[600],
+  roadAssistance: colors.secondary[600],
+  homeToHomeMoving: colors.success[600],
+  cityToCity: colors.success[700],
+  transfer: colors.neutral[600],
+  nakliye: colors.success[600],
 };
 
 /**
- * Açık arka plan rengi — kart/tag background.
- * Kaynak: screens/earnings/constants.ts (SERVICE_TYPES + STAT_CARDS).
+ * Açık arka plan rengi — kart/tag background (design.ts X[50]).
  */
 export const SERVICE_BG_COLOR: Record<ServiceGroup, string> = {
-  towTruck: '#E3F2FD',
-  crane: '#FFF3E0',
-  roadAssistance: '#E8F5E9',
-  homeToHomeMoving: '#F3E5F5',
-  cityToCity: '#F3E5F5',
-  transfer: '#E8EAF6',
-  nakliye: '#F3E5F5', // STAT_CARDS 'nakliye' card bgColor
+  towTruck: colors.primary[50],
+  crane: colors.info[50],
+  roadAssistance: colors.secondary[50],
+  homeToHomeMoving: colors.success[50],
+  cityToCity: colors.success[50],
+  transfer: colors.neutral[100],
+  nakliye: colors.success[50],
 };

@@ -18,6 +18,7 @@ import { FkButton } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { formatMoney, formatDate } from '../earnings/constants';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'InvitedUsers'>;
 
@@ -130,7 +131,7 @@ export default function InvitedUsersScreen({ navigation }: Props) {
                       <Text variant="bodySmall" style={{ color: appColors.text.secondary }}>
                         Bekleyen
                       </Text>
-                      <Text variant="titleMedium" style={{ color: '#ff9800', fontWeight: '600' }}>
+                      <Text variant="titleMedium" style={{ color: colors.warning[500], fontWeight: '600' }}>
                         {formatMoney(parseFloat(totals.pending) || 0)} ₺
                       </Text>
                     </View>
@@ -138,7 +139,7 @@ export default function InvitedUsersScreen({ navigation }: Props) {
                       <Text variant="bodySmall" style={{ color: appColors.text.secondary }}>
                         Ödenen
                       </Text>
-                      <Text variant="titleMedium" style={{ color: '#26a69a', fontWeight: '600' }}>
+                      <Text variant="titleMedium" style={{ color: colors.primary[500], fontWeight: '600' }}>
                         {formatMoney(parseFloat(totals.paid) || 0)} ₺
                       </Text>
                     </View>
@@ -201,10 +202,10 @@ function InvitedUserCard({
             compact
             mode="flat"
             style={{
-              backgroundColor: user.is_recently_active ? '#e0f2f1' : '#f0f0f0',
+              backgroundColor: user.is_recently_active ? colors.primary[50] : colors.neutral[100],
             }}
             textStyle={{
-              color: user.is_recently_active ? '#26a69a' : '#9e9e9e',
+              color: user.is_recently_active ? colors.primary[500] : colors.neutral[400],
               fontSize: 11,
             }}
           >
@@ -239,7 +240,7 @@ function InvitedUserCard({
             <Text variant="bodySmall" style={{ color: appColors.text.secondary }}>
               Kazandırdığı
             </Text>
-            <Text variant="titleSmall" style={{ color: '#26a69a', fontWeight: '600' }}>
+            <Text variant="titleSmall" style={{ color: colors.primary[500], fontWeight: '600' }}>
               {formatMoney(totalEarned)} ₺
             </Text>
           </View>
@@ -266,7 +267,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.neutral[200],
   },
   breakdownCol: { flex: 1 },
 
@@ -280,7 +281,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingTop: 8,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.neutral[200],
   },
   userStatCol: { flex: 1, alignItems: 'center' },
 });

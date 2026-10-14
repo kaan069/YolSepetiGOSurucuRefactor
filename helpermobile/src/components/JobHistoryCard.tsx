@@ -4,14 +4,17 @@ import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { CompletedJob } from '../screens/earnings';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { colors, shadows } from '../theme/design';
 
 interface Props {
   job: CompletedJob;
   onPress: () => void;
   serviceTypeLabel?: string;
+  /** MaterialCommunityIcons adı — servis rozetinde gösterilir */
+  serviceTypeIcon?: string;
 }
 
-export default function JobHistoryCard({ job, onPress, serviceTypeLabel }: Props) {
+export default function JobHistoryCard({ job, onPress, serviceTypeLabel, serviceTypeIcon }: Props) {
   const { isDarkMode, appColors, cardBg } = useAppTheme();
   const isReferral = job.earningType === 'referral';
 
@@ -25,7 +28,7 @@ export default function JobHistoryCard({ job, onPress, serviceTypeLabel }: Props
       <View style={styles.topRow}>
         <View style={styles.idContainer}>
           {isReferral ? (
-            <MaterialCommunityIcons name="gift-outline" size={18} color="#26a69a" />
+            <MaterialCommunityIcons name="gift-outline" size={18} color={colors.primary[500]} />
           ) : null}
           <Text style={[styles.idLabel, { color: appColors.text.secondary }]}>
             {isReferral ? 'Referans' : 'İş'}
@@ -38,11 +41,14 @@ export default function JobHistoryCard({ job, onPress, serviceTypeLabel }: Props
               styles.typeBadge,
               {
                 backgroundColor: isReferral
-                  ? (isDarkMode ? '#1f3f3c' : '#e0f2f1')
+                  ? (isDarkMode ? '#1f3f3c' : colors.primary[50])
                   : appColors.primary[50],
               },
             ]}
           >
+            {!isReferral && serviceTypeIcon ? (
+              <MaterialCommunityIcons name={serviceTypeIcon} size={14} color={colors.primary[700]} />
+            ) : null}
             <Text style={[styles.typeBadgeText, isReferral && styles.referralBadgeText]}>
               {isReferral ? 'Referans payı' : serviceTypeLabel}
             </Text>
@@ -64,29 +70,29 @@ export default function JobHistoryCard({ job, onPress, serviceTypeLabel }: Props
         <View style={styles.addressContainer}>
           {job.pickupAddress && (
             <View style={styles.addressRow}>
-              <View style={[styles.addressDot, { backgroundColor: '#00897b' }]} />
+              <View style={[styles.addressDot, { backgroundColor: colors.primary[600] }]} />
               <Text style={[styles.addressText, { color: appColors.text.primary }]} numberOfLines={1}>{job.pickupAddress}</Text>
             </View>
           )}
           {job.pickupAddress && job.dropoffAddress && (
-            <View style={[styles.addressConnector, { backgroundColor: isDarkMode ? '#444' : '#e0e0e0' }]} />
+            <View style={[styles.addressConnector, { backgroundColor: isDarkMode ? colors.neutral[700] : colors.neutral[200] }]} />
           )}
           {job.dropoffAddress && (
             <View style={styles.addressRow}>
-              <View style={[styles.addressDot, { backgroundColor: '#D32F2F' }]} />
+              <View style={[styles.addressDot, { backgroundColor: colors.danger[600] }]} />
               <Text style={[styles.addressText, { color: appColors.text.primary }]} numberOfLines={1}>{job.dropoffAddress}</Text>
             </View>
           )}
         </View>
       )}
 
-      <View style={[styles.footer, { borderTopColor: isDarkMode ? '#333' : '#f5f5f5' }]}>
+      <View style={[styles.footer, { borderTopColor: isDarkMode ? colors.neutral[800] : colors.neutral[100] }]}>
         {job.distanceKm > 0 && (
-          <View style={[styles.distanceBadge, { backgroundColor: isDarkMode ? '#333' : '#f5f5f5' }]}>
+          <View style={[styles.distanceBadge, { backgroundColor: isDarkMode ? colors.neutral[800] : colors.neutral[100] }]}>
             <Text style={[styles.distanceText, { color: appColors.text.secondary }]}>{job.distanceKm.toFixed(1)} km</Text>
           </View>
         )}
-        <Text style={[styles.amount, { color: isDarkMode ? appColors.primary[300] : '#004d40' }]}>
+        <Text style={[styles.amount, { color: isDarkMode ? appColors.primary[300] : colors.primary[800] }]}>
           {job.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₺
         </Text>
       </View>
@@ -96,14 +102,10 @@ export default function JobHistoryCard({ job, onPress, serviceTypeLabel }: Props
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 10,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
+    marginBottom: 12,
+    ...shadows.sm,
   },
   topRow: {
     flexDirection: 'row',
@@ -125,17 +127,20 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   typeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 10,
+    borderRadius: 9999,
   },
   typeBadgeText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#00897b',
+    color: colors.primary[600],
   },
   referralBadgeText: {
-    color: '#26a69a',
+    color: colors.primary[500],
   },
   date: {
     fontSize: 12,

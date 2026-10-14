@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { CONTRACTS, Contract } from '../constants/contracts';
 import ContractModal from '../components/ContractModal';
+import { colors } from '../theme/design';
 
 export default function ContractsListScreen() {
   const theme = useTheme();
@@ -21,7 +22,7 @@ export default function ContractsListScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header Section */}
         <View style={styles.header}>
-          <MaterialCommunityIcons name="file-document-multiple" size={48} color="#26a69a" />
+          <MaterialCommunityIcons name="file-document-multiple" size={48} color={colors.primary[500]} />
           <Text variant="headlineMedium" style={styles.headerTitle}>
             Sözleşmelerim
           </Text>
@@ -33,7 +34,7 @@ export default function ContractsListScreen() {
         {/* Status Chip */}
         <View style={styles.statusContainer}>
           <Chip
-            icon={() => <MaterialCommunityIcons name="check-circle" size={18} color="#4caf50" />}
+            icon={() => <MaterialCommunityIcons name="check-circle" size={18} color={colors.success[500]} />}
             mode="flat"
             style={styles.statusChip}
             textStyle={styles.statusChipText}
@@ -60,7 +61,7 @@ export default function ContractsListScreen() {
                       <MaterialCommunityIcons
                         name={contract.icon as any}
                         size={32}
-                        color="#26a69a"
+                        color={colors.primary[500]}
                       />
                     </View>
                     <View style={styles.contractCardContent}>
@@ -71,7 +72,7 @@ export default function ContractsListScreen() {
                         <MaterialCommunityIcons
                           name="check-circle"
                           size={16}
-                          color="#4caf50"
+                          color={colors.success[500]}
                           style={styles.metaIcon}
                         />
                         <Text variant="bodySmall" style={styles.approvedText}>
@@ -82,7 +83,7 @@ export default function ContractsListScreen() {
                     <MaterialCommunityIcons
                       name="chevron-right"
                       size={24}
-                      color="#666"
+                      color={colors.neutral[500]}
                     />
                   </View>
                 </Card.Content>
@@ -102,7 +103,7 @@ export default function ContractsListScreen() {
               <MaterialCommunityIcons
                 name="information"
                 size={24}
-                color="#2196f3"
+                color={colors.info[500]}
                 style={styles.infoIcon}
               />
               <Text variant="titleMedium" style={styles.infoTitle}>
@@ -137,7 +138,7 @@ export default function ContractsListScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   scrollView: {
     flex: 1,
@@ -146,18 +147,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 32,
     paddingHorizontal: 20,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.neutral[200],
   },
   headerTitle: {
     fontWeight: 'bold',
     marginTop: 16,
     marginBottom: 8,
-    color: '#333',
+    color: colors.neutral[800],
   },
   headerSubtitle: {
-    color: '#666',
+    color: colors.neutral[500],
     textAlign: 'center',
   },
   statusContainer: {
@@ -165,10 +166,10 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   statusChip: {
-    backgroundColor: '#e8f5e9',
+    backgroundColor: colors.success[50],
   },
   statusChipText: {
-    color: '#4caf50',
+    color: colors.success[500],
     fontWeight: '600',
   },
   contractsContainer: {
@@ -178,7 +179,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#333',
+    color: colors.neutral[800],
   },
   contractCard: {
     borderRadius: 12,
@@ -194,7 +195,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#e0f2f1',
+    backgroundColor: colors.primary[50],
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
   contractCardTitle: {
     fontWeight: '600',
     marginBottom: 4,
-    color: '#333',
+    color: colors.neutral[800],
   },
   contractCardMeta: {
     flexDirection: 'row',
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   approvedText: {
-    color: '#4caf50',
+    color: colors.success[500],
     fontWeight: '500',
   },
   divider: {
@@ -226,7 +227,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
     borderRadius: 12,
     elevation: 2,
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.info[50],
   },
   infoHeader: {
     flexDirection: 'row',
@@ -238,10 +239,10 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontWeight: 'bold',
-    color: '#1976d2',
+    color: colors.info[600],
   },
   infoText: {
-    color: '#1565c0',
+    color: colors.info[700],
     lineHeight: 22,
     marginBottom: 8,
   },

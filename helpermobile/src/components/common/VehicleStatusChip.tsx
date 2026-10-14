@@ -10,6 +10,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Chip, Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { colors } from '../../theme/design';
 
 export type VehicleVerificationStatus = 'pending' | 'approved' | 'rejected';
 
@@ -30,22 +31,22 @@ const CONFIG: Record<VehicleVerificationStatus, {
   approved: {
     label: 'Onaylandı',
     icon: 'check-circle',
-    bg: '#e8f5e9',
-    fg: '#2e7d32',
+    bg: colors.success[50],
+    fg: colors.success[700],
     border: '#a5d6a7',
   },
   pending: {
     label: 'Onay Bekliyor',
     icon: 'clock-outline',
-    bg: '#fff8e1',
-    fg: '#ef6c00',
+    bg: colors.warning[50],
+    fg: colors.warning[700],
     border: '#ffcc80',
   },
   rejected: {
     label: 'Reddedildi',
     icon: 'close-circle',
-    bg: '#ffebee',
-    fg: '#c62828',
+    bg: colors.danger[50],
+    fg: colors.danger[700],
     border: '#ef9a9a',
   },
 };
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
   },
   reasonText: {
     fontSize: 11,
-    color: '#c62828',
+    color: colors.danger[700],
     fontStyle: 'italic',
     marginTop: 4,
     paddingLeft: 4,

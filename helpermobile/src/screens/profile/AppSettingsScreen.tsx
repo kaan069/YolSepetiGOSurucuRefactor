@@ -8,6 +8,7 @@ import AppBar from '../../components/common/AppBar';
 import { useThemeStore } from '../../store/useThemeStore';
 import { useGuideStore } from '../../store/useGuideStore';
 import { APP_VERSION } from '../../constants/appVersion';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AppSettings'>;
 
@@ -90,7 +91,7 @@ export default function AppSettingsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   content: {
     flex: 1,

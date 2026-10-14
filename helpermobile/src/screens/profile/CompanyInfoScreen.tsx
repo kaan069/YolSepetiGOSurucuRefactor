@@ -14,6 +14,7 @@ import AppBar from '../../components/common/AppBar';
 import CreditCardSection from '../../components/payment/CreditCardSection';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CompanyInfo'>;
 
@@ -369,7 +370,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
             )}
 
             {companyInfo && (
-              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }]}>
+              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] }]}>
                 <Text style={[styles.infoLabel, { color: appColors.text.secondary }]}>Son Güncelleme:</Text>
                 <Text style={styles.infoValue}>
                   {new Date(companyInfo.updated_at).toLocaleDateString('tr-TR')}
@@ -427,7 +428,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
             )}
 
             {paymentMethod && (
-              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }]}>
+              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] }]}>
                 <Text style={[styles.infoLabel, { color: appColors.text.secondary }]}>Son Güncelleme:</Text>
                 <Text style={styles.infoValue}>
                   {new Date(paymentMethod.updated_at).toLocaleDateString('tr-TR')}
@@ -585,7 +586,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   errorText: {
-    color: '#d32f2f',
+    color: colors.danger[600],
     fontSize: 12,
     marginBottom: 8,
     marginLeft: 4,
@@ -602,7 +603,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     borderRadius: 8,
     paddingVertical: 8,
-    backgroundColor: '#26a69a',
+    backgroundColor: colors.primary[500],
   },
   infoBox: {
     flexDirection: 'row',
@@ -618,7 +619,7 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 13,
-    color: '#26a69a',
+    color: colors.primary[500],
     fontWeight: 'bold',
   },
   bottomSpace: {
@@ -631,6 +632,6 @@ const styles = StyleSheet.create({
   continueButton: {
     paddingVertical: 12,
     borderRadius: 8,
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.success[500],
   },
 });

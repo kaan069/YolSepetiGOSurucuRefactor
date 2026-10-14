@@ -12,6 +12,7 @@ import { getReadablePaymentError } from '../../components/payment/commission/pay
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import { colors as dc } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreditCardInfo'>;
 
@@ -370,7 +371,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
       case 'TROY':
         return { color: '#00529B', name: 'Troy' };
       default:
-        return { color: '#666', name: '' };
+        return { color: dc.neutral[500], name: '' };
     }
   };
 
@@ -404,7 +405,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
             <View style={styles.cardActions}>
               {card.is_default ? (
                 <View style={styles.defaultBadge}>
-                  <MaterialCommunityIcons name="check-circle" size={16} color="#26a69a" />
+                  <MaterialCommunityIcons name="check-circle" size={16} color={dc.primary[500]} />
                   <Text style={styles.defaultText}>Varsayilan</Text>
                 </View>
               ) : (
@@ -431,8 +432,8 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
               style={[styles.cardActionButton, styles.deleteButton]}
               onPress={() => handleDeleteCard(card)}
             >
-              <MaterialCommunityIcons name="delete-outline" size={18} color="#f44336" />
-              <Text style={[styles.cardActionText, { color: '#f44336' }]}>Sil</Text>
+              <MaterialCommunityIcons name="delete-outline" size={18} color={dc.danger[500]} />
+              <Text style={[styles.cardActionText, { color: dc.danger[500] }]}>Sil</Text>
             </TouchableOpacity>
           </View>
         </Card.Content>
@@ -449,14 +450,14 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#26a69a']}
-            tintColor="#26a69a"
+            colors={[dc.primary[500]]}
+            tintColor={dc.primary[500]}
           />
         }
       >
         {/* Info Banner */}
         <View style={styles.infoBanner}>
-          <MaterialCommunityIcons name="shield-check" size={24} color="#26a69a" />
+          <MaterialCommunityIcons name="shield-check" size={24} color={dc.primary[500]} />
           <Text style={styles.infoBannerText}>
             Kart bilgileriniz iyzico guvencesiyle sifreli olarak saklanir. Kart dogrulamasi icin 1 TL cekilir ve otomatik iade edilir.
           </Text>
@@ -465,7 +466,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
         {/* Kayitli Kartlar */}
         {loadingCards ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#26a69a" />
+            <ActivityIndicator size="large" color={dc.primary[500]} />
             <Text style={[styles.loadingText, { color: appColors.text.secondary }]}>Kartlar yukleniyor...</Text>
           </View>
         ) : (
@@ -483,7 +484,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
                 style={[styles.addCardButton, { backgroundColor: cardBg }]}
                 onPress={() => setShowAddCard(true)}
               >
-                <MaterialCommunityIcons name="plus-circle" size={24} color="#26a69a" />
+                <MaterialCommunityIcons name="plus-circle" size={24} color={dc.primary[500]} />
                 <Text style={styles.addCardButtonText}>Yeni Kart Ekle</Text>
               </TouchableOpacity>
             )}
@@ -509,8 +510,8 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
               </View>
 
               {/* 1 TL dogrulama bilgisi */}
-              <View style={[styles.verificationInfo, { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }]}>
-                <MaterialCommunityIcons name="information-outline" size={18} color="#1565c0" />
+              <View style={[styles.verificationInfo, { backgroundColor: isDarkMode ? '#0d2137' : dc.info[50] }]}>
+                <MaterialCommunityIcons name="information-outline" size={18} color={dc.info[700]} />
                 <Text style={styles.verificationInfoText}>
                   Kart dogrulamasi icin 1 TL cekilecek ve otomatik iade edilecektir. 3D Secure dogrulamasi gereklidir.
                 </Text>
@@ -681,7 +682,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
             {/* Header */}
             <View style={[styles.threeDSHeader, { backgroundColor: cardBg }]}>
               <TouchableOpacity onPress={handle3DSClose} style={styles.threeDSCloseButton}>
-                <MaterialCommunityIcons name="close" size={24} color="#333" />
+                <MaterialCommunityIcons name="close" size={24} color={dc.neutral[800]} />
               </TouchableOpacity>
               <Text style={styles.threeDSTitle}>3D Secure Dogrulama</Text>
               <View style={{ width: 40 }} />
@@ -690,7 +691,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
             {/* WebView */}
             {webViewLoading && (
               <View style={styles.webViewLoadingOverlay}>
-                <ActivityIndicator size="large" color="#26a69a" />
+                <ActivityIndicator size="large" color={dc.primary[500]} />
                 <Text style={[styles.webViewLoadingText, { color: appColors.text.secondary }]}>3D Secure yukleniyor...</Text>
               </View>
             )}
@@ -774,7 +775,7 @@ const styles = StyleSheet.create({
   },
   infoBanner: {
     flexDirection: 'row',
-    backgroundColor: '#e0f2f1',
+    backgroundColor: dc.primary[50],
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
@@ -784,7 +785,7 @@ const styles = StyleSheet.create({
   infoBannerText: {
     flex: 1,
     fontSize: 13,
-    color: '#00695c',
+    color: dc.primary[700],
     lineHeight: 18,
   },
   verificationInfo: {
@@ -798,7 +799,7 @@ const styles = StyleSheet.create({
   verificationInfoText: {
     flex: 1,
     fontSize: 12,
-    color: '#1565c0',
+    color: dc.info[700],
     lineHeight: 16,
   },
   section: {
@@ -807,16 +808,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: dc.neutral[800],
     marginBottom: 12,
   },
   savedCard: {
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: dc.neutral[200],
   },
   defaultCard: {
-    borderColor: '#26a69a',
+    borderColor: dc.primary[500],
     borderWidth: 2,
   },
   cardHeader: {
@@ -843,7 +844,7 @@ const styles = StyleSheet.create({
   cardAlias: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: dc.neutral[800],
   },
   cardNumber: {
     fontSize: 14,
@@ -856,11 +857,11 @@ const styles = StyleSheet.create({
   },
   cardBank: {
     fontSize: 12,
-    color: '#999',
+    color: dc.neutral[400],
   },
   cardFamily: {
     fontSize: 12,
-    color: '#999',
+    color: dc.neutral[400],
   },
   cardActions: {
     alignItems: 'flex-end',
@@ -869,14 +870,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    backgroundColor: '#e0f2f1',
+    backgroundColor: dc.primary[50],
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
   },
   defaultText: {
     fontSize: 11,
-    color: '#26a69a',
+    color: dc.primary[500],
     fontWeight: '600',
   },
   setDefaultButton: {
@@ -885,7 +886,7 @@ const styles = StyleSheet.create({
   },
   setDefaultText: {
     fontSize: 12,
-    color: '#26a69a',
+    color: dc.primary[500],
   },
   cardActionsRow: {
     flexDirection: 'row',
@@ -893,7 +894,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
+    borderTopColor: dc.neutral[100],
     gap: 16,
   },
   cardActionButton: {
@@ -913,14 +914,14 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#26a69a',
+    borderColor: dc.primary[500],
     borderStyle: 'dashed',
     marginBottom: 16,
   },
   addCardButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#26a69a',
+    color: dc.primary[500],
   },
   loadingContainer: {
     padding: 40,
@@ -940,12 +941,12 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     fontWeight: '600',
-    color: '#333',
+    color: dc.neutral[800],
   },
   formSectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#26a69a',
+    color: dc.primary[500],
     marginBottom: 12,
   },
   input: {
@@ -954,7 +955,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#555',
+    color: dc.neutral[600],
     marginBottom: 4,
     marginTop: 4,
   },
@@ -969,7 +970,7 @@ const styles = StyleSheet.create({
   },
   dateSeparator: {
     fontSize: 24,
-    color: '#999',
+    color: dc.neutral[400],
     fontWeight: '300',
     marginTop: -4,
   },
@@ -979,7 +980,7 @@ const styles = StyleSheet.create({
   saveButton: {
     marginTop: 16,
     borderRadius: 8,
-    backgroundColor: '#26a69a',
+    backgroundColor: dc.primary[500],
   },
   iyzicoSection: {
     flexDirection: 'row',
@@ -991,7 +992,7 @@ const styles = StyleSheet.create({
   },
   securedBy: {
     fontSize: 12,
-    color: '#999',
+    color: dc.neutral[400],
   },
   iyzicoLogo: {
     flexDirection: 'row',
@@ -1022,7 +1023,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: dc.neutral[200],
   },
   threeDSCloseButton: {
     width: 40,
@@ -1033,7 +1034,7 @@ const styles = StyleSheet.create({
   threeDSTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: dc.neutral[800],
   },
   webView: {
     flex: 1,
@@ -1062,7 +1063,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: dc.neutral[800],
     marginBottom: 16,
   },
   modalInput: {

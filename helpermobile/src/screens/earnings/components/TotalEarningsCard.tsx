@@ -4,84 +4,58 @@ import { Text } from 'react-native-paper';
 import { EarningsValueShimmer } from '../../../components/common/ShimmerPlaceholder';
 import { formatMoney } from '../constants';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { FkCard, FkIconChip } from '../../../components/fk';
+import { colors, spacing } from '../../../theme/design';
 
 interface Props {
   totalEarnings: number;
   loading: boolean;
 }
 
+/** Toplam kazanç — vurgulu kart, büyük tutar. */
 export default function TotalEarningsCard({ totalEarnings, loading }: Props) {
-  const { isDarkMode, appColors, cardBg } = useAppTheme();
+  const { isDarkMode, appColors } = useAppTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: cardBg, shadowColor: isDarkMode ? '#000' : '#00897b' }]}>
-      <View style={styles.topBar} />
+    <FkCard variant="highlighted" rounded="xl" padding={spacing.lg} style={styles.card}>
       <View style={styles.content}>
-        <View style={[styles.iconContainer, { backgroundColor: appColors.primary[50] }]}>
-          <Text style={styles.icon}>💰</Text>
-        </View>
-        <Text style={[styles.label, { color: appColors.primary[400] }]}>TOPLAM KAZANCINIZ</Text>
+        <FkIconChip icon="wallet-outline" size={52} shape="circle" variant="solid" />
+        <Text style={[styles.label, { color: isDarkMode ? appColors.text.secondary : colors.primary[700] }]}>
+          Toplam Kazancınız
+        </Text>
         {loading ? (
           <EarningsValueShimmer />
         ) : (
-          <Text style={[styles.amount, { color: isDarkMode ? appColors.primary[300] : '#004d40' }]}>
+          <Text style={[styles.amount, { color: isDarkMode ? colors.primary[300] : colors.primary[800] }]}>
             {formatMoney(totalEarnings)} ₺
           </Text>
         )}
-        <View style={styles.divider} />
         <Text style={[styles.subtitle, { color: appColors.text.secondary }]}>Tüm tamamlanan işlerden</Text>
       </View>
-    </View>
+    </FkCard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    elevation: 4,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-  },
-  topBar: {
-    height: 6,
-    backgroundColor: '#00897b',
+  card: {
+    marginBottom: spacing.md,
   },
   content: {
-    padding: 24,
     alignItems: 'center',
   },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  icon: { fontSize: 28 },
   label: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    marginBottom: 8,
+    marginTop: spacing.sm + 4,
   },
   amount: {
-    fontSize: 40,
+    fontSize: 38,
     fontWeight: '800',
     letterSpacing: -1,
-  },
-  divider: {
-    width: 40,
-    height: 3,
-    backgroundColor: '#26a69a',
-    borderRadius: 2,
-    marginVertical: 12,
+    marginTop: spacing.xs,
   },
   subtitle: {
     fontSize: 12,
+    marginTop: spacing.xs,
   },
 });

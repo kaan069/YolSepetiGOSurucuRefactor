@@ -14,6 +14,7 @@ import AppBar from '../../components/common/AppBar';
 import VehicleStatusChip from '../../components/common/VehicleStatusChip';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VehiclesScreen'>;
 
@@ -311,7 +312,7 @@ export default function VehiclesScreen({ navigation }: Props) {
       {loading && (
         <View style={styles.loadingOverlay}>
           <LoadingSpinner size={80} />
-          <Text style={{ marginTop: 12, color: '#666' }}>Araçlar yükleniyor...</Text>
+          <Text style={{ marginTop: 12, color: colors.neutral[500] }}>Araçlar yükleniyor...</Text>
         </View>
       )}
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
@@ -359,7 +360,7 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <IconButton
                           icon="delete"
                           size={20}
-                          iconColor="#d32f2f"
+                          iconColor={colors.danger[600]}
                           onPress={() => handleDeleteTowTruck(truck.id, truck.plate)}
                           disabled={deletingVehicleId === truck.id}
                         />
@@ -417,7 +418,7 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <IconButton
                           icon="delete"
                           size={20}
-                          iconColor="#d32f2f"
+                          iconColor={colors.danger[600]}
                           onPress={() => handleDeleteCrane(crane.id, crane.plate)}
                           disabled={deletingVehicleId === crane.id}
                         />
@@ -475,7 +476,7 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <IconButton
                           icon="delete"
                           size={20}
-                          iconColor="#d32f2f"
+                          iconColor={colors.danger[600]}
                           onPress={() => handleDeleteTransport(transport.id, transport.plate)}
                         />
                       </View>
@@ -556,7 +557,7 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <IconButton
                           icon="delete"
                           size={20}
-                          iconColor="#d32f2f"
+                          iconColor={colors.danger[600]}
                           onPress={() => handleDeleteHomeMoving(vehicle.id, vehicle.plate)}
                           disabled={deletingVehicleId === vehicle.id}
                         />
@@ -631,7 +632,7 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <IconButton
                           icon="delete"
                           size={20}
-                          iconColor="#d32f2f"
+                          iconColor={colors.danger[600]}
                           onPress={() => handleDeleteRoadAssistance(service.id)}
                           disabled={deletingVehicleId === service.id}
                         />
@@ -671,8 +672,8 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
                           <Chip
                             compact
-                            style={{ backgroundColor: vehicle.transferType === 'vip' ? '#FFF3E0' : '#E8F5E9' }}
-                            textStyle={{ color: vehicle.transferType === 'vip' ? '#E65100' : '#2E7D32', fontSize: 11 }}
+                            style={{ backgroundColor: vehicle.transferType === 'vip' ? colors.warning[50] : colors.success[50] }}
+                            textStyle={{ color: vehicle.transferType === 'vip' ? colors.warning[700] : colors.success[700], fontSize: 11 }}
                           >
                             {vehicle.transferType === 'vip' ? '⭐ VIP' : '🚌 Servis'}
                           </Chip>
@@ -699,7 +700,7 @@ export default function VehiclesScreen({ navigation }: Props) {
                         <IconButton
                           icon="delete"
                           size={20}
-                          iconColor="#d32f2f"
+                          iconColor={colors.danger[600]}
                           onPress={() => handleDeleteTransfer(vehicle.id, vehicle.plate)}
                           disabled={deletingVehicleId === vehicle.id}
                         />
@@ -722,7 +723,7 @@ export default function VehiclesScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   loadingOverlay: {
     position: 'absolute',
@@ -761,16 +762,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   vehicleDetails: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 4,
   },
   vehicleSpecs: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 2,
     fontSize: 12,
   },
   priceText: {
-    color: '#26a69a',
+    color: colors.primary[500],
     fontWeight: 'bold',
     marginTop: 4,
     fontSize: 12,
@@ -779,12 +780,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.neutral[200],
   },
   equipmentLabel: {
     fontWeight: 'bold',
     marginBottom: 6,
-    color: '#666',
+    color: colors.neutral[500],
   },
   equipmentTags: {
     flexDirection: 'row',
@@ -793,17 +794,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   equipmentChip: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.info[50],
     marginBottom: 4,
   },
   moreText: {
-    color: '#666',
+    color: colors.neutral[500],
     fontStyle: 'italic',
     marginLeft: 8,
   },
   emptyText: {
     textAlign: 'center',
-    color: '#666',
+    color: colors.neutral[500],
     fontStyle: 'italic',
     paddingVertical: 20,
   },

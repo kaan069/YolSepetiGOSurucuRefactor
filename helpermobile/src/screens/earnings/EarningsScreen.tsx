@@ -17,6 +17,7 @@ import JobHistorySection from './components/JobHistorySection';
 
 import { CompletedJob } from './constants';
 import { useAppTheme } from '../../hooks/useAppTheme';
+import AppBar from '../../components/common/AppBar';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<RootTabParamList, 'EarningsTab'>,
@@ -24,7 +25,7 @@ type Props = CompositeScreenProps<
 >;
 
 export default function EarningsScreen({ navigation }: Props) {
-  const { screenBg } = useAppTheme();
+  const { screenBg, appColors } = useAppTheme();
   const {
     range,
     setRange,
@@ -72,13 +73,14 @@ export default function EarningsScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={[{ flex: 1, backgroundColor: screenBg }, styles.centered]} edges={['top', 'left', 'right']}>
         <LoadingSpinner size={80} />
-        <Text style={{ marginTop: 16 }}>Kazanç listesi yükleniyor...</Text>
+        <Text style={{ marginTop: 16, color: appColors.text.secondary }}>Kazanç listesi yükleniyor...</Text>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: screenBg }} edges={['top', 'left', 'right']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: screenBg }} edges={['left', 'right']}>
+      <AppBar title="Kazanç" variant="large" showBackButton={false} />
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}

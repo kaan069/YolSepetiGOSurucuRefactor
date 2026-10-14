@@ -3,6 +3,7 @@ import { View, StyleSheet, ScrollView, Modal, NativeSyntheticEvent, NativeScroll
 import { Portal, Text, Button, IconButton, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Contract } from '../constants/contracts';
+import { colors } from '../theme/design';
 
 interface ContractModalProps {
   visible: boolean;
@@ -127,7 +128,7 @@ export default function ContractModal({ visible, contract, onDismiss, showAccept
               <MaterialCommunityIcons
                 name={contract.icon as any}
                 size={24}
-                color="#fff"
+                color={colors.white}
                 style={styles.headerIcon}
               />
               <Text variant="titleLarge" style={styles.headerTitle} numberOfLines={2}>
@@ -136,7 +137,7 @@ export default function ContractModal({ visible, contract, onDismiss, showAccept
             </View>
             <IconButton
               icon="close"
-              iconColor="#fff"
+              iconColor={colors.white}
               size={24}
               onPress={handleDismiss}
               style={styles.closeButton}
@@ -186,7 +187,7 @@ export default function ContractModal({ visible, contract, onDismiss, showAccept
 const styles = StyleSheet.create({
   modalContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   header: {
     flexDirection: 'row',
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   headerTitle: {
-    color: '#fff',
+    color: colors.white,
     fontWeight: 'bold',
     flex: 1,
   },
@@ -227,14 +228,14 @@ const styles = StyleSheet.create({
   contractText: {
     fontSize: 13,
     lineHeight: 20,
-    color: '#333',
+    color: colors.neutral[800],
     textAlign: 'justify',
   },
   footer: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.neutral[200],
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },

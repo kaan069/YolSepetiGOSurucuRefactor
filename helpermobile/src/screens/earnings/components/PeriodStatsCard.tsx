@@ -6,6 +6,8 @@ import { StatsShimmer } from '../../../components/common/ShimmerPlaceholder';
 import { STAT_CARDS, formatMoney } from '../constants';
 import ServiceTypeStatCard from './ServiceTypeStatCard';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { radius, shadows } from '../../../theme/design';
+import { colors } from '../../../theme/design';
 
 interface Props {
   periodEarnings: PeriodEarningsResponse | null;
@@ -43,25 +45,25 @@ export default function PeriodStatsCard({
       <Text style={[styles.title, { color: appColors.text.primary }]}>{periodEarnings.period} Özeti</Text>
 
       <View style={[styles.summaryRow, {
-        backgroundColor: isDarkMode ? '#1a2e2c' : '#f8fffe',
-        borderColor: isDarkMode ? '#2c4a47' : '#e0f2f1',
+        backgroundColor: isDarkMode ? '#1a2e2c' : colors.primary[50],
+        borderColor: isDarkMode ? '#2c4a47' : colors.primary[100],
       }]}>
         <View style={styles.summaryItem}>
-          <Text style={[styles.summaryValue, { color: isDarkMode ? appColors.primary[300] : '#004d40' }]}>
+          <Text style={[styles.summaryValue, { color: isDarkMode ? appColors.primary[300] : colors.primary[800] }]}>
             {formatMoney(totalEarnings)} ₺
           </Text>
           <Text style={[styles.summaryLabel, { color: appColors.text.secondary }]}>Toplam Kazanç</Text>
         </View>
-        <View style={[styles.summaryDivider, { backgroundColor: isDarkMode ? '#444' : '#e0e0e0' }]} />
+        <View style={[styles.summaryDivider, { backgroundColor: isDarkMode ? colors.neutral[700] : colors.neutral[200] }]} />
         <View style={styles.summaryItem}>
-          <Text style={[styles.summaryValue, { color: isDarkMode ? appColors.primary[300] : '#004d40' }]}>
+          <Text style={[styles.summaryValue, { color: isDarkMode ? appColors.primary[300] : colors.primary[800] }]}>
             {periodEarnings.total_jobs}
           </Text>
           <Text style={[styles.summaryLabel, { color: appColors.text.secondary }]}>Toplam İş</Text>
         </View>
-        <View style={[styles.summaryDivider, { backgroundColor: isDarkMode ? '#444' : '#e0e0e0' }]} />
+        <View style={[styles.summaryDivider, { backgroundColor: isDarkMode ? colors.neutral[700] : colors.neutral[200] }]} />
         <View style={styles.summaryItem}>
-          <Text style={[styles.summaryValue, { color: isDarkMode ? appColors.primary[300] : '#004d40' }]}>
+          <Text style={[styles.summaryValue, { color: isDarkMode ? appColors.primary[300] : colors.primary[800] }]}>
             {periodEarnings.total_jobs > 0 ? formatMoney(totalEarnings / periodEarnings.total_jobs) : '0'} ₺
           </Text>
           <Text style={[styles.summaryLabel, { color: appColors.text.secondary }]}>Ortalama</Text>
@@ -75,7 +77,7 @@ export default function PeriodStatsCard({
           <ServiceTypeStatCard
             key={card.key}
             label={card.label}
-            emoji={card.emoji}
+            icon={card.icon}
             color={card.color}
             bgColor={isDarkMode ? `${card.color}15` : card.bgColor}
             earnings={getEarningsForTypes(card.serviceTypes)}
@@ -89,14 +91,10 @@ export default function PeriodStatsCard({
 
 const styles = StyleSheet.create({
   container: {
-    borderRadius: 16,
-    padding: 18,
+    borderRadius: radius.lg,
+    padding: 16,
     marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
+    ...shadows.sm,
   },
   title: {
     fontSize: 16,

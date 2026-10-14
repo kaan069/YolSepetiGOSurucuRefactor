@@ -1,8 +1,8 @@
 import React, { useRef, useState } from 'react';
-import { Alert, Animated, ScrollView, TouchableOpacity, View, Image, ActivityIndicator } from 'react-native';
+import { Alert, Animated, ScrollView, TouchableOpacity, View, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import { useDevOverrideStore } from '../../store/useDevOverrideStore';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text, ProgressBar, Chip } from 'react-native-paper';
+import { Text, ProgressBar } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../../store/authStore';
@@ -10,13 +10,15 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { CompositeScreenProps, CommonActions } from '@react-navigation/native';
 import { RootStackParamList, RootTabParamList, EmployeeTabParamList } from '../../navigation';
-import { useResponsive } from '../../hooks/useResponsive';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useSyncedBlink } from '../../hooks/useSyncedBlink';
 import { documentsAPI } from '../../api';
 import { ProfileCompletenessResponse, ProviderType } from '../../api/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { logger } from '../../utils/logger';
+import AppBar from '../../components/common/AppBar';
+import { FkCard, FkMenuGroup, FkMenuItem } from '../../components/fk';
+import { colors, radius, shadows, spacing as ds, text } from '../../theme/design';
 
 // ProfileMenuScreen hem normal kullanıcı hem Employee tab navigator'ında kullanılıyor.
 // ProfileMenuScreen is used in both regular user and Employee tab navigators.
@@ -34,9 +36,19 @@ interface MenuItemProps {
   blinkAlert?: boolean;
 }
 
+// Eksik evrak satırı yanıp söner (dikkat çekmek için)
+function BlinkingMenuItem({ blink, ...rest }: React.ComponentProps<typeof FkMenuItem> & { blink?: boolean }) {
+  const blinkAnim = useSyncedBlink(!!blink);
+  if (!blink) return <FkMenuItem {...rest} />;
+  return (
+    <Animated.View style={{ opacity: blinkAnim }}>
+      <FkMenuItem {...rest} danger />
+    </Animated.View>
+  );
+}
+
 export default function ProfileMenuScreen({ navigation }: Props) {
-  const { logout } = useAuthStore();
-  const { spacing, moderateScale } = useResponsive();
+  const { logout, currentUser } = useAuthStore();
   const { appColors, screenBg, cardBg, isDarkMode } = useAppTheme();
   const [completeness, setCompleteness] = useState<ProfileCompletenessResponse | null>(null);
   const [loadingCompleteness, setLoadingCompleteness] = useState(true);
@@ -112,46 +124,6 @@ export default function ProfileMenuScreen({ navigation }: Props) {
     );
   };
 
-  // MenuItem component - responsive styles ile
-  const MenuItem = ({ title, subtitle, icon, onPress, blinkAlert }: MenuItemProps) => {
-    const blinkAnim = useSyncedBlink(!!blinkAlert);
-
-    const alertColor = '#D32F2F';
-    const alertBg = isDarkMode ? '#3a1414' : '#ffebee';
-
-    const cardStyle = blinkAlert
-      ? { backgroundColor: alertBg, borderColor: alertColor, borderWidth: 1.5 }
-      : { backgroundColor: cardBg };
-
-    const accentColor = blinkAlert ? alertColor : appColors.primary[400];
-    const titleColor = blinkAlert ? alertColor : appColors.text.primary;
-    const subtitleColor = blinkAlert ? alertColor : appColors.text.secondary;
-    const chevronColor = blinkAlert ? alertColor : appColors.text.secondary;
-
-    const inner = (
-      <Card mode="outlined" style={cardStyle}>
-        <Card.Content style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs }}>
-          <MaterialCommunityIcons name={icon} size={moderateScale(24)} color={accentColor} style={{ marginRight: spacing.md }} />
-          <View style={{ flex: 1 }}>
-            <Text variant="titleMedium" style={{ fontWeight: '600', marginBottom: 2, color: titleColor }}>{title}</Text>
-            <Text variant="bodySmall" style={{ color: subtitleColor }}>{subtitle}</Text>
-          </View>
-          <MaterialCommunityIcons name="chevron-right" size={moderateScale(20)} color={chevronColor} />
-        </Card.Content>
-      </Card>
-    );
-
-    return (
-      <TouchableOpacity onPress={onPress} style={{ marginBottom: spacing.sm }}>
-        {blinkAlert ? (
-          <Animated.View style={{ opacity: blinkAnim }}>{inner}</Animated.View>
-        ) : (
-          inner
-        )}
-      </TouchableOpacity>
-    );
-  };
-
   // Menü öğeleri - Evrak durumuna göre dinamik başlık
   const getDocumentsMenuTitle = () => {
     if (!completeness) return 'Evraklar';
@@ -163,232 +135,285 @@ export default function ProfileMenuScreen({ navigation }: Props) {
     return completeness.is_complete ? 'file-document-outline' : 'file-alert';
   };
 
-  const menuItems = [
-    // Hesap İşlemleri - eleman kullanıcılara gösterilmez
-    ...(userProviderType !== 'employee' ? [{
-      title: 'Hesap İşlemleri',
-      subtitle: 'Kişisel bilgiler, şifre değiştirme',
-      icon: 'account-cog',
-      onPress: () => navigation.navigate('AccountManagement'),
-    }] : []),
-    // Hizmet Alanı - eleman kullanıcılara gösterilmez (talep filtresi için iş aldığı şehirler)
-    ...(userProviderType !== 'employee' ? [{
-      title: 'Hizmet Alanı',
-      subtitle: 'İş aldığınız şehirleri seçin',
-      icon: 'map-marker-radius',
-      onPress: () => navigation.navigate('ServiceCity'),
-    }] : []),
-    // Belgeler - eleman kullanıcılara gösterilmez
-    ...(userProviderType !== 'employee' ? [{
-      title: getDocumentsMenuTitle(),
-      subtitle: 'Evraklarım, şirket bilgilerim',
-      icon: getDocumentsMenuIcon(),
-      onPress: () => navigation.navigate('MissingDocuments'),
-      blinkAlert: !!(completeness && !completeness.is_complete),
-    }] : []),
-    // Yorumlar ve Puan - eleman kullanıcılara gösterilmez
-    ...(userProviderType !== 'employee' ? [{
-      title: 'Yorumlar ve Puan',
-      subtitle: 'Müşteri yorumları, puanlama istatistikleri',
-      icon: 'star',
-      onPress: () => navigation.navigate('RatingsAndReviews'),
-    }] : []),
-    // Rapor ve İşlem Geçmişi - eleman kullanıcılara gösterilmez
-    ...(userProviderType !== 'employee' ? [{
-      title: 'Rapor ve İşlem Geçmişi',
-      subtitle: 'Gelir raporları, geçmiş işlemler',
-      icon: 'chart-line',
-      onPress: () => navigation.navigate('ReportsAndHistory'),
-    }] : []),
-    // Araç Ve Hizmet Yönetimi - eleman kullanıcılara gösterilmez
-    ...(userProviderType !== 'employee' ? [{
-      title: 'Araç Ve Hizmet Yönetimi',
-      subtitle: 'Araçlarım, hizmet ayarları',
-      icon: 'truck',
-      onPress: () => navigation.navigate('VehicleAndServiceManagement'),
-    }] : []),
-    // Eleman Yönetimi - sadece firma sahiplerine gösterilir
-    ...(userProviderType === 'company' ? [{
-      title: 'Eleman Yönetimi',
-      subtitle: 'Elemanlarınızı yönetin, ekleyin, düzenleyin',
-      icon: 'account-group',
-      onPress: () => navigation.navigate('EmployeeList'),
-    }] : []),
-    // Belgeler Ve Sözleşmeler - eleman kullanıcılara gösterilmez
-    ...(userProviderType !== 'employee' ? [{
-      title: 'Belgeler Ve Sözleşmeler',
-      subtitle: 'Ruhsat, sigorta, sözleşmeler',
-      icon: 'file-document-multiple',
-      onPress: () => navigation.navigate('DocumentsAndContracts'),
-    }] : []),
-    // Şirket ve Ödeme Bilgileri - eleman kullanıcılara gösterilmez
-    ...(userProviderType !== 'employee' ? [{
-      title: 'Şirket ve Ödeme Bilgileri',
-      subtitle: 'Şirket detayları, vergi bilgileri',
-      icon: 'office-building',
-      onPress: () => navigation.navigate('CompanyInfo'),
-    }] : []),
-    // Referans Kodum - eleman kullanıcılara gösterilmez (kişisel referans kazancı)
-    ...(userProviderType !== 'employee' ? [{
-      title: 'Referans Kodum',
-      subtitle: invitedCount > 0
-        ? `${invitedCount} sürücü davet ettin`
-        : 'Davet et, kazanç pay\'i al',
-      icon: 'gift-outline',
-      onPress: () => navigation.navigate('ReferralCode'),
-    }] : []),
-    {
-      title: 'Uygulama Ayarları',
-      subtitle: 'Bildirimler, tema, dil ayarları',
-      icon: 'cog',
-      onPress: () => navigation.navigate('AppSettings'),
-    },
-    {
-      title: 'İzinler',
-      subtitle: 'Konum ve bildirim izinleri',
-      icon: 'shield-lock-outline',
-      onPress: () => navigation.navigate('Permissions'),
-    },
-    {
-      title: 'Şikayet ve Öneri',
-      subtitle: 'Öneri ve şikayetlerinizi bizimle paylaşın',
-      icon: 'message-alert-outline',
-      onPress: () => navigation.navigate('Feedback'),
-    },
-  ];
-
-  // Warning card renkleri (dark mode uyumlu)
-  const warningBg = isDarkMode ? '#3e2e00' : '#fff3cd';
-  const warningBorder = isDarkMode ? '#ff9800' : '#ff9800';
-  const warningText = isDarkMode ? '#ffcc80' : '#856404';
-
-  // Responsive dynamic styles
-  const dynamicStyles = {
-    container: {
-      flex: 1,
-      backgroundColor: screenBg,
-    },
-    content: {
-      flex: 1,
-      padding: spacing.md,
-    },
-    header: {
-      marginBottom: spacing.sm,
-      fontWeight: 'bold' as const,
-      textAlign: 'center' as const,
-    },
-  };
+  const isEmployee = userProviderType === 'employee';
+  const fullName = [(currentUser as any)?.first_name, (currentUser as any)?.last_name].filter(Boolean).join(' ')
+    || (currentUser as any)?.fullName
+    || 'Sürücü';
+  const phone = (currentUser as any)?.phone_number || (currentUser as any)?.phone;
 
   return (
-    <SafeAreaView style={dynamicStyles.container} edges={["bottom"]}>
-      <ScrollView style={dynamicStyles.content}>
-        <TouchableOpacity
-          activeOpacity={1}
-          // onPress={handleLogoPress}  // Geliştirici modu devre dışı bırakıldı
-          style={{ alignItems: 'center', marginBottom: spacing.md, marginTop: spacing.xl }}
-        >
-          <View style={{
-            width: moderateScale(70),
-            height: moderateScale(70),
-            borderRadius: moderateScale(35),
-            backgroundColor: cardBg,
-            justifyContent: 'center',
-            alignItems: 'center',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 2 },
-            shadowOpacity: 0.2,
-            shadowRadius: 4,
-            elevation: 5,
-            overflow: 'hidden',
-            borderWidth: 2,
-            borderColor: 'rgba(38, 166, 154, 0.3)',
-            marginBottom: spacing.xs
-          }}>
-            <Image
-              source={require('../../../assets/yolyardimlogo.png')}
-              style={{ width: moderateScale(55), height: moderateScale(55), borderRadius: moderateScale(27.5) }}
-              resizeMode="contain"
-            />
+    <View style={[styles.container, { backgroundColor: screenBg }]}>
+      <AppBar title="Profil" variant="large" showBackButton={false} />
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Kullanıcı başlığı */}
+        <FkCard rounded="xl" padding={ds.lg} style={styles.userCard}>
+          <View style={styles.userRow}>
+            <TouchableOpacity
+              activeOpacity={1}
+              // onPress={handleLogoPress}  // Geliştirici modu devre dışı bırakıldı
+              style={[styles.avatar, { backgroundColor: cardBg }]}
+            >
+              <Image source={require('../../../assets/yolyardimlogo.png')} style={styles.avatarImage} resizeMode="contain" />
+            </TouchableOpacity>
+            <View style={styles.userTexts}>
+              <Text style={[styles.userName, { color: appColors.text.primary }]} numberOfLines={1}>{fullName}</Text>
+              {phone ? <Text style={[styles.userPhone, { color: appColors.text.secondary }]}>{phone}</Text> : null}
+              {userProviderType ? (
+                <View style={styles.rolePill}>
+                  <Text style={styles.rolePillText}>
+                    {userProviderType === 'company' ? 'Kurumsal' : userProviderType === 'employee' ? 'Eleman' : 'Bireysel'}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
           </View>
-        </TouchableOpacity>
-        <Text variant="headlineSmall" style={dynamicStyles.header}>
-          Profil
-        </Text>
+        </FkCard>
 
-        {/* ✅ SENARYO 4: Profil Tamamlama Kartı - eleman kullanıcılara gösterilmez */}
-        {userProviderType !== 'employee' && (loadingCompleteness ? (
-          <Card mode="outlined" style={{ marginBottom: spacing.md, backgroundColor: cardBg }}>
-            <Card.Content style={{ alignItems: 'center', paddingVertical: spacing.md }}>
-              <ActivityIndicator size="small" color={appColors.primary[400]} />
-              <Text variant="bodySmall" style={{ marginTop: spacing.xs, color: appColors.text.secondary }}>
+        {/* Profil Tamamlama Kartı - eleman kullanıcılara gösterilmez */}
+        {!isEmployee && (loadingCompleteness ? (
+          <FkCard style={styles.block}>
+            <View style={styles.center}>
+              <ActivityIndicator size="small" color={colors.primary[500]} />
+              <Text variant="bodySmall" style={{ marginTop: ds.xs, color: appColors.text.secondary }}>
                 Profil durumu yükleniyor...
               </Text>
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         ) : completeness && !completeness.is_complete ? (
-          <TouchableOpacity
-            onPress={() => navigation.navigate('MissingDocuments')}
-            style={{ marginBottom: spacing.md }}
-          >
-            <Card mode="outlined" style={{ backgroundColor: warningBg, borderColor: warningBorder, borderWidth: 1.5 }}>
-              <Card.Content>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.sm }}>
-                  <MaterialCommunityIcons name="alert-circle" size={24} color="#ff9800" />
-                  <Text variant="titleMedium" style={{ marginLeft: spacing.sm, fontWeight: 'bold', color: warningText }}>
-                    Profil Tamamlama
-                  </Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: spacing.xs }}>
-                  <ProgressBar
-                    progress={completeness.completion_percentage / 100}
-                    style={{ flex: 1, height: 8, borderRadius: 4 }}
-                    color="#26a69a"
-                  />
-                  <Text variant="titleSmall" style={{ marginLeft: spacing.sm, fontWeight: 'bold', color: '#26a69a' }}>
-                    %{completeness.completion_percentage}
-                  </Text>
-                </View>
-                <Text variant="bodySmall" style={{ color: warningText, lineHeight: 18, marginBottom: spacing.xs }}>
-                  {completeness.missing_fields.length} alan eksik. İşleri kabul edebilmek için profilinizi tamamlayın.
-                </Text>
-                <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: spacing.xs, paddingTop: spacing.xs, borderTopWidth: 1, borderTopColor: isDarkMode ? 'rgba(255, 204, 128, 0.2)' : 'rgba(133, 100, 4, 0.2)' }}>
-                  <MaterialCommunityIcons name="information-outline" size={16} color={warningText} style={{ marginTop: 2, marginRight: spacing.xs }} />
-                  <Text variant="bodySmall" style={{ color: warningText, lineHeight: 16, fontSize: 11, flex: 1 }}>
-                    Belgeleri yükledikten sonra yönetici onayına gönderilir. Onay sonrası işleri kabul edebilirsiniz.
-                  </Text>
-                </View>
-              </Card.Content>
-            </Card>
-          </TouchableOpacity>
+          <FkCard onPress={() => navigation.navigate('MissingDocuments')} style={[styles.block, styles.warningCard]}>
+            <View style={styles.warningHeader}>
+              <MaterialCommunityIcons name="alert-circle" size={22} color={colors.warning[500]} />
+              <Text style={styles.warningTitle}>Profil Tamamlama</Text>
+              <Text style={styles.warningPercent}>%{completeness.completion_percentage}</Text>
+            </View>
+            <ProgressBar
+              progress={completeness.completion_percentage / 100}
+              style={styles.progress}
+              color={colors.primary[500]}
+            />
+            <Text style={styles.warningText}>
+              {completeness.missing_fields.length} alan eksik. İşleri kabul edebilmek için profilinizi tamamlayın.
+            </Text>
+            <Text style={styles.warningNote}>
+              Belgeleri yükledikten sonra yönetici onayına gönderilir. Onay sonrası işleri kabul edebilirsiniz.
+            </Text>
+          </FkCard>
         ) : null)}
 
-        {menuItems.map((item, index) => (
-          <MenuItem
-            key={index}
-            title={item.title}
-            subtitle={item.subtitle}
-            icon={item.icon}
-            onPress={item.onPress}
-            blinkAlert={(item as { blinkAlert?: boolean }).blinkAlert}
-          />
-        ))}
+        {!isEmployee && (
+          <FkMenuGroup title="Hesap" style={styles.group}>
+            <FkMenuItem
+              icon="account-cog-outline"
+              title="Hesap İşlemleri"
+              subtitle="Kişisel bilgiler, şifre değiştirme"
+              onPress={() => navigation.navigate('AccountManagement')}
+            />
+            <FkMenuItem
+              icon="map-marker-radius-outline"
+              title="Hizmet Alanı"
+              subtitle="İş aldığınız şehirleri seçin"
+              onPress={() => navigation.navigate('ServiceCity')}
+            />
+            <BlinkingMenuItem
+              icon={getDocumentsMenuIcon()}
+              title={getDocumentsMenuTitle()}
+              subtitle="Evraklarım, şirket bilgilerim"
+              onPress={() => navigation.navigate('MissingDocuments')}
+              blink={!!(completeness && !completeness.is_complete)}
+            />
+            <FkMenuItem
+              icon="office-building-outline"
+              title="Şirket ve Ödeme Bilgileri"
+              subtitle="Şirket detayları, vergi bilgileri"
+              onPress={() => navigation.navigate('CompanyInfo')}
+            />
+            <FkMenuItem
+              icon="gift-outline"
+              title="Referans Kodum"
+              subtitle={invitedCount > 0 ? `${invitedCount} sürücü davet ettin` : "Davet et, kazanç payı al"}
+              onPress={() => navigation.navigate('ReferralCode')}
+            />
+          </FkMenuGroup>
+        )}
 
-        {/* Çıkış Yap Butonu */}
-        <TouchableOpacity onPress={handleLogout} style={{ marginTop: spacing.sm, marginBottom: spacing.xl }}>
-          <Card mode="outlined" style={{ backgroundColor: cardBg, borderColor: isDarkMode ? '#442726' : '#ffebee' }}>
-            <Card.Content style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.sm }}>
-              <MaterialCommunityIcons name="logout" size={moderateScale(24)} color={appColors.error || '#D32F2F'} style={{ marginRight: spacing.md }} />
-              <View style={{ flex: 1 }}>
-                <Text variant="titleMedium" style={{ fontWeight: '600', color: appColors.error || '#D32F2F' }}>Çıkış Yap</Text>
-                <Text variant="bodySmall" style={{ color: appColors.text.secondary }}>Hesabınızdan güvenli çıkış yapın</Text>
-              </View>
-              <MaterialCommunityIcons name="chevron-right" size={moderateScale(20)} color={appColors.error || '#D32F2F'} />
-            </Card.Content>
-          </Card>
-        </TouchableOpacity>
+        {!isEmployee && (
+          <FkMenuGroup title="İş ve Araçlar" style={styles.group}>
+            <FkMenuItem
+              icon="truck-outline"
+              title="Araç ve Hizmet Yönetimi"
+              subtitle="Araçlarım, hizmet ayarları"
+              onPress={() => navigation.navigate('VehicleAndServiceManagement')}
+            />
+            {userProviderType === 'company' ? (
+              <FkMenuItem
+                icon="account-group-outline"
+                title="Eleman Yönetimi"
+                subtitle="Elemanlarınızı yönetin, ekleyin, düzenleyin"
+                onPress={() => navigation.navigate('EmployeeList')}
+              />
+            ) : null}
+            <FkMenuItem
+              icon="star-outline"
+              title="Yorumlar ve Puan"
+              subtitle="Müşteri yorumları, puanlama istatistikleri"
+              onPress={() => navigation.navigate('RatingsAndReviews')}
+            />
+            <FkMenuItem
+              icon="chart-line"
+              title="Rapor ve İşlem Geçmişi"
+              subtitle="Gelir raporları, geçmiş işlemler"
+              onPress={() => navigation.navigate('ReportsAndHistory')}
+            />
+            <FkMenuItem
+              icon="file-document-multiple-outline"
+              title="Belgeler ve Sözleşmeler"
+              subtitle="Ruhsat, sigorta, sözleşmeler"
+              onPress={() => navigation.navigate('DocumentsAndContracts')}
+            />
+          </FkMenuGroup>
+        )}
+
+        <FkMenuGroup title="Uygulama" style={styles.group}>
+          <FkMenuItem
+            icon="cog-outline"
+            title="Uygulama Ayarları"
+            subtitle="Bildirimler, tema, dil ayarları"
+            onPress={() => navigation.navigate('AppSettings')}
+          />
+          <FkMenuItem
+            icon="shield-lock-outline"
+            title="İzinler"
+            subtitle="Konum ve bildirim izinleri"
+            onPress={() => navigation.navigate('Permissions')}
+          />
+          <FkMenuItem
+            icon="message-alert-outline"
+            title="Şikayet ve Öneri"
+            subtitle="Öneri ve şikayetlerinizi bizimle paylaşın"
+            onPress={() => navigation.navigate('Feedback')}
+          />
+        </FkMenuGroup>
+
+        {/* Çıkış */}
+        <FkMenuGroup style={styles.logoutGroup}>
+          <FkMenuItem
+            icon="logout"
+            title="Çıkış Yap"
+            subtitle="Hesabınızdan güvenli çıkış yapın"
+            onPress={handleLogout}
+            danger
+          />
+        </FkMenuGroup>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
-// No more static styles needed - all responsive!
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  content: {
+    padding: ds.md,
+    paddingBottom: ds.xl,
+  },
+  block: {
+    marginBottom: ds.md,
+  },
+  center: {
+    alignItems: 'center',
+  },
+  userCard: {
+    marginBottom: ds.md,
+  },
+  userRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: ds.md,
+  },
+  avatar: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.primary[200],
+    overflow: 'hidden',
+    ...shadows.sm,
+  },
+  avatarImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+  },
+  userTexts: {
+    flex: 1,
+  },
+  userName: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  userPhone: {
+    ...text.body,
+    marginTop: 2,
+  },
+  rolePill: {
+    alignSelf: 'flex-start',
+    marginTop: ds.sm,
+    backgroundColor: colors.primary[50],
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+  },
+  rolePillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primary[700],
+  },
+  warningCard: {
+    backgroundColor: colors.warning[50],
+    borderWidth: 1,
+    borderColor: colors.warning[200],
+  },
+  warningHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: ds.sm,
+    marginBottom: ds.sm + 4,
+  },
+  warningTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.warning[800],
+  },
+  warningPercent: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.primary[600],
+  },
+  progress: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.warning[100],
+  },
+  warningText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.warning[800],
+    marginTop: ds.sm + 4,
+  },
+  warningNote: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: colors.warning[700],
+    marginTop: ds.xs,
+  },
+  group: {
+    marginBottom: ds.xs,
+  },
+  logoutGroup: {
+    marginTop: ds.lg,
+  },
+});

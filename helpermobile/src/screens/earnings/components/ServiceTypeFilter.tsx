@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Text } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { EarningsServiceType } from '../../../api';
 import { SERVICE_TYPES } from '../constants';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { colors } from '../../../theme/design';
 
 interface Props {
   selectedServiceTypes: EarningsServiceType[];
@@ -26,7 +28,7 @@ export default function ServiceTypeFilter({ selectedServiceTypes, userServiceTyp
       <View style={styles.header}>
         <Text style={[styles.title, { color: appColors.text.secondary }]}>Hizmet Filtresi</Text>
         {selectedServiceTypes.length > 0 && (
-          <TouchableOpacity onPress={onClear} style={[styles.clearButton, { backgroundColor: isDarkMode ? '#442726' : '#ffebee' }]}>
+          <TouchableOpacity onPress={onClear} style={[styles.clearButton, { backgroundColor: isDarkMode ? '#442726' : colors.danger[50] }]}>
             <Text style={styles.clearText}>Temizle</Text>
           </TouchableOpacity>
         )}
@@ -39,13 +41,13 @@ export default function ServiceTypeFilter({ selectedServiceTypes, userServiceTyp
               key={filter.value}
               style={[
                 styles.chip,
-                { backgroundColor: cardBg, borderColor: appColors.primary[400] },
+                { backgroundColor: isDarkMode ? cardBg : colors.neutral[100] },
                 isSelected && styles.chipActive,
               ]}
               onPress={() => onToggle(filter.value)}
               activeOpacity={0.7}
             >
-              <Text style={styles.chipEmoji}>{filter.emoji}</Text>
+              <MaterialCommunityIcons name={filter.icon} size={16} color={isSelected ? colors.white : colors.primary[500]} />
               <Text style={[styles.chipLabel, { color: appColors.text.primary }, isSelected && styles.chipLabelActive]}>
                 {filter.label}
               </Text>
@@ -78,7 +80,7 @@ const styles = StyleSheet.create({
   },
   clearText: {
     fontSize: 12,
-    color: '#D32F2F',
+    color: colors.danger[600],
     fontWeight: '600',
   },
   chipRow: {
@@ -90,21 +92,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1.5,
+    borderRadius: 9999,
     gap: 6,
   },
   chipActive: {
-    backgroundColor: '#00897b',
-  },
-  chipEmoji: {
-    fontSize: 14,
+    backgroundColor: colors.primary[500],
   },
   chipLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
   },
   chipLabelActive: {
-    color: '#fff',
+    color: colors.white,
   },
 });

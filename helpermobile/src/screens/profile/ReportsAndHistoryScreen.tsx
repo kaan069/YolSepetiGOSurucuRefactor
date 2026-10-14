@@ -14,6 +14,8 @@ import { requestsAPI, TowTruckRequestDetail, CraneRequest, PeriodEarningsRespons
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import { colors as dc } from '../../theme/design';
+import { FkIconChip } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ReportsAndHistory'>;
 
@@ -182,12 +184,12 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
   // Filtrelenmiş işlemler
   const filteredTransactions = filterByPeriod(transactions);
 
-  // Hizmet türü emoji ve isim mapping - Service type emoji and name mapping
+  // Hizmet türü ikon ve isim eşlemesi
   const getServiceInfo = (type: string) => {
     switch (type) {
-      case 'tow': return { emoji: '🚛', name: 'Çekici' };
-      case 'crane': return { emoji: '🏗️', name: 'Vinç' };
-      default: return { emoji: '🚗', name: 'Diğer' };
+      case 'tow': return { icon: 'tow-truck', name: 'Çekici' };
+      case 'crane': return { icon: 'crane', name: 'Vinç' };
+      default: return { icon: 'car-outline', name: 'Diğer' };
     }
   };
 
@@ -211,8 +213,8 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
   if (loading && transactions.length === 0) {
     return (
       <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: screenBg }]} edges={["bottom"]}>
-        <ActivityIndicator size="large" color="#26a69a" />
-        <Text style={{ marginTop: 16, color: '#666' }}>İşlem geçmişi yükleniyor...</Text>
+        <ActivityIndicator size="large" color={dc.primary[500]} />
+        <Text style={{ marginTop: 16, color: dc.neutral[500] }}>İşlem geçmişi yükleniyor...</Text>
       </SafeAreaView>
     );
   }
@@ -226,14 +228,14 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
         style={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#26a69a']} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[dc.primary[500]]} />
         }
       >
         {/* Dönem seçici - Period selector */}
         <Card style={styles.periodCard}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.periodTitle}>
-              📊 Dönem Seçin
+              Dönem Seçin
             </Text>
             <View style={styles.periodButtons}>
               {(['today', 'week', 'month', 'year'] as const).map((period) => (
@@ -258,10 +260,10 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
         <Card style={styles.summaryCard}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.summaryTitle}>
-              💰 Toplam Kazanç (Tüm Zamanlar)
+              Toplam Kazanç (Tüm Zamanlar)
             </Text>
             {earningsLoading ? (
-              <ActivityIndicator size="small" color="#2e7d32" style={{ marginVertical: 16 }} />
+              <ActivityIndicator size="small" color={dc.success[700]} style={{ marginVertical: 16 }} />
             ) : (
               <View style={styles.summaryGrid}>
                 <View style={styles.summaryItem}>
@@ -281,10 +283,10 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
         <Card style={styles.summaryCard}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.summaryTitle}>
-              📊 Dönemsel Kazanç
+              Dönemsel Kazanç
             </Text>
             {periodLoading ? (
-              <ActivityIndicator size="small" color="#2e7d32" style={{ marginVertical: 16 }} />
+              <ActivityIndicator size="small" color={dc.success[700]} style={{ marginVertical: 16 }} />
             ) : (
               <>
                 <View style={styles.summaryGrid}>
@@ -309,7 +311,7 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
                 <View style={styles.earningsBreakdown}>
                   <View style={styles.breakdownItem}>
                     <Text variant="bodyMedium" style={styles.breakdownLabel}>
-                      🚛 Çekici:
+                      Çekici:
                     </Text>
                     <Text variant="bodyMedium" style={styles.breakdownAmount}>
                       ₺{formatCurrency(periodTowEarnings)}
@@ -317,7 +319,7 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
                   </View>
                   <View style={styles.breakdownItem}>
                     <Text variant="bodyMedium" style={styles.breakdownLabel}>
-                      🏗️ Vinç:
+                      Vinç:
                     </Text>
                     <Text variant="bodyMedium" style={styles.breakdownAmount}>
                       ₺{formatCurrency(periodCraneEarnings)}
@@ -337,7 +339,7 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
         <Card style={styles.historyCard}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.historyTitle}>
-              📋 İşlem Geçmişi
+              İşlem Geçmişi
             </Text>
             <Text variant="bodySmall" style={styles.historySubtitle}>
               Son işlemlerinizin detayları
@@ -349,7 +351,7 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
         {filteredTransactions.length === 0 ? (
           <Card style={styles.transactionCard}>
             <Card.Content style={{ padding: 40, alignItems: 'center' }}>
-              <Text style={{ color: '#666', fontSize: 16, textAlign: 'center' }}>
+              <Text style={{ color: dc.neutral[500], fontSize: 16, textAlign: 'center' }}>
                 {selectedPeriod === 'today' ? 'Bugün' : selectedPeriod === 'week' ? 'Bu hafta' : selectedPeriod === 'month' ? 'Bu ay' : 'Bu yıl'} henüz tamamlanmış iş bulunmuyor.
               </Text>
             </Card.Content>
@@ -362,27 +364,27 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
                 <Card.Content style={styles.transactionContent}>
                   <View style={styles.transactionHeader}>
                     <View style={styles.transactionInfo}>
-                      <Text style={styles.serviceEmoji}>{serviceInfo.emoji}</Text>
+                      <FkIconChip icon={serviceInfo.icon} size={40} />
                       <View style={styles.transactionDetails}>
                         <Text variant="titleSmall" style={styles.transactionService}>
                           {serviceInfo.name} Hizmeti
                         </Text>
                         <Text variant="bodySmall" style={styles.transactionCustomer}>
-                          👤 {transaction.customerName}
+                          {transaction.customerName}
                         </Text>
                         <Text variant="bodySmall" style={styles.transactionLocation}>
-                          📍 {transaction.location}
+                          {transaction.location}
                         </Text>
                         {transaction.distance && (
                           <Text variant="bodySmall" style={styles.transactionLocation}>
-                            🛣️ {transaction.distance} km
+                            {transaction.distance} km
                           </Text>
                         )}
                       </View>
                     </View>
                     <View style={styles.transactionAmount}>
                       <View style={styles.statusIconContainer}>
-                        <MaterialCommunityIcons name="check-circle" size={28} color="#4caf50" />
+                        <MaterialCommunityIcons name="check-circle" size={28} color={dc.success[500]} />
                       </View>
                     </View>
                   </View>
@@ -391,7 +393,7 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
 
                   <View style={styles.transactionFooter}>
                     <Text variant="bodySmall" style={styles.transactionDate}>
-                      📅 {new Date(transaction.date).toLocaleDateString('tr-TR', {
+                      {new Date(transaction.date).toLocaleDateString('tr-TR', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',
@@ -414,7 +416,7 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: dc.neutral[100],
   },
   content: {
     flex: 1,
@@ -427,7 +429,7 @@ const styles = StyleSheet.create({
   periodTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#26a69a',
+    color: dc.primary[500],
   },
   periodButtons: {
     flexDirection: 'row',
@@ -444,7 +446,7 @@ const styles = StyleSheet.create({
   summaryTitle: {
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#2e7d32',
+    color: dc.success[700],
   },
   summaryGrid: {
     flexDirection: 'row',
@@ -456,21 +458,21 @@ const styles = StyleSheet.create({
   },
   summaryAmount: {
     fontWeight: 'bold',
-    color: '#2e7d32',
+    color: dc.success[700],
   },
   summaryJobs: {
     fontWeight: 'bold',
-    color: '#26a69a',
+    color: dc.primary[500],
   },
   summaryLabel: {
-    color: '#666',
+    color: dc.neutral[500],
     marginTop: 4,
   },
   divider: {
     marginBottom: 12,
   },
   averageEarnings: {
-    color: '#666',
+    color: dc.neutral[500],
     textAlign: 'center',
     fontStyle: 'italic',
   },
@@ -484,11 +486,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   breakdownLabel: {
-    color: '#333',
+    color: dc.neutral[800],
     fontWeight: '500',
   },
   breakdownAmount: {
-    color: '#2e7d32',
+    color: dc.success[700],
     fontWeight: '600',
   },
   historyCard: {
@@ -498,10 +500,10 @@ const styles = StyleSheet.create({
   historyTitle: {
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#26a69a',
+    color: dc.primary[500],
   },
   historySubtitle: {
-    color: '#666',
+    color: dc.neutral[500],
   },
   transactionCard: {
     marginBottom: 12,
@@ -536,12 +538,12 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   transactionCustomer: {
-    color: '#666',
+    color: dc.neutral[500],
     marginBottom: 2,
     flexWrap: 'wrap',
   },
   transactionLocation: {
-    color: '#666',
+    color: dc.neutral[500],
     flexWrap: 'wrap',
   },
   transactionAmount: {
@@ -552,7 +554,7 @@ const styles = StyleSheet.create({
   },
   amountText: {
     fontWeight: 'bold',
-    color: '#2e7d32',
+    color: dc.success[700],
     marginBottom: 8,
   },
   statusIconContainer: {
@@ -567,6 +569,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   transactionDate: {
-    color: '#666',
+    color: dc.neutral[500],
   },
 });

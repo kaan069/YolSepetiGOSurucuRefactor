@@ -3,8 +3,10 @@ import { View, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-nat
 import { Text } from 'react-native-paper';
 import { EarningsServiceType } from '../../../api';
 import JobHistoryCard from '../../../components/JobHistoryCard';
-import { CompletedJob, SERVICE_TYPE_LABELS } from '../constants';
+import { CompletedJob, SERVICE_TYPE_ICONS, SERVICE_TYPE_LABELS } from '../constants';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { colors } from '../../../theme/design';
+import { FkIconChip } from '../../../components/fk';
 
 interface Props {
   jobs: CompletedJob[];
@@ -43,7 +45,7 @@ export default function JobHistorySection({
           </View>
         </View>
         {selectedServiceTypes.length > 0 && (
-          <TouchableOpacity onPress={onClearFilters} style={[styles.clearButton, { backgroundColor: isDarkMode ? '#442726' : '#ffebee' }]}>
+          <TouchableOpacity onPress={onClearFilters} style={[styles.clearButton, { backgroundColor: isDarkMode ? '#442726' : colors.danger[50] }]}>
             <Text style={styles.clearText}>Filtreleri Temizle</Text>
           </TouchableOpacity>
         )}
@@ -51,14 +53,12 @@ export default function JobHistorySection({
 
       {listLoading && jobs.length === 0 ? (
         <View style={[styles.loadingContainer, { backgroundColor: cardBg }]}>
-          <ActivityIndicator size="small" color="#00897b" />
+          <ActivityIndicator size="small" color={colors.primary[600]} />
           <Text style={[styles.loadingText, { color: appColors.text.secondary }]}>Yükleniyor...</Text>
         </View>
       ) : jobs.length === 0 ? (
         <View style={[styles.emptyContainer, { backgroundColor: cardBg }]}>
-          <View style={[styles.emptyIconContainer, { backgroundColor: isDarkMode ? '#333' : '#f5f5f5' }]}>
-            <Text style={styles.emptyIcon}>📭</Text>
-          </View>
+          <FkIconChip icon="inbox-outline" size={64} shape="circle" style={styles.emptyIconContainer} />
           <Text style={[styles.emptyTitle, { color: appColors.text.primary }]}>
             {selectedServiceTypes.length > 0 ? 'Sonuç Bulunamadı' : 'Henüz İş Yok'}
           </Text>
@@ -80,19 +80,20 @@ export default function JobHistorySection({
               key={`${job.serviceType}-${job.id}`}
               job={job}
               serviceTypeLabel={SERVICE_TYPE_LABELS[job.serviceType]}
+              serviceTypeIcon={SERVICE_TYPE_ICONS[job.serviceType]}
               onPress={() => onJobPress(job)}
             />
           ))}
 
           {hasMore && (
             <TouchableOpacity
-              style={[styles.loadMoreButton, { backgroundColor: cardBg }, loadingMore && { borderColor: isDarkMode ? '#444' : '#e0e0e0' }]}
+              style={[styles.loadMoreButton, { backgroundColor: cardBg }, loadingMore && { borderColor: isDarkMode ? colors.neutral[700] : colors.neutral[200] }]}
               onPress={onLoadMore}
               disabled={loadingMore}
               activeOpacity={0.7}
             >
               {loadingMore ? (
-                <ActivityIndicator size="small" color="#00897b" />
+                <ActivityIndicator size="small" color={colors.primary[600]} />
               ) : (
                 <Text style={styles.loadMoreText}>
                   Daha Fazla Yükle ({currentCount}/{totalCount})
@@ -103,9 +104,9 @@ export default function JobHistorySection({
 
           {!hasMore && currentCount > 0 && (
             <View style={styles.endIndicator}>
-              <View style={[styles.endLine, { backgroundColor: isDarkMode ? '#444' : '#e0e0e0' }]} />
+              <View style={[styles.endLine, { backgroundColor: isDarkMode ? colors.neutral[700] : colors.neutral[200] }]} />
               <Text style={[styles.endText, { color: appColors.text.secondary }]}>Tüm kayıtlar ({currentCount})</Text>
-              <View style={[styles.endLine, { backgroundColor: isDarkMode ? '#444' : '#e0e0e0' }]} />
+              <View style={[styles.endLine, { backgroundColor: isDarkMode ? colors.neutral[700] : colors.neutral[200] }]} />
             </View>
           )}
         </>
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
   countText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#00897b',
+    color: colors.primary[600],
   },
   clearButton: {
     paddingHorizontal: 12,
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
   },
   clearText: {
     fontSize: 12,
-    color: '#D32F2F',
+    color: colors.danger[600],
     fontWeight: '600',
   },
   loadingContainer: {
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   emptyButtonText: {
-    color: '#00897b',
+    color: colors.primary[600],
     fontSize: 13,
     fontWeight: '600',
   },
@@ -205,14 +206,14 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1.5,
-    borderColor: '#00897b',
+    borderColor: colors.primary[600],
     alignItems: 'center',
     justifyContent: 'center',
   },
   loadMoreText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#00897b',
+    color: colors.primary[600],
   },
   endIndicator: {
     flexDirection: 'row',

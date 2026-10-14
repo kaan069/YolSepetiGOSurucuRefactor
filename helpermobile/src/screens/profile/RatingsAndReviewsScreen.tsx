@@ -12,6 +12,7 @@ import ratingsAPI, { RatingStats } from '../../api/ratings';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import { colors as dc } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RatingsAndReviews'>;
 
@@ -74,11 +75,11 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
   };
 
   const getRatingColor = (rating: number): string => {
-    if (rating >= 4.80) return '#2E7D32';
-    if (rating >= 4.50) return '#388E3C';
+    if (rating >= 4.80) return dc.success[700];
+    if (rating >= 4.50) return dc.success[600];
     if (rating >= 4.00) return '#689F38';
-    if (rating >= 3.50) return '#F57C00';
-    return '#D32F2F';
+    if (rating >= 3.50) return dc.warning[600];
+    return dc.danger[600];
   };
 
   // Müşteri adını gizle (Ahmet Yılmaz → A*** Y***)
@@ -101,7 +102,7 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
             key={star}
             name={star <= rating ? 'star' : 'star-outline'}
             size={18}
-            color="#FFC107"
+            color={dc.warning[400]}
             style={{ marginRight: 2 }}
           />
         ))}
@@ -140,8 +141,8 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={['#26a69a']}
-            tintColor="#26a69a"
+            colors={[dc.primary[500]]}
+            tintColor={dc.primary[500]}
           />
         }
       >
@@ -149,7 +150,7 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
         <Card style={[styles.card, { backgroundColor: cardBg }]}>
           <Card.Content>
             <Text variant="titleLarge" style={styles.sectionTitle}>
-              📊 Puanlama İstatistikleriniz
+              Puanlama İstatistikleriniz
             </Text>
 
             {stats && (
@@ -181,12 +182,12 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
         <Card style={[styles.card, { backgroundColor: cardBg }]}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.sectionTitle}>
-              💬 Müşteri Yorumları ({totalCount})
+              Müşteri Yorumları ({totalCount})
             </Text>
 
             {reviews.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <MaterialCommunityIcons name="comment-outline" size={48} color="#ccc" />
+                <MaterialCommunityIcons name="comment-outline" size={48} color={dc.neutral[300]} />
                 <Text style={styles.emptyText}>Henüz puanlama bulunmuyor</Text>
                 <Text style={styles.emptySubtext}>
                   Müşteriler servis sonrası sizin hakkınızda puanlama yapabilir
@@ -197,7 +198,7 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
                 <View key={review.id} style={styles.reviewCard}>
                   <View style={styles.reviewHeader}>
                     <View style={styles.reviewerInfo}>
-                      <MaterialCommunityIcons name="account-circle" size={32} color="#26a69a" />
+                      <MaterialCommunityIcons name="account-circle" size={32} color={dc.primary[500]} />
                       <View style={{ marginLeft: 8 }}>
                         <Text style={styles.reviewerName}>{anonymizeCustomerName(review.customer_name)}</Text>
                         <Text style={styles.reviewDate}>
@@ -226,7 +227,7 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
         <Card style={[styles.card, styles.infoCard]}>
           <Card.Content>
             <View style={styles.infoHeader}>
-              <MaterialCommunityIcons name="information" size={24} color="#1976D2" />
+              <MaterialCommunityIcons name="information" size={24} color={dc.info[600]} />
               <Text variant="titleSmall" style={[styles.sectionTitle, { marginLeft: 8, marginBottom: 0 }]}>
                 Önemli Bilgiler
               </Text>
@@ -256,7 +257,7 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
         >
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <MaterialCommunityIcons name="lightbulb-on" size={32} color="#FFC107" />
+              <MaterialCommunityIcons name="lightbulb-on" size={32} color={dc.warning[400]} />
               <Text variant="titleLarge" style={styles.modalTitle}>
                 Puanınızı İyileştirme İpuçları
               </Text>
@@ -264,27 +265,27 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
 
             <View style={styles.tipsContainer}>
               <View style={styles.tipRow}>
-                <MaterialCommunityIcons name="clock-check" size={24} color="#26a69a" />
+                <MaterialCommunityIcons name="clock-check" size={24} color={dc.primary[500]} />
                 <Text style={styles.tipText}>Zamanında gelin veya gecikmeleri bildirin</Text>
               </View>
 
               <View style={styles.tipRow}>
-                <MaterialCommunityIcons name="account-tie" size={24} color="#26a69a" />
+                <MaterialCommunityIcons name="account-tie" size={24} color={dc.primary[500]} />
                 <Text style={styles.tipText}>Profesyonel ve nazik olun</Text>
               </View>
 
               <View style={styles.tipRow}>
-                <MaterialCommunityIcons name="check-circle" size={24} color="#26a69a" />
+                <MaterialCommunityIcons name="check-circle" size={24} color={dc.primary[500]} />
                 <Text style={styles.tipText}>İşi verimli ve güvenli bir şekilde tamamlayın</Text>
               </View>
 
               <View style={styles.tipRow}>
-                <MaterialCommunityIcons name="car-wash" size={24} color="#26a69a" />
+                <MaterialCommunityIcons name="car-wash" size={24} color={dc.primary[500]} />
                 <Text style={styles.tipText}>Aracınızı temiz ve bakımlı tutun</Text>
               </View>
 
               <View style={styles.tipRow}>
-                <MaterialCommunityIcons name="message-text" size={24} color="#26a69a" />
+                <MaterialCommunityIcons name="message-text" size={24} color={dc.primary[500]} />
                 <Text style={styles.tipText}>Müşterilerle açık iletişim kurun</Text>
               </View>
             </View>
@@ -305,7 +306,7 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: dc.neutral[100],
   },
   content: {
     flex: 1,
@@ -322,16 +323,16 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
+    color: dc.neutral[500],
   },
   card: {
     marginBottom: 16,
-    backgroundColor: '#fff',
+    backgroundColor: dc.white,
   },
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#26a69a',
+    color: dc.primary[500],
   },
   overviewContainer: {
     flexDirection: 'row',
@@ -342,7 +343,7 @@ const styles = StyleSheet.create({
     width: 100,
     height: 100,
     borderRadius: 50,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: dc.neutral[100],
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 20,
@@ -353,7 +354,7 @@ const styles = StyleSheet.create({
   },
   outOfFive: {
     fontSize: 14,
-    color: '#666',
+    color: dc.neutral[500],
   },
   ratingDetails: {
     flex: 1,
@@ -364,7 +365,7 @@ const styles = StyleSheet.create({
   },
   totalRatings: {
     fontSize: 14,
-    color: '#666',
+    color: dc.neutral[500],
     marginBottom: 4,
   },
   benchmark: {
@@ -378,7 +379,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#999',
+    color: dc.neutral[400],
     marginTop: 12,
   },
   emptySubtext: {
@@ -404,16 +405,16 @@ const styles = StyleSheet.create({
   reviewerName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: dc.neutral[800],
   },
   reviewDate: {
     fontSize: 12,
-    color: '#999',
+    color: dc.neutral[400],
     marginTop: 2,
   },
   reviewComment: {
     fontSize: 14,
-    color: '#666',
+    color: dc.neutral[500],
     lineHeight: 20,
     marginTop: 8,
   },
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   infoCard: {
-    backgroundColor: '#E3F2FD',
+    backgroundColor: dc.info[50],
   },
   infoHeader: {
     flexDirection: 'row',
@@ -430,7 +431,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 13,
-    color: '#1565C0',
+    color: dc.info[700],
     lineHeight: 20,
   },
   // Modal styles
@@ -442,7 +443,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#fff', // Modal always light for readability
+    backgroundColor: dc.white, // Modal always light for readability
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -461,7 +462,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
+    color: dc.neutral[800],
     textAlign: 'center',
   },
   tipsContainer: {
@@ -476,19 +477,19 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 15,
-    color: '#666',
+    color: dc.neutral[500],
     marginLeft: 12,
     lineHeight: 22,
   },
   modalCloseButton: {
-    backgroundColor: '#26a69a',
+    backgroundColor: dc.primary[500],
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 24,
     alignItems: 'center',
   },
   modalCloseButtonText: {
-    color: '#fff',
+    color: dc.white,
     fontSize: 16,
     fontWeight: '600',
   },

@@ -11,6 +11,7 @@ import { ProfileCompletenessResponse } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MissingDocuments'>;
 
@@ -90,12 +91,12 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
     const status = getDocumentButtonStatus();
     switch (status) {
       case 'approved':
-        return '#4CAF50'; // Yeşil
+        return colors.success[500]; // Yeşil
       case 'pending':
-        return '#ff9800'; // Turuncu
+        return colors.warning[500]; // Turuncu
       case 'missing':
       default:
-        return '#f44336'; // Kırmızı
+        return colors.danger[500]; // Kırmızı
     }
   };
 
@@ -104,25 +105,25 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
     const status = getDocumentButtonStatus();
     switch (status) {
       case 'approved':
-        return '✓ Evraklarım Onaylandı';
+        return 'Evraklarım Onaylandı';
       case 'pending':
-        return '⏳ Evraklarım (Onay Bekliyor)';
+        return 'Evraklarım (Onay Bekliyor)';
       case 'missing':
       default:
-        return '✗ Evraklarım Eksik';
+        return 'Evraklarım Eksik';
     }
   };
 
   // Şirket bilgileri buton rengi
   const getCompanyButtonColor = () => {
-    return getCompanyButtonStatus() === 'saved' ? '#4CAF50' : '#f44336';
+    return getCompanyButtonStatus() === 'saved' ? colors.success[500] : colors.danger[500];
   };
 
   // Şirket bilgileri buton metni
   const getCompanyButtonText = () => {
     return getCompanyButtonStatus() === 'saved'
-      ? '✓ Şirket Bilgileri Kayıtlı'
-      : '✗ Şirket Bilgileri Eksik';
+      ? 'Şirket Bilgileri Kayıtlı'
+      : 'Şirket Bilgileri Eksik';
   };
 
   if (loading) {
@@ -130,8 +131,8 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
       <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
         <AppBar title="Eksik Evraklar" />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#26a69a" />
-          <Text style={{ marginTop: 12, color: '#666' }}>Belge durumu yükleniyor...</Text>
+          <ActivityIndicator size="large" color={colors.primary[500]} />
+          <Text style={{ marginTop: 12, color: colors.neutral[500] }}>Belge durumu yükleniyor...</Text>
         </View>
       </SafeAreaView>
     );
@@ -147,7 +148,7 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
           <Card style={[styles.progressCard, { backgroundColor: cardBg }]}>
             <Card.Content>
               <View style={styles.progressHeader}>
-                <MaterialCommunityIcons name="chart-donut" size={24} color="#26a69a" />
+                <MaterialCommunityIcons name="chart-donut" size={24} color={colors.primary[500]} />
                 <Text variant="titleMedium" style={styles.progressTitle}>
                   Profil Tamamlama
                 </Text>
@@ -178,7 +179,7 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
         <Card style={styles.infoCard}>
           <Card.Content>
             <View style={styles.infoHeader}>
-              <MaterialCommunityIcons name="information" size={24} color="#26a69a" />
+              <MaterialCommunityIcons name="information" size={24} color={colors.primary[500]} />
               <Text variant="titleMedium" style={styles.infoTitle}>
                 Hesap Tamamlama
               </Text>
@@ -197,7 +198,7 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
         >
           <View style={styles.buttonContent}>
             <View style={styles.buttonLeft}>
-              <MaterialCommunityIcons name="file-document" size={32} color="#fff" />
+              <MaterialCommunityIcons name="file-document" size={32} color={colors.white} />
               <View style={styles.buttonTextContainer}>
                 <Text variant="titleMedium" style={styles.buttonTitle}>
                   {getDocumentButtonText()}
@@ -207,7 +208,7 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
                 </Text>
               </View>
             </View>
-            <MaterialCommunityIcons name="chevron-right" size={28} color="#fff" />
+            <MaterialCommunityIcons name="chevron-right" size={28} color={colors.white} />
           </View>
         </TouchableOpacity>
 
@@ -219,7 +220,7 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
         >
           <View style={styles.buttonContent}>
             <View style={styles.buttonLeft}>
-              <MaterialCommunityIcons name="office-building" size={32} color="#fff" />
+              <MaterialCommunityIcons name="office-building" size={32} color={colors.white} />
               <View style={styles.buttonTextContainer}>
                 <Text variant="titleMedium" style={styles.buttonTitle}>
                   {getCompanyButtonText()}
@@ -229,13 +230,13 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
                 </Text>
               </View>
             </View>
-            <MaterialCommunityIcons name="chevron-right" size={28} color="#fff" />
+            <MaterialCommunityIcons name="chevron-right" size={28} color={colors.white} />
           </View>
         </TouchableOpacity>
 
         {/* Alt Bilgilendirme */}
         <View style={styles.footerInfo}>
-          <MaterialCommunityIcons name="alert-circle-outline" size={20} color="#666" />
+          <MaterialCommunityIcons name="alert-circle-outline" size={20} color={colors.neutral[500]} />
           <Text style={styles.footerText}>
             Tüm belgeleriniz onaylandıktan ve şirket bilgilerinizi kaydettikten sonra iş taleplerini kabul edebilirsiniz.
           </Text>
@@ -249,7 +250,7 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   loadingContainer: {
     flex: 1,
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
   progressTitle: {
     marginLeft: 8,
     fontWeight: 'bold',
-    color: '#26a69a',
+    color: colors.primary[500],
   },
   progressBarContainer: {
     flexDirection: 'row',
@@ -286,24 +287,24 @@ const styles = StyleSheet.create({
   progressBarBg: {
     flex: 1,
     height: 12,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: colors.neutral[200],
     borderRadius: 6,
     overflow: 'hidden',
   },
   progressBarFill: {
     height: '100%',
-    backgroundColor: '#26a69a',
+    backgroundColor: colors.primary[500],
     borderRadius: 6,
   },
   progressText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#26a69a',
+    color: colors.primary[500],
     minWidth: 45,
   },
   progressSubtext: {
     marginTop: 8,
-    color: '#666',
+    color: colors.neutral[500],
     fontSize: 12,
     fontWeight: 'bold',
   },
@@ -313,13 +314,13 @@ const styles = StyleSheet.create({
   missingFieldText: {
     marginTop: 4,
     marginLeft: 8,
-    color: '#f44336',
+    color: colors.danger[500],
     fontSize: 12,
     lineHeight: 18,
   },
   infoCard: {
     marginBottom: 24,
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.info[50],
     elevation: 2,
   },
   infoHeader: {
@@ -330,10 +331,10 @@ const styles = StyleSheet.create({
   infoTitle: {
     marginLeft: 8,
     fontWeight: 'bold',
-    color: '#26a69a',
+    color: colors.primary[500],
   },
   infoText: {
-    color: '#333',
+    color: colors.neutral[800],
     lineHeight: 22,
   },
   actionButton: {
@@ -361,7 +362,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   buttonTitle: {
-    color: '#fff',
+    color: colors.white,
     fontWeight: 'bold',
     fontSize: 16,
     marginBottom: 4,

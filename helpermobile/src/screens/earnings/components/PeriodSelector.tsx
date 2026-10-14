@@ -3,6 +3,7 @@ import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { PeriodRange } from '../constants';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { colors, radius, shadows, spacing } from '../../../theme/design';
 
 interface Props {
   range: PeriodRange;
@@ -16,21 +17,28 @@ const PERIODS: { value: PeriodRange; label: string }[] = [
   { value: 'year', label: 'Yıl' },
 ];
 
+/** Dönem seçici — İşler sekmesindeki segment kontrolüyle aynı görünüm. */
 export default function PeriodSelector({ range, onRangeChange }: Props) {
-  const { isDarkMode, appColors } = useAppTheme();
+  const { isDarkMode } = useAppTheme();
 
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? '#333333' : '#f0f0f0' }]}>
+    <View style={[styles.track, { backgroundColor: isDarkMode ? '#2C2C2C' : colors.neutral[100] }]}>
       {PERIODS.map((period) => {
         const isActive = range === period.value;
         return (
           <TouchableOpacity
             key={period.value}
-            style={[styles.tab, isActive && styles.activeTab]}
+            style={[styles.tab, isActive && [styles.activeTab, { backgroundColor: isDarkMode ? '#1E1E1E' : colors.white }]]}
             onPress={() => onRangeChange(period.value)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.tabText, { color: appColors.text.secondary }, isActive && styles.activeTabText]}>
+            <Text
+              style={[
+                styles.tabText,
+                { color: isActive ? (isDarkMode ? colors.neutral[200] : colors.primary[700]) : colors.neutral[500] },
+                isActive && styles.activeTabText,
+              ]}
+            >
               {period.label}
             </Text>
           </TouchableOpacity>
@@ -41,31 +49,26 @@ export default function PeriodSelector({ range, onRangeChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  track: {
     flexDirection: 'row',
-    borderRadius: 12,
+    borderRadius: radius.md,
     padding: 4,
-    marginBottom: 16,
+    marginBottom: spacing.md,
   },
   tab: {
     flex: 1,
     paddingVertical: 10,
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: radius.sm + 2,
   },
   activeTab: {
-    backgroundColor: '#00897b',
-    elevation: 2,
-    shadowColor: '#00897b',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    ...shadows.sm,
   },
   tabText: {
-    fontSize: 13,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
   },
   activeTabText: {
-    color: '#fff',
+    fontWeight: '700',
   },
 });

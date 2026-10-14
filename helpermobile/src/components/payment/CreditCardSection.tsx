@@ -8,6 +8,7 @@ import { paymentAPI, SavedCard } from '../../api';
 import { getReadablePaymentError } from './commission/paymentUtils';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
 
 interface CreditCardSectionProps {
   refreshTrigger?: number;
@@ -367,7 +368,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
       case 'TROY':
         return { color: '#00529B', name: 'Troy' };
       default:
-        return { color: '#666', name: '' };
+        return { color: colors.neutral[500], name: '' };
     }
   };
 
@@ -376,7 +377,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
     const brandInfo = getCardBrandInfo(card.card_association);
 
     return (
-      <Card key={card.id} style={[styles.savedCard, { borderColor: isDarkMode ? '#444' : '#e0e0e0' }, card.is_default && styles.defaultCard]}>
+      <Card key={card.id} style={[styles.savedCard, { borderColor: isDarkMode ? colors.neutral[700] : colors.neutral[200] }, card.is_default && styles.defaultCard]}>
         <Card.Content>
           <View style={styles.cardHeader}>
             <View style={styles.cardInfo}>
@@ -400,8 +401,8 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
             </View>
             <View style={styles.cardActions}>
               {card.is_default ? (
-                <View style={[styles.defaultBadge, { backgroundColor: isDarkMode ? '#0d2e2b' : '#e0f2f1' }]}>
-                  <MaterialCommunityIcons name="check-circle" size={16} color="#26a69a" />
+                <View style={[styles.defaultBadge, { backgroundColor: isDarkMode ? '#0d2e2b' : colors.primary[50] }]}>
+                  <MaterialCommunityIcons name="check-circle" size={16} color={colors.primary[500]} />
                   <Text style={styles.defaultText}>Varsayilan</Text>
                 </View>
               ) : (
@@ -416,7 +417,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
           </View>
 
           {/* Kart islemleri */}
-          <View style={[styles.cardActionsRow, { borderTopColor: isDarkMode ? '#333' : '#f0f0f0' }]}>
+          <View style={[styles.cardActionsRow, { borderTopColor: isDarkMode ? colors.neutral[800] : colors.neutral[100] }]}>
             <TouchableOpacity
               style={styles.cardActionButton}
               onPress={() => handleEditAlias(card)}
@@ -428,8 +429,8 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
               style={styles.cardActionButton}
               onPress={() => handleDeleteCard(card)}
             >
-              <MaterialCommunityIcons name="delete-outline" size={18} color="#f44336" />
-              <Text style={[styles.cardActionText, { color: '#f44336' }]}>Sil</Text>
+              <MaterialCommunityIcons name="delete-outline" size={18} color={colors.danger[500]} />
+              <Text style={[styles.cardActionText, { color: colors.danger[500] }]}>Sil</Text>
             </TouchableOpacity>
           </View>
         </Card.Content>
@@ -440,9 +441,9 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
   return (
     <View>
       {/* Info Banner */}
-      <View style={[styles.infoBanner, { backgroundColor: isDarkMode ? '#0d2e2b' : '#e0f2f1' }]}>
-        <MaterialCommunityIcons name="shield-check" size={24} color="#26a69a" />
-        <Text style={[styles.infoBannerText, { color: isDarkMode ? '#80cbc4' : '#00695c' }]}>
+      <View style={[styles.infoBanner, { backgroundColor: isDarkMode ? '#0d2e2b' : colors.primary[50] }]}>
+        <MaterialCommunityIcons name="shield-check" size={24} color={colors.primary[500]} />
+        <Text style={[styles.infoBannerText, { color: isDarkMode ? colors.primary[300] : colors.primary[700] }]}>
           Kart bilgileriniz iyzico guvencesiyle sifreli olarak saklanir. Kart dogrulamasi icin 1 TL cekilir ve otomatik iade edilir.
         </Text>
       </View>
@@ -450,7 +451,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
       {/* Kayitli Kartlar */}
       {loadingCards ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#26a69a" />
+          <ActivityIndicator size="large" color={colors.primary[500]} />
           <Text style={[styles.loadingText, { color: appColors.text.secondary }]}>Kartlar yukleniyor...</Text>
         </View>
       ) : (
@@ -468,7 +469,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
               style={[styles.addCardButton, { backgroundColor: cardBg }]}
               onPress={() => setShowAddCard(true)}
             >
-              <MaterialCommunityIcons name="plus-circle" size={24} color="#26a69a" />
+              <MaterialCommunityIcons name="plus-circle" size={24} color={colors.primary[500]} />
               <Text style={styles.addCardButtonText}>Yeni Kart Ekle</Text>
             </TouchableOpacity>
           )}
@@ -494,8 +495,8 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
             </View>
 
             {/* 1 TL dogrulama bilgisi */}
-            <View style={[styles.verificationInfo, { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }]}>
-              <MaterialCommunityIcons name="information-outline" size={18} color="#1565c0" />
+            <View style={[styles.verificationInfo, { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] }]}>
+              <MaterialCommunityIcons name="information-outline" size={18} color={colors.info[700]} />
               <Text style={styles.verificationInfoText}>
                 Kart dogrulamasi icin 1 TL cekilecek ve otomatik iade edilecektir. 3D Secure dogrulamasi gereklidir.
               </Text>
@@ -547,27 +548,27 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
             <Text style={[styles.fieldLabel, { color: appColors.text.secondary }]}>Son Kullanma Tarihi *</Text>
             <View style={styles.expiryRow}>
               <TouchableOpacity
-                style={[styles.pickerButton, { backgroundColor: cardBg, borderColor: isDarkMode ? '#555' : '#ccc' }, errors.expiryMonth ? styles.pickerButtonError : null]}
+                style={[styles.pickerButton, { backgroundColor: cardBg, borderColor: isDarkMode ? colors.neutral[600] : colors.neutral[300] }, errors.expiryMonth ? styles.pickerButtonError : null]}
                 onPress={() => setShowMonthPicker(true)}
               >
-                <MaterialCommunityIcons name="calendar-month" size={20} color="#26a69a" />
+                <MaterialCommunityIcons name="calendar-month" size={20} color={colors.primary[500]} />
                 <Text style={[styles.pickerText, !expiryMonth && styles.pickerPlaceholder]}>
                   {expiryMonth ? months.find(m => m.value === expiryMonth)?.label || expiryMonth : 'Ay'}
                 </Text>
-                <MaterialCommunityIcons name="chevron-down" size={20} color="#999" />
+                <MaterialCommunityIcons name="chevron-down" size={20} color={colors.neutral[400]} />
               </TouchableOpacity>
 
               <Text style={styles.dateSeparator}>/</Text>
 
               <TouchableOpacity
-                style={[styles.pickerButton, { backgroundColor: cardBg, borderColor: isDarkMode ? '#555' : '#ccc' }, errors.expiryYear ? styles.pickerButtonError : null]}
+                style={[styles.pickerButton, { backgroundColor: cardBg, borderColor: isDarkMode ? colors.neutral[600] : colors.neutral[300] }, errors.expiryYear ? styles.pickerButtonError : null]}
                 onPress={() => setShowYearPicker(true)}
               >
-                <MaterialCommunityIcons name="calendar" size={20} color="#26a69a" />
+                <MaterialCommunityIcons name="calendar" size={20} color={colors.primary[500]} />
                 <Text style={[styles.pickerText, !expiryYear && styles.pickerPlaceholder]}>
                   {expiryYear ? '20' + expiryYear : 'Yil'}
                 </Text>
-                <MaterialCommunityIcons name="chevron-down" size={20} color="#999" />
+                <MaterialCommunityIcons name="chevron-down" size={20} color={colors.neutral[400]} />
               </TouchableOpacity>
             </View>
             {(errors.expiryMonth || errors.expiryYear) && (
@@ -672,14 +673,14 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
               setSupportMultipleWindows={false}
               renderLoading={() => (
                 <View style={styles.webViewLoadingOverlay}>
-                  <ActivityIndicator size="large" color="#26a69a" />
+                  <ActivityIndicator size="large" color={colors.primary[500]} />
                   <Text style={[styles.webViewLoadingText, { color: appColors.text.secondary }]}>3D Secure yukleniyor...</Text>
                 </View>
               )}
             />
           ) : (
             <View style={styles.webViewLoadingOverlay}>
-              <ActivityIndicator size="large" color="#26a69a" />
+              <ActivityIndicator size="large" color={colors.primary[500]} />
               <Text style={[styles.webViewLoadingText, { color: appColors.text.secondary }]}>Yukleniyor...</Text>
             </View>
           )}
@@ -741,7 +742,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
               <TouchableOpacity
                 style={[
                   styles.pickerItem,
-                  expiryMonth === item.value && [styles.pickerItemSelected, { backgroundColor: isDarkMode ? '#0d2e2b' : '#e0f2f1' }],
+                  expiryMonth === item.value && [styles.pickerItemSelected, { backgroundColor: isDarkMode ? '#0d2e2b' : colors.primary[50] }],
                 ]}
                 onPress={() => {
                   setExpiryMonth(item.value);
@@ -758,7 +759,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
                   {item.label}
                 </Text>
                 {expiryMonth === item.value && (
-                  <MaterialCommunityIcons name="check" size={20} color="#26a69a" />
+                  <MaterialCommunityIcons name="check" size={20} color={colors.primary[500]} />
                 )}
               </TouchableOpacity>
             )}
@@ -782,7 +783,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
               <TouchableOpacity
                 style={[
                   styles.pickerItem,
-                  expiryYear === item.value && [styles.pickerItemSelected, { backgroundColor: isDarkMode ? '#0d2e2b' : '#e0f2f1' }],
+                  expiryYear === item.value && [styles.pickerItemSelected, { backgroundColor: isDarkMode ? '#0d2e2b' : colors.primary[50] }],
                 ]}
                 onPress={() => {
                   setExpiryYear(item.value);
@@ -799,7 +800,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
                   {item.label}
                 </Text>
                 {expiryYear === item.value && (
-                  <MaterialCommunityIcons name="check" size={20} color="#26a69a" />
+                  <MaterialCommunityIcons name="check" size={20} color={colors.primary[500]} />
                 )}
               </TouchableOpacity>
             )}
@@ -838,7 +839,7 @@ const styles = StyleSheet.create({
   verificationInfoText: {
     flex: 1,
     fontSize: 12,
-    color: '#1565c0',
+    color: colors.info[700],
     lineHeight: 16,
   },
   section: {
@@ -854,7 +855,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   defaultCard: {
-    borderColor: '#26a69a',
+    borderColor: colors.primary[500],
     borderWidth: 2,
   },
   cardHeader: {
@@ -910,7 +911,7 @@ const styles = StyleSheet.create({
   },
   defaultText: {
     fontSize: 11,
-    color: '#26a69a',
+    color: colors.primary[500],
     fontWeight: '600',
   },
   setDefaultButton: {
@@ -919,7 +920,7 @@ const styles = StyleSheet.create({
   },
   setDefaultText: {
     fontSize: 12,
-    color: '#26a69a',
+    color: colors.primary[500],
   },
   cardActionsRow: {
     flexDirection: 'row',
@@ -945,14 +946,14 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     borderWidth: 2,
-    borderColor: '#26a69a',
+    borderColor: colors.primary[500],
     borderStyle: 'dashed',
     marginBottom: 16,
   },
   addCardButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#26a69a',
+    color: colors.primary[500],
   },
   loadingContainer: {
     padding: 40,
@@ -976,7 +977,7 @@ const styles = StyleSheet.create({
   formSectionTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#26a69a',
+    color: colors.primary[500],
     marginBottom: 12,
   },
   input: {
@@ -1005,18 +1006,18 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   pickerButtonError: {
-    borderColor: '#f44336',
+    borderColor: colors.danger[500],
   },
   pickerText: {
     flex: 1,
     fontSize: 15,
   },
   pickerPlaceholder: {
-    color: '#999',
+    color: colors.neutral[400],
   },
   dateSeparator: {
     fontSize: 24,
-    color: '#999',
+    color: colors.neutral[400],
     fontWeight: '300',
   },
   // Picker modal styles
@@ -1049,13 +1050,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   pickerItemTextSelected: {
-    color: '#26a69a',
+    color: colors.primary[500],
     fontWeight: '600',
   },
   saveButton: {
     marginTop: 16,
     borderRadius: 8,
-    backgroundColor: '#26a69a',
+    backgroundColor: colors.primary[500],
   },
   iyzicoSection: {
     flexDirection: 'row',
@@ -1067,7 +1068,7 @@ const styles = StyleSheet.create({
   },
   securedBy: {
     fontSize: 12,
-    color: '#999',
+    color: colors.neutral[400],
   },
   iyzicoLogo: {
     flexDirection: 'row',
@@ -1095,7 +1096,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.neutral[200],
   },
   threeDSCloseButton: {
     width: 40,

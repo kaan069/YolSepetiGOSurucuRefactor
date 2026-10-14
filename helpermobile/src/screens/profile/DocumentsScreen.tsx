@@ -23,6 +23,7 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import { buildFullUrl } from '../../utils/fileHelpers';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DocumentsScreen'>;
 type DocType = 'license' | 'tax' | 'k_document';
@@ -388,7 +389,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
           )}
 
         {!approved && (
-          <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }]}>
+          <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] }]}>
             <MaterialCommunityIcons name="information" size={20} color={tokens.colors.primary} />
             <Text style={[styles.infoBoxText, { color: tokens.colors.primary }]}>
               • Belgeleriniz JPG, JPEG, PNG veya PDF formatında olmalıdır.{'\n'}
@@ -415,14 +416,14 @@ const styles = StyleSheet.create({
   submitSection: { marginVertical: 24, gap: 12 },
   approvedInfoCard: {
     marginVertical: 16,
-    backgroundColor: '#e8f5e9',
+    backgroundColor: colors.success[50],
     borderWidth: 1,
-    borderColor: '#4CAF50',
+    borderColor: colors.success[500],
   },
   approvedInfoContent: { flexDirection: 'row', alignItems: 'center' },
   approvedInfoText: {
     marginLeft: 12,
-    color: '#2e7d32',
+    color: colors.success[700],
     flex: 1,
     lineHeight: 20,
     fontSize: 14,

@@ -11,6 +11,7 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 import { useResponsive } from '../../hooks/useResponsive';
 import { Employee } from '../../api/types';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmployeeList'>;
 
@@ -63,7 +64,7 @@ export default function EmployeeListScreen({ navigation }: Props) {
     >
       <Card.Content style={styles.cardContent}>
         <View style={{ position: 'relative' }}>
-          <View style={[styles.avatar, { backgroundColor: isDarkMode ? '#1a3a2a' : '#E8F5E9' }]}>
+          <View style={[styles.avatar, { backgroundColor: isDarkMode ? '#1a3a2a' : colors.success[50] }]}>
             <MaterialCommunityIcons
               name="account"
               size={moderateScale(24)}
@@ -78,7 +79,7 @@ export default function EmployeeListScreen({ navigation }: Props) {
               width: 12,
               height: 12,
               borderRadius: 6,
-              backgroundColor: item.user_is_online ? '#4CAF50' : '#9E9E9E',
+              backgroundColor: item.user_is_online ? colors.success[500] : colors.neutral[400],
               borderWidth: 2,
               borderColor: cardBg,
             }} />
@@ -94,7 +95,7 @@ export default function EmployeeListScreen({ navigation }: Props) {
             </Text>
             {item.is_available !== undefined && (
               <View style={{
-                backgroundColor: item.is_available ? '#E8F5E9' : '#FFF3E0',
+                backgroundColor: item.is_available ? colors.success[50] : colors.warning[50],
                 paddingHorizontal: 6,
                 paddingVertical: 1,
                 borderRadius: 4,
@@ -102,7 +103,7 @@ export default function EmployeeListScreen({ navigation }: Props) {
                 <Text style={{
                   fontSize: 10,
                   fontWeight: '600',
-                  color: item.is_available ? '#2E7D32' : '#E65100',
+                  color: item.is_available ? colors.success[700] : colors.warning[700],
                 }}>
                   {item.is_available ? 'Müsait' : 'İşte'}
                 </Text>
@@ -122,7 +123,7 @@ export default function EmployeeListScreen({ navigation }: Props) {
           <IconButton
             icon="delete"
             size={20}
-            iconColor="#EF4444"
+            iconColor={colors.danger[500]}
             onPress={() => handleDelete(item)}
             disabled={deleting === item.id}
           />
@@ -176,7 +177,7 @@ export default function EmployeeListScreen({ navigation }: Props) {
       <FAB
         icon="plus"
         style={[styles.fab, { backgroundColor: appColors.primary[400] }]}
-        color="#fff"
+        color={colors.white}
         onPress={() => navigation.navigate('EmployeeForm')}
       />
     </SafeAreaView>

@@ -7,6 +7,7 @@ import { useResponsive } from '../../hooks/useResponsive';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Feedback'>;
 
@@ -36,7 +37,7 @@ export default function FeedbackScreen({ navigation }: Props) {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: screenBg }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', padding: spacing.md, backgroundColor: cardBg, borderBottomWidth: 1, borderBottomColor: '#e0e0e0' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', padding: spacing.md, backgroundColor: cardBg, borderBottomWidth: 1, borderBottomColor: colors.neutral[200] }}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={{ marginRight: spacing.md }}>
           <MaterialCommunityIcons name="arrow-left" size={moderateScale(24)} color={appColors.text.primary} />
         </TouchableOpacity>
@@ -68,7 +69,7 @@ export default function FeedbackScreen({ navigation }: Props) {
                 alignItems: 'center',
                 marginRight: spacing.md,
               }}>
-                <MaterialCommunityIcons name="whatsapp" size={moderateScale(28)} color="#fff" />
+                <MaterialCommunityIcons name="whatsapp" size={moderateScale(28)} color={colors.white} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text variant="titleMedium" style={{ fontWeight: '600', color: '#25D366' }}>WhatsApp ile Yazın</Text>
@@ -91,7 +92,7 @@ export default function FeedbackScreen({ navigation }: Props) {
                 alignItems: 'center',
                 marginRight: spacing.md,
               }}>
-                <MaterialCommunityIcons name="email-outline" size={moderateScale(28)} color="#fff" />
+                <MaterialCommunityIcons name="email-outline" size={moderateScale(28)} color={colors.white} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text variant="titleMedium" style={{ fontWeight: '600', color: appColors.primary[400] }}>E-posta Gönderin</Text>

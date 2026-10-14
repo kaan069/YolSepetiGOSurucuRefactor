@@ -1,12 +1,15 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { radius } from '../../../theme/design';
 import { formatMoney } from '../constants';
 import { useAppTheme } from '../../../hooks/useAppTheme';
 
 interface Props {
   label: string;
-  emoji: string;
+  /** MaterialCommunityIcons adı */
+  icon: string;
   color: string;
   bgColor: string;
   earnings: number;
@@ -15,7 +18,7 @@ interface Props {
 
 export default function ServiceTypeStatCard({
   label,
-  emoji,
+  icon,
   color,
   bgColor,
   earnings,
@@ -25,8 +28,8 @@ export default function ServiceTypeStatCard({
 
   return (
     <View style={[styles.card, { backgroundColor: bgColor }]}>
-      <View style={[styles.emojiContainer, { backgroundColor: `${color}20` }]}>
-        <Text style={styles.emoji}>{emoji}</Text>
+      <View style={[styles.iconContainer, { backgroundColor: `${color}1A` }]}>
+        <MaterialCommunityIcons name={icon} size={20} color={color} />
       </View>
       <Text style={[styles.label, { color: appColors.text.secondary }]}>
         {label}
@@ -47,9 +50,9 @@ const styles = StyleSheet.create({
   card: {
     width: '48%',
     padding: 14,
-    borderRadius: 14,
+    borderRadius: radius.lg,
   },
-  emojiContainer: {
+  iconContainer: {
     width: 36,
     height: 36,
     borderRadius: 10,
@@ -57,7 +60,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  emoji: { fontSize: 18 },
   label: {
     fontSize: 11,
     fontWeight: '500',

@@ -4,6 +4,7 @@ import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { formatMoney } from '../constants';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { colors } from '../../../theme/design';
 
 interface Props {
   total: string;
@@ -14,7 +15,7 @@ export default function ReferralSummaryCard({ total, onPress }: Props) {
   const { isDarkMode, appColors, cardBg } = useAppTheme();
   const amount = parseFloat(total) || 0;
   const labelColor = appColors.primary[400];
-  const amountColor = isDarkMode ? appColors.primary[300] : '#004d40';
+  const amountColor = isDarkMode ? appColors.primary[300] : colors.primary[800];
 
   return (
     <TouchableOpacity

@@ -6,6 +6,7 @@ import {
 import {
   SERVICE_LABEL,
   SERVICE_EMOJI,
+  SERVICE_ICON,
   SERVICE_COLOR,
   SERVICE_BG_COLOR,
 } from '../../constants/serviceTypeUI';
@@ -16,6 +17,8 @@ export type ServiceTypeConfig = {
   value: EarningsServiceType;
   label: string;
   emoji: string;
+  /** MaterialCommunityIcons adı */
+  icon: string;
   color: string;
   bgColor: string;
 };
@@ -52,24 +55,37 @@ export const SERVICE_TYPES: ServiceTypeConfig[] = EARNINGS_ATOMIC_ORDER.map((val
   value: value as EarningsServiceType,
   label: SERVICE_LABEL[value],
   emoji: SERVICE_EMOJI[value],
+  icon: SERVICE_ICON[value],
   color: SERVICE_COLOR[value],
   bgColor: SERVICE_BG_COLOR[value],
 }));
 
-// Hizmet tipi etiketleri (emoji'li).
+// Hizmet tipi etiketleri (görünen ad).
 // Canonical atomik key'lerin yanı sıra geriye-dönük uyumluluk için legacy
 // `homeMoving` / `cityMoving` alias'ları korunur — CompletedJob.serviceType
-// union'u bu literal'ları hâlâ içeriyor (geçmiş kayıtlar).
+// union'u bu literal'ları hâlâ içeriyor (geçmiş kayıtlar). Emoji yerine ikon: SERVICE_TYPE_ICONS.
 export const SERVICE_TYPE_LABELS: Record<string, string> = {
-  towTruck: `${SERVICE_EMOJI.towTruck} ${SERVICE_LABEL.towTruck}`,
-  crane: `${SERVICE_EMOJI.crane} ${SERVICE_LABEL.crane}`,
-  roadAssistance: `${SERVICE_EMOJI.roadAssistance} ${SERVICE_LABEL.roadAssistance}`,
-  homeToHomeMoving: `${SERVICE_EMOJI.homeToHomeMoving} ${SERVICE_LABEL.homeToHomeMoving}`,
-  cityToCity: `${SERVICE_EMOJI.cityToCity} ${SERVICE_LABEL.cityToCity}`,
-  transfer: `${SERVICE_EMOJI.transfer} ${SERVICE_LABEL.transfer}`,
+  towTruck: SERVICE_LABEL.towTruck,
+  crane: SERVICE_LABEL.crane,
+  roadAssistance: SERVICE_LABEL.roadAssistance,
+  homeToHomeMoving: SERVICE_LABEL.homeToHomeMoving,
+  cityToCity: SERVICE_LABEL.cityToCity,
+  transfer: SERVICE_LABEL.transfer,
   // legacy aliases
-  homeMoving: `${SERVICE_EMOJI.homeToHomeMoving} ${SERVICE_LABEL.homeToHomeMoving}`,
-  cityMoving: `${SERVICE_EMOJI.cityToCity} ${SERVICE_LABEL.cityToCity}`,
+  homeMoving: SERVICE_LABEL.homeToHomeMoving,
+  cityMoving: SERVICE_LABEL.cityToCity,
+};
+
+// Hizmet tipi ikonları (MaterialCommunityIcons) — SERVICE_TYPE_LABELS ile aynı anahtarlar.
+export const SERVICE_TYPE_ICONS: Record<string, string> = {
+  towTruck: SERVICE_ICON.towTruck,
+  crane: SERVICE_ICON.crane,
+  roadAssistance: SERVICE_ICON.roadAssistance,
+  homeToHomeMoving: SERVICE_ICON.homeToHomeMoving,
+  cityToCity: SERVICE_ICON.cityToCity,
+  transfer: SERVICE_ICON.transfer,
+  homeMoving: SERVICE_ICON.homeToHomeMoving,
+  cityMoving: SERVICE_ICON.cityToCity,
 };
 
 // Hizmet tipi etiketleri (düz metin, diakritiksiz - TR rapor uyumluluğu için).
@@ -104,6 +120,8 @@ type StatCardConfig = {
   serviceTypes: EarningsServiceType[];
   label: string;
   emoji: string;
+  /** MaterialCommunityIcons adı */
+  icon: string;
   color: string;
   bgColor: string;
 };
@@ -121,6 +139,7 @@ export const STAT_CARDS: StatCardConfig[] = STAT_CARD_KEYS.map((key) => ({
   serviceTypes: [...SERVICE_GROUP_MEMBERS[key]] as EarningsServiceType[],
   label: SERVICE_LABEL[key],
   emoji: SERVICE_EMOJI[key],
+  icon: SERVICE_ICON[key],
   color: SERVICE_COLOR[key],
   bgColor: SERVICE_BG_COLOR[key],
 }));

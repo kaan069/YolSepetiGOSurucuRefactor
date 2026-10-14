@@ -24,6 +24,7 @@ import { validateTCNumber } from '../../utils/tcValidation';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
 
@@ -259,7 +260,7 @@ export default function EditProfileScreen({ navigation }: Props) {
           <Card
             style={[
               styles.infoCard,
-              { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' },
+              { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] },
             ]}
           >
             <Card.Content>

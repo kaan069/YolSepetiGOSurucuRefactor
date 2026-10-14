@@ -42,6 +42,7 @@ import { useResponsive } from '../../hooks/useResponsive';
 import { getCityNames, TURKEY_REGIONS } from '../../data/turkeyLocations';
 import { logger } from '../../utils/logger';
 import { foldTr, sameCitySet } from '../../utils/turkishText';
+import { colors } from '../../theme/design';
 
 // Android'de LayoutAnimation'ı etkinleştir (bölge aç-kapa animasyonu için)
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -62,7 +63,7 @@ export default function ServiceCityScreen({ navigation }: Props) {
   const danger = appColors.error;
   const textSec = appColors.text.secondary;
   const textPri = appColors.text.primary;
-  const divider = isDarkMode ? '#333' : '#eee';
+  const divider = isDarkMode ? colors.neutral[800] : colors.neutral[100];
 
   const [serviceCities, setServiceCities] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
