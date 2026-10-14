@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput } from 'react-native-paper';
+import { Text } from 'react-native-paper';
+import { FkTextInput } from '../../../components/fk';
 
 interface TechnicalSpecsSectionProps {
   maxHeight: string;
@@ -16,15 +17,15 @@ export default function TechnicalSpecsSection({
   return (
     <View style={styles.formSection}>
       <Text variant="titleSmall" style={styles.subsectionTitle}>
-        ⚙️ Teknik Özellikler
+        Teknik Özellikler
       </Text>
 
-      <TextInput
+      <FkTextInput
         label="Maksimum Yükseklik (m) *"
         value={maxHeight}
-        onChangeText={onMaxHeightChange}
-        style={styles.input}
-        error={!!errors.maxHeight}
+        onChange={onMaxHeightChange}
+        containerStyle={styles.input}
+        invalid={!!(!!errors.maxHeight)}
         keyboardType="numeric"
         placeholder="40"
       />
@@ -44,7 +45,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   errorText: {
     color: '#d32f2f',

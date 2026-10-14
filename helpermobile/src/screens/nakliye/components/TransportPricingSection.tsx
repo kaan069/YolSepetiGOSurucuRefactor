@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput } from 'react-native-paper';
+import { Text } from 'react-native-paper';
+import { FkTextInput } from '../../../components/fk';
 
 interface TransportPricingSectionProps {
   pricePerKm: string;
@@ -26,31 +27,31 @@ export default function TransportPricingSection({
       <Text variant="titleSmall" style={styles.subsectionTitle}>Ücretlendirme</Text>
 
       <View style={styles.row}>
-        <TextInput
+        <FkTextInput
           label="Km Başına Ücret (TL) *"
           value={pricePerKm}
-          onChangeText={onPricePerKmChange}
+          onChange={onPricePerKmChange}
           keyboardType="numeric"
-          style={[styles.halfInput, styles.inputLeft]}
-          error={!!errors.pricePerKm}
+          containerStyle={[styles.halfInput, styles.inputLeft]}
+          invalid={!!(!!errors.pricePerKm)}
           placeholder="8"
         />
-        <TextInput
+        <FkTextInput
           label="Saatlik Ücret (TL)"
           value={pricePerHour}
-          onChangeText={onPricePerHourChange}
+          onChange={onPricePerHourChange}
           keyboardType="numeric"
-          style={[styles.halfInput, styles.inputRight]}
+          containerStyle={[styles.halfInput, styles.inputRight]}
           placeholder="150"
         />
       </View>
 
-      <TextInput
+      <FkTextInput
         label="Minimum Ücret (TL)"
         value={minPrice}
-        onChangeText={onMinPriceChange}
+        onChange={onMinPriceChange}
         keyboardType="numeric"
-        style={styles.input}
+        containerStyle={styles.input}
         placeholder="200"
       />
     </View>
@@ -72,12 +73,10 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   halfInput: {
     flex: 1,
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   inputLeft: {
     marginRight: 6,

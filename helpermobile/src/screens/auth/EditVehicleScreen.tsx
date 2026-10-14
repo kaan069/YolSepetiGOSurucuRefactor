@@ -105,7 +105,7 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
         <BasicInfoCard formData={formData} errors={errors} updateField={updateField} />
 
         {showPhoto && (
-          <FkFormSection title={`📷 ${VEHICLE_KIND_LABELS[vehicleType]} Fotoğrafı`} required>
+          <FkFormSection title={`${VEHICLE_KIND_LABELS[vehicleType]} Fotoğrafı`} icon="camera-outline" required>
             <FkDocumentUpload
               helperText="Plaka görünür şekilde araç fotoğrafı ekleyin"
               value={vehiclePhoto}

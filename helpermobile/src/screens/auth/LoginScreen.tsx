@@ -1,271 +1,188 @@
-import React, { useEffect, useRef } from 'react';
-import { View, StyleSheet, Animated, Dimensions, Linking } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Card, Text } from 'react-native-paper';
+import React from 'react';
+import { View, StyleSheet, Linking, Image, Text, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Responsive size calculations based on screen height
-const getResponsiveSizes = (screenHeight: number) => {
-  const isSmallScreen = screenHeight < 700;
-  const isMediumScreen = screenHeight >= 700 && screenHeight < 800;
-
-  return {
-    logoSize: isSmallScreen ? 80 : isMediumScreen ? 90 : 100,
-    logoImageSize: isSmallScreen ? 64 : isMediumScreen ? 72 : 80,
-    paddingTop: isSmallScreen ? 10 : isMediumScreen ? 20 : 30,
-    paddingBottom: isSmallScreen ? 10 : isMediumScreen ? 15 : 20,
-    logoMarginBottom: isSmallScreen ? 10 : 16,
-    titleMarginBottom: isSmallScreen ? 6 : 8,
-    cardMarginBottom: isSmallScreen ? 12 : 20,
-    featureBadgePadding: isSmallScreen ? 8 : 12,
-    featureIconSize: isSmallScreen ? 20 : 24,
-    featureFontSize: isSmallScreen ? 10 : 11,
-  };
-};
+import { FkButton } from '../../components/fk';
+import { colors, radius, spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
+// Müşteri uygulamasındaki AuthScreen hero gradyanı (açık → derin turkuaz)
+const HERO_GRADIENT = [colors.primary[400], colors.primary[500], colors.primary[700]] as const;
+
+const FEATURES = [
+  { icon: 'tow-truck', label: 'Çekici' },
+  { icon: 'crane', label: 'Vinç' },
+  { icon: 'truck-delivery', label: 'Nakliye' },
+  { icon: 'car-wrench', label: 'Yol Yardım' },
+  { icon: 'bus', label: 'Transfer' },
+];
+
 export default function LoginScreen({ navigation }: Props) {
-  // Rotation animation
-  const rotateAnim = useRef(new Animated.Value(0)).current;
-  const insets = useSafeAreaInsets();
-  const sizes = getResponsiveSizes(SCREEN_HEIGHT);
-
-  useEffect(() => {
-    // Continuous rotation animation
-    Animated.loop(
-      Animated.timing(rotateAnim, {
-        toValue: 1,
-        duration: 3000,
-        useNativeDriver: true,
-      })
-    ).start();
-  }, []);
-
-  const spin = rotateAnim.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
-  });
-
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#26a69a', '#00897b', '#00695c']}
-        style={styles.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
-          <View style={[styles.content, { paddingTop: sizes.paddingTop, paddingBottom: sizes.paddingBottom }]}>
-          {/* Logo Section */}
-          <View style={[styles.logoSection, { marginBottom: sizes.logoMarginBottom }]}>
-            <Animated.View
-              style={[
-                {
-                  width: sizes.logoSize,
-                  height: sizes.logoSize,
-                  borderRadius: sizes.logoSize / 2,
-                  backgroundColor: '#fff',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  marginBottom: sizes.logoMarginBottom,
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 10,
-                  overflow: 'hidden',
-                  borderWidth: 2,
-                  borderColor: 'rgba(255, 255, 255, 0.8)',
-                  transform: [{ rotate: spin }],
-                },
-              ]}
-            >
-              <Animated.Image
-                source={require('../../../assets/yolyardimlogo.png')}
-                style={[
-                  {
-                    width: sizes.logoImageSize,
-                    height: sizes.logoImageSize,
-                    borderRadius: sizes.logoImageSize / 2,
-                    transform: [{ rotate: spin }],
-                  },
-                ]}
-                resizeMode="contain"
-              />
-            </Animated.View>
-            <Text variant="displaySmall" style={[styles.title, { marginBottom: sizes.titleMarginBottom }]}>
-              Yol SepetiGO
-            </Text>
-            <Text variant="titleMedium" style={styles.subtitle}>
-              Çekici Vinç Nakliye Yol Yardım{'\n'}Hizmetleri Platformu
-            </Text>
+    <LinearGradient colors={HERO_GRADIENT} style={styles.gradient} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }}>
+      <StatusBar barStyle="light-content" backgroundColor={colors.primary[400]} />
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        {/* Logo, başlık, servisler */}
+        <View style={styles.header}>
+          <View style={styles.logoCoin}>
+            <Image source={require('../../../assets/yolyardimlogo.png')} style={styles.logoImage} resizeMode="cover" />
           </View>
-
-          {/* Welcome Card */}
-          <Card style={[styles.welcomeCard, { marginBottom: sizes.cardMarginBottom }]}>
-            <Card.Content>
-              <Text variant="headlineMedium" style={styles.welcomeTitle}>
-                Hoş Geldiniz
-              </Text>
-              <Text variant="bodyLarge" style={styles.welcomeSubtitle}>
-                Hizmet vermeye başlamak için devam edin
-              </Text>
-
-              {/* Action Buttons */}
-              <View style={styles.buttonContainer}>
-                <Button
-                  mode="contained"
-                  onPress={() => navigation.navigate('PhoneAuth')}
-                  style={styles.primaryButton}
-                  contentStyle={styles.buttonContent}
-                  buttonColor="#26a69a"
-                >
-                  Giriş Yap
-                </Button>
-
-                <Button
-                  mode="outlined"
-                  onPress={() => navigation.navigate('PhoneNumber')}
-                  style={styles.secondaryButton}
-                  contentStyle={styles.buttonContent}
-                  textColor="#26a69a"
-                >
-                  Kayıt Ol
-                </Button>
-
-                <Button
-                  mode="text"
-                  onPress={() => Linking.openURL('https://blog.yolsepetigo.com/nasil-kullanilir')}
-                  textColor="#666"
-                >
-                  Nasıl Çalışır?
-                </Button>
+          <Text style={styles.title}>Yol SepetiGO</Text>
+          <Text style={styles.subtitle}>Sürücü ve hizmet sağlayıcı uygulaması</Text>
+          <View style={styles.features}>
+            {FEATURES.map((f) => (
+              <View key={f.label} style={styles.featureChip}>
+                <MaterialCommunityIcons name={f.icon} size={16} color={colors.white} />
+                <Text style={styles.featureText}>{f.label}</Text>
               </View>
-            </Card.Content>
-          </Card>
+            ))}
+          </View>
+        </View>
 
-          {/* Feature Badges */}
-          <View style={styles.featuresContainer}>
-            <View style={[styles.featureBadge, { padding: sizes.featureBadgePadding }]}>
-              <MaterialCommunityIcons name="tow-truck" size={sizes.featureIconSize} color="#fff" />
-              <Text style={[styles.featureText, { fontSize: sizes.featureFontSize }]}>Çekici</Text>
-            </View>
-            <View style={[styles.featureBadge, { padding: sizes.featureBadgePadding }]}>
-              <MaterialCommunityIcons name="crane" size={sizes.featureIconSize} color="#fff" />
-              <Text style={[styles.featureText, { fontSize: sizes.featureFontSize }]}>Vinç</Text>
-            </View>
-            <View style={[styles.featureBadge, { padding: sizes.featureBadgePadding }]}>
-              <MaterialCommunityIcons name="truck-delivery" size={sizes.featureIconSize} color="#fff" />
-              <Text style={[styles.featureText, { fontSize: sizes.featureFontSize }]}>Nakliye</Text>
-            </View>
-            <View style={[styles.featureBadge, { padding: sizes.featureBadgePadding }]}>
-              <MaterialCommunityIcons name="car-wrench" size={sizes.featureIconSize} color="#fff" />
-              <Text style={[styles.featureText, { fontSize: sizes.featureFontSize }]}>Yol Yardım</Text>
-            </View>
-          </View>
-          </View>
-        </SafeAreaView>
-      </LinearGradient>
-    </View>
+        {/* Aksiyonlar */}
+        <View style={styles.buttons}>
+          <FkButton
+            size="lg"
+            fullWidth
+            onPress={() => navigation.navigate('PhoneAuth')}
+            style={styles.primaryButton}
+            textStyle={styles.primaryButtonText}
+          >
+            Giriş Yap
+          </FkButton>
+          <FkButton
+            variant="secondary"
+            size="lg"
+            fullWidth
+            onPress={() => navigation.navigate('PhoneNumber')}
+            style={styles.ghostButton}
+            textStyle={styles.ghostButtonText}
+          >
+            Kayıt Ol
+          </FkButton>
+          <TouchableOpacity
+            onPress={() => Linking.openURL('https://blog.yolsepetigo.com/nasil-kullanilir')}
+            style={styles.howLink}
+            activeOpacity={0.7}
+          >
+            <MaterialCommunityIcons name="help-circle-outline" size={16} color="rgba(255,255,255,0.85)" />
+            <Text style={styles.howText}>Nasıl Çalışır?</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   gradient: {
     flex: 1,
   },
-  safeArea: {
+  container: {
     flex: 1,
   },
-  content: {
+  header: {
     flex: 1,
-    paddingHorizontal: 20,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: spacing.xl,
   },
-  logoSection: {
-    alignItems: 'center',
-  },
-  title: {
-    fontWeight: 'bold',
-    color: '#fff',
-    textAlign: 'center',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-  },
-  subtitle: {
-    color: '#fff',
-    textAlign: 'center',
-    opacity: 0.95,
-    textShadowColor: 'rgba(0, 0, 0, 0.2)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
-  },
-  welcomeCard: {
-    width: '100%',
-    maxWidth: 500,
-    borderRadius: 20,
+  // Logo dairesel "madeni para" (müşteri uygulamasıyla aynı)
+  logoCoin: {
+    width: 132,
+    height: 132,
+    borderRadius: 66,
+    overflow: 'hidden',
+    borderWidth: 3,
+    borderColor: 'rgba(255,255,255,0.55)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+    marginBottom: spacing.lg,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.18,
     shadowRadius: 12,
     elevation: 8,
   },
-  welcomeTitle: {
-    textAlign: 'center',
-    fontWeight: 'bold',
-    color: '#00695c',
-    marginBottom: 8,
-  },
-  welcomeSubtitle: {
-    textAlign: 'center',
-    color: '#666',
-    marginBottom: 20,
-  },
-  buttonContainer: {
-    gap: 12,
-  },
-  primaryButton: {
-    borderRadius: 16,
-    elevation: 4,
-  },
-  buttonContent: {
-    paddingVertical: 10,
-  },
-  secondaryButton: {
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#26a69a',
-  },
-  featuresContainer: {
+  logoImage: {
     width: '100%',
-    maxWidth: 500,
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    gap: 12,
+    height: '100%',
   },
-  featureBadge: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderRadius: 12,
+  title: {
+    fontSize: 34,
+    fontWeight: '800',
+    color: colors.white,
+    letterSpacing: 0.3,
+    marginBottom: spacing.xs,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.88)',
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+  },
+  features: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  featureChip: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.full,
+    backgroundColor: 'rgba(255,255,255,0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
+    borderColor: 'rgba(255,255,255,0.25)',
   },
   featureText: {
-    color: '#fff',
+    fontSize: 13,
+    color: colors.white,
     fontWeight: '600',
-    textAlign: 'center',
+  },
+  buttons: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    gap: spacing.sm + 4,
+  },
+  // Ana aksiyon: beyaz dolu, turkuaz yazı
+  primaryButton: {
+    backgroundColor: colors.white,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  primaryButtonText: {
+    color: colors.primary[600],
+    fontWeight: '700',
+  },
+  // İkincil aksiyon: şeffaf, beyaz çerçeve
+  ghostButton: {
+    borderColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  ghostButtonText: {
+    color: colors.white,
+    fontWeight: '600',
+  },
+  howLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: spacing.sm,
+  },
+  howText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.9)',
   },
 });

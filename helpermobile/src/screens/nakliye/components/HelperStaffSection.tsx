@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput, Chip } from 'react-native-paper';
+import { Text, Chip } from 'react-native-paper';
+import { FkTextInput } from '../../../components/fk';
 
 interface HelperStaffSectionProps {
   hasHelper: boolean;
@@ -32,12 +33,12 @@ export default function HelperStaffSection({
       </View>
 
       {hasHelper && (
-        <TextInput
+        <FkTextInput
           label="Yardımcı Personel Sayısı"
           value={helperCount}
-          onChangeText={onHelperCountChange}
+          onChange={onHelperCountChange}
           keyboardType="numeric"
-          style={styles.input}
+          containerStyle={styles.input}
           placeholder="2"
         />
       )}
@@ -56,7 +57,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   checkboxRow: {
     flexDirection: 'row',

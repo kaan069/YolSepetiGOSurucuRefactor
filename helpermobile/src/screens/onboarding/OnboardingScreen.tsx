@@ -6,6 +6,7 @@ import OnboardingSlide from './components/OnboardingSlide';
 import OnboardingPagination from './components/OnboardingPagination';
 import { onboardingSlides, OnboardingSlideData } from './data/onboardingSlides';
 import { useOnboardingStore } from '../../store/useOnboardingStore';
+import { colors } from '../../theme/design';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -80,7 +81,7 @@ export default function OnboardingScreen({ isModal: isModalProp, onDismiss, navi
       {isModal && (
         <SafeAreaView edges={['top']} style={styles.closeButtonContainer}>
           <TouchableOpacity style={styles.closeButton} onPress={handleDismiss}>
-            <MaterialCommunityIcons name="close" size={24} color="#ffffff" />
+            <MaterialCommunityIcons name="close" size={24} color={colors.white} />
           </TouchableOpacity>
         </SafeAreaView>
       )}
@@ -122,7 +123,7 @@ export default function OnboardingScreen({ isModal: isModalProp, onDismiss, navi
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#00695c',
+    backgroundColor: colors.primary[700],
   },
   closeButtonContainer: {
     position: 'absolute',

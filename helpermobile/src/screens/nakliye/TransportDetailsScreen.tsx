@@ -163,7 +163,7 @@ export default function TransportDetailsScreen({ navigation }: Props) {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleContainer}>
           <Text variant="headlineMedium" style={styles.title}>
-            🚚 Nakliye Araçlarım
+            Nakliye Araçlarım
           </Text>
           <Text variant="bodyMedium" style={styles.subtitle}>
             Nakliye hizmeti vereceğiniz araçların detaylarını girin

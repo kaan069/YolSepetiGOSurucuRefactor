@@ -4,12 +4,12 @@ import { Text, Chip } from 'react-native-paper';
 
 // Yol yardım hizmet türleri
 export const serviceOptions = [
-  { value: 'tire', label: 'Lastik Tamiri/Değişimi', icon: '🛞' },
-  { value: 'battery', label: 'Akü Takviye', icon: '🔋' },
-  { value: 'fuel', label: 'Yakıt İkmali', icon: '⛽' },
-  { value: 'locksmith', label: 'Çilingir (Araç Kilidi)', icon: '🔐' },
-  { value: 'breakdown', label: 'Yol Kenarı Arıza Desteği', icon: '🔧' },
-  { value: 'towing_rope', label: 'Çekme Halatı ile Yardım', icon: '🪢' },
+  { value: 'tire', label: 'Lastik Tamiri/Değişimi', icon: 'tire' },
+  { value: 'battery', label: 'Akü Takviye', icon: 'car-battery' },
+  { value: 'fuel', label: 'Yakıt İkmali', icon: 'gas-station' },
+  { value: 'locksmith', label: 'Çilingir (Araç Kilidi)', icon: 'key-variant' },
+  { value: 'breakdown', label: 'Yol Kenarı Arıza Desteği', icon: 'wrench' },
+  { value: 'towing_rope', label: 'Çekme Halatı ile Yardım', icon: 'link-variant' },
 ];
 
 interface ServiceTypesSectionProps {
@@ -42,7 +42,7 @@ export default function ServiceTypesSection({
               selectedServices.includes(service.value) && styles.serviceChipSelected
             ]}
             mode={selectedServices.includes(service.value) ? 'flat' : 'outlined'}
-            icon={() => <Text>{service.icon}</Text>}
+            icon={service.icon}
           >
             {service.label}
           </Chip>

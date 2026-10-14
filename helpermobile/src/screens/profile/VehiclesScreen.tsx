@@ -337,9 +337,9 @@ export default function VehiclesScreen({ navigation }: Props) {
                           {truck.brand} {truck.model} - {truck.year}
                         </Text>
                         <Text variant="bodySmall" style={styles.vehicleSpecs}>
-                          {truck.platformType === 'open' && '🚛 Açık Platform'}
-                          {truck.platformType === 'closed' && '🚚 Kapalı Kasa'}
-                          {truck.platformType === 'flatbed' && '🛻 Düz Platform'}
+                          {truck.platformType === 'open' && 'Açık Platform'}
+                          {truck.platformType === 'closed' && 'Kapalı Kasa'}
+                          {truck.platformType === 'flatbed' && 'Düz Platform'}
                         </Text>
                         <VehicleStatusChip
                           status={truck.verificationStatus}
@@ -675,7 +675,7 @@ export default function VehiclesScreen({ navigation }: Props) {
                             style={{ backgroundColor: vehicle.transferType === 'vip' ? colors.warning[50] : colors.success[50] }}
                             textStyle={{ color: vehicle.transferType === 'vip' ? colors.warning[700] : colors.success[700], fontSize: 11 }}
                           >
-                            {vehicle.transferType === 'vip' ? '⭐ VIP' : '🚌 Servis'}
+                            {vehicle.transferType === 'vip' ? 'VIP' : 'Servis'}
                           </Chip>
                           <Text variant="bodySmall" style={styles.vehicleSpecs}>
                             {vehicle.passengerCapacity} kişilik

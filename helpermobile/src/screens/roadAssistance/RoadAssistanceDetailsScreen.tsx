@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Button, Card, Text, TextInput } from 'react-native-paper';
+import { Button, Card, Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useVehicleStore, RoadAssistanceInfo } from '../../store/useVehicleStore';
@@ -17,6 +17,7 @@ import {
   VehiclePhotoSection,
 } from './components';
 import { logger } from '../../utils/logger';
+import { FkTextInput } from '../../components/fk';
 
 const PLATE_REGEX = /^[0-9]{2}[A-Z]{1,3}[0-9]{2,4}$/;
 
@@ -259,12 +260,12 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
               Araç Bilgileri
             </Text>
 
-            <TextInput
+            <FkTextInput
               label="Plaka *"
               value={vehicleForm.plate}
-              onChangeText={(v) => updateVehicleField('plate')(v.replace(/\s/g, '').toUpperCase())}
-              style={styles.input}
-              error={!!errors.plate}
+              onChange={(v) => updateVehicleField('plate')(v.replace(/\s/g, '').toUpperCase())}
+              containerStyle={styles.input}
+              invalid={!!(!!errors.plate)}
               autoCapitalize="characters"
               maxLength={9}
               placeholder="34ABC1234"
@@ -426,7 +427,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 12,
-    backgroundColor: 'white',
   },
   errorText: {
     color: '#B00020',

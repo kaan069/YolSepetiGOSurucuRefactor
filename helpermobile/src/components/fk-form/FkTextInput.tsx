@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
+import { Pressable, StyleProp, StyleSheet, Text, TextInput, TextInputProps, View, ViewStyle } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import FkFormError from '../fk-ui/FkFormError';
@@ -10,11 +10,14 @@ export interface FkTextInputProps {
   value: string;
   onChange: (value: string) => void;
   onBlur?: () => void;
+  onFocus?: () => void;
   label?: string;
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
   error?: string | null;
+  /** Mesaj göstermeden yalnızca hata çerçevesi (mesaj başka yerde gösteriliyorsa) */
+  invalid?: boolean;
   helperText?: string;
   helperColor?: string;
   keyboardType?: TextInputProps['keyboardType'];
@@ -30,7 +33,7 @@ export interface FkTextInputProps {
   leftAffix?: string;
   /** Eski Paper modu — görünüm artık her iki modda aynıdır */
   mode?: 'flat' | 'outlined';
-  containerStyle?: ViewStyle;
+  containerStyle?: StyleProp<ViewStyle>;
   dense?: boolean;
   textContentType?: TextInputProps['textContentType'];
   autoComplete?: TextInputProps['autoComplete'];
@@ -44,11 +47,13 @@ export default function FkTextInput({
   value,
   onChange,
   onBlur,
+  onFocus,
   label,
   placeholder,
   required,
   disabled,
   error,
+  invalid,
   helperText,
   helperColor,
   keyboardType,
@@ -72,7 +77,7 @@ export default function FkTextInput({
   const { tokens, isDarkMode } = useFkTokens();
   const c = tokens.colors;
   const [focused, setFocused] = useState(false);
-  const hasError = !!error;
+  const hasError = !!error || !!invalid;
 
   const box = (
     <View
@@ -96,7 +101,10 @@ export default function FkTextInput({
       <TextInput
         value={value}
         onChangeText={onChange}
-        onFocus={() => setFocused(true)}
+        onFocus={() => {
+          setFocused(true);
+          onFocus?.();
+        }}
         onBlur={() => {
           setFocused(false);
           onBlur?.();

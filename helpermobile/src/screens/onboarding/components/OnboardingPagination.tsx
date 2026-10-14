@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
 import { Text } from 'react-native-paper';
 import { onboardingSlides } from '../data/onboardingSlides';
+import { colors } from '../../../theme/design';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -102,6 +103,6 @@ const styles = StyleSheet.create({
   dot: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
   },
 });

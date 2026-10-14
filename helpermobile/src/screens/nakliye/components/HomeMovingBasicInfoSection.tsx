@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { SelectDropdown } from '../../../components/common';
 import { getVehicleYears } from '../../../data/vehicleData';
+import { FkTextInput } from '../../../components/fk';
 
 interface HomeMovingBasicInfoSectionProps {
   plate: string;
@@ -33,30 +34,30 @@ export default function HomeMovingBasicInfoSection({
     <View style={styles.formSection}>
       <Text variant="titleSmall" style={styles.subsectionTitle}>Temel Bilgiler</Text>
 
-      <TextInput
+      <FkTextInput
         label="Plaka *"
         value={plate}
-        onChangeText={onPlateChange}
-        style={styles.input}
-        error={!!errors.plate}
+        onChange={onPlateChange}
+        containerStyle={styles.input}
+        invalid={!!(!!errors.plate)}
         autoCapitalize="characters"
         placeholder="34 ABC 1234"
       />
 
       <View style={styles.row}>
-        <TextInput
+        <FkTextInput
           label="Marka *"
           value={brand}
-          onChangeText={onBrandChange}
-          style={[styles.halfInput, styles.inputLeft]}
-          error={!!errors.brand}
+          onChange={onBrandChange}
+          containerStyle={[styles.halfInput, styles.inputLeft]}
+          invalid={!!(!!errors.brand)}
         />
-        <TextInput
+        <FkTextInput
           label="Model *"
           value={model}
-          onChangeText={onModelChange}
-          style={[styles.halfInput, styles.inputRight]}
-          error={!!errors.model}
+          onChange={onModelChange}
+          containerStyle={[styles.halfInput, styles.inputRight]}
+          invalid={!!(!!errors.model)}
         />
       </View>
 
@@ -86,7 +87,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   row: {
     flexDirection: 'row',
@@ -95,7 +95,6 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   inputLeft: {
     marginRight: 6,

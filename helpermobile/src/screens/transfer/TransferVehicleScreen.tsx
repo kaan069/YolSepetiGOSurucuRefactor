@@ -509,7 +509,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
             </Text>
 
             {requiredDocuments.map((doc) => (
-              <FkFormSection key={doc.key} title={`📄 ${doc.label}`} required>
+              <FkFormSection key={doc.key} title={`${doc.label}`} icon="file-document-outline" required>
                 <FkDocumentUpload
                   value={documentPhotos[doc.key] ?? null}
                   onChange={(uri) =>
@@ -560,7 +560,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
           </View>
 
           <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            <FkFormSection title="📷 Araç Fotoğrafı" required>
+            <FkFormSection title="Araç Fotoğrafı" icon="camera-outline" required>
               <FkDocumentUpload
                 helperText="Plaka görünür şekilde araç fotoğrafı ekleyin"
                 value={mPhoto}
@@ -572,7 +572,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
 
             {modalType === 'vip' && (
               <FkFormSection
-                title="⭐ Araç İçi Görselleri (VIP)"
+                title="Araç İçi Görselleri (VIP)" icon="star-outline"
                 titleColor="#FFB300"
                 description="Müşterilerin aracınızın içini görebilmesi için en az 1 görsel ekleyin"
                 required

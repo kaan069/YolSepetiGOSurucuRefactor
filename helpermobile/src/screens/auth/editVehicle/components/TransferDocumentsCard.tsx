@@ -17,7 +17,7 @@ export default function TransferDocumentsCard({ transferDocuments }: Props) {
   if (Object.keys(transferDocuments).length === 0) return null;
 
   return (
-    <FkFormSection title="📄 Yüklenen Belgeler">
+    <FkFormSection title="Yüklenen Belgeler" icon="file-document-outline">
       {Object.entries(transferDocuments).map(([key, url]) => (
         <View key={key} style={styles.row}>
           <Text

@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Image, TouchableOpacity, Keyboard } from 'react-native';
-import { Card, Text, useTheme, ProgressBar, IconButton } from 'react-native-paper';
+import { Text, useTheme, ProgressBar, IconButton } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useRegistrationDataStore, ServiceType, TransferSubType } from '../../store/useRegistrationDataStore';
 import { authAPI } from '../../api';
-import { FkButton, FkFormError, FkPhoneInput, FkTextInput } from '../../components/fk';
+import { FkButton, FkCard, FkFormError, FkIconChip, FkPhoneInput, FkStepHeader, FkTextInput } from '../../components/fk';
 import type { FkCountry } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
@@ -18,8 +18,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'PhoneNumber'>;
 
 // Hizmet tipleri - Service types (4 ana hizmet türü)
 // Tüm hizmetler için aynı renk tonu kullanılıyor (tema primary rengi)
-const SERVICE_COLOR = '#26a69a';  // Ana turkuaz
-const SERVICE_BG_COLOR = '#e0f2f1';  // Açık turkuaz
 
 const serviceTypes = [
   { value: 'towTruck', label: 'Çekici', icon: 'tow-truck', description: 'Araç çekme ve kurtarma' },
@@ -199,27 +197,15 @@ export default function PhoneNumberScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: screenBg }]}
     >
-      <View style={[styles.header, { backgroundColor: cardBg }]}>
-        <IconButton
-          icon="arrow-left"
-          size={24}
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        />
-        <ProgressBar
-          progress={0.2}
-          style={styles.progressBar}
-          color={theme.colors.primary}
-        />
-      </View>
+      <FkStepHeader title="Kayıt Ol" progress={0.2} onBack={() => navigation.goBack()} />
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
+        <FkCard rounded="xl" padding={0} style={styles.card}>
+          <View style={styles.cardContent}>
             <View style={[styles.logoContainer, { backgroundColor: cardBg }]}>
               <Image
                 source={require('../../../assets/yolyardimlogo.png')}
@@ -271,33 +257,20 @@ export default function PhoneNumberScreen({ navigation }: Props) {
                       style={[
                         styles.serviceCard,
                         {
-                          backgroundColor: isSelected ? SERVICE_COLOR : SERVICE_BG_COLOR,
-                          borderColor: isSelected ? SERVICE_COLOR : 'transparent',
-                          borderWidth: 2,
+                          backgroundColor: isSelected ? colors.primary[50] : colors.white,
+                          borderColor: isSelected ? colors.primary[500] : colors.neutral[200],
                         },
                       ]}
                       onPress={() => toggleService(service.value)}
                       activeOpacity={0.7}
                     >
                       <View style={styles.serviceCardContent}>
-                        <MaterialCommunityIcons
-                          name={service.icon}
-                          size={28}
-                          color={isSelected ? '#fff' : SERVICE_COLOR}
-                        />
-                        <Text
-                          style={[
-                            styles.serviceCardLabel,
-                            { color: isSelected ? '#fff' : '#333' },
-                          ]}
-                        >
+                        <FkIconChip icon={service.icon} size={48} variant={isSelected ? 'solid' : 'tinted'} />
+                        <Text style={[styles.serviceCardLabel, { color: isSelected ? colors.primary[700] : colors.neutral[900] }]}>
                           {service.label}
                         </Text>
                         <Text
-                          style={[
-                            styles.serviceCardDescription,
-                            { color: isSelected ? 'rgba(255,255,255,0.85)' : appColors.text.secondary },
-                          ]}
+                          style={[styles.serviceCardDescription, { color: appColors.text.secondary }]}
                           numberOfLines={2}
                         >
                           {service.description}
@@ -305,7 +278,7 @@ export default function PhoneNumberScreen({ navigation }: Props) {
                       </View>
                       {isSelected && (
                         <View style={styles.checkmark}>
-                          <MaterialCommunityIcons name="check-circle" size={20} color="#fff" />
+                          <MaterialCommunityIcons name="check-circle" size={20} color={colors.primary[500]} />
                         </View>
                       )}
                     </TouchableOpacity>
@@ -340,7 +313,7 @@ export default function PhoneNumberScreen({ navigation }: Props) {
                     autoCorrect={false}
                     maxLength={8}
                     error={referralStatus === 'error' ? referralError : undefined}
-                    helperText={referralStatus === 'applied' ? '✓ Kod uygulandı' : undefined}
+                    helperText={referralStatus === 'applied' ? 'Kod uygulandı' : undefined}
                     helperColor={referralStatus === 'applied' ? colors.success[600] : undefined}
                   />
                 </View>
@@ -369,8 +342,8 @@ export default function PhoneNumberScreen({ navigation }: Props) {
             <FkButton variant="ghost" onPress={() => navigation.navigate('PhoneAuth')} fullWidth>
               Zaten hesabınız var mı? Giriş yapın
             </FkButton>
-          </Card.Content>
-        </Card>
+          </View>
+        </FkCard>
       </ScrollView>
 
       <AlreadyRegisteredModal
@@ -389,20 +362,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingTop: 50,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    elevation: 2,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  progressBar: {
-    height: 4,
-    borderRadius: 2,
-  },
   scrollView: {
     flex: 1,
   },
@@ -413,8 +372,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   card: {
-    borderRadius: 16,
-    elevation: 4,
+    width: '100%',
   },
   cardContent: {
     padding: 24,
@@ -468,7 +426,7 @@ const styles = StyleSheet.create({
   serviceTitle: {
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#333',
+    color: colors.neutral[800],
   },
   serviceSubtitle: {
     opacity: 0.7,
@@ -482,7 +440,8 @@ const styles = StyleSheet.create({
   },
   serviceCard: {
     width: '48%',
-    borderRadius: 12,
+    borderRadius: 16,
+    borderWidth: 2,
     padding: 12,
     marginBottom: 10,
     minHeight: 100,
@@ -516,7 +475,7 @@ const styles = StyleSheet.create({
   referralTitle: {
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#333',
+    color: colors.neutral[800],
   },
   referralSubtitle: {
     opacity: 0.7,

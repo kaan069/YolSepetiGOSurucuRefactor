@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Animated, Modal, Alert } from 'react-native';
-import { Button, Card, Text, TextInput, useTheme, Chip, Menu, IconButton } from 'react-native-paper';
+import { Button, Card, Text, useTheme, Chip, Menu, IconButton } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useVehicleStore, CityToCityInfo } from '../../store/useVehicleStore';
@@ -10,6 +10,8 @@ import { vehiclesAPI } from '../../api';
 import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
+import { FkTextInput } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CityToCityDetails'>;
 
@@ -297,36 +299,32 @@ export default function CityToCityDetailsScreen({ navigation }: Props) {
                 {/* Araç Bilgileri */}
                 <Text variant="bodyMedium" style={[styles.fieldLabel, { marginTop: 16 }]}>Araç Bilgileri</Text>
                 <View style={styles.row}>
-                  <TextInput
+                  <FkTextInput
                     label="Plaka *"
                     value={currentVehicle.plate}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, plate: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.halfInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, plate: text }))}
+                    containerStyle={[styles.input, styles.halfInput]}
                     autoCapitalize="characters"
                   />
-                  <TextInput
+                  <FkTextInput
                     label="Marka *"
                     value={currentVehicle.brand}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, brand: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.halfInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, brand: text }))}
+                    containerStyle={[styles.input, styles.halfInput]}
                   />
                 </View>
                 <View style={styles.row}>
-                  <TextInput
+                  <FkTextInput
                     label="Model *"
                     value={currentVehicle.model}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, model: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.halfInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, model: text }))}
+                    containerStyle={[styles.input, styles.halfInput]}
                   />
-                  <TextInput
+                  <FkTextInput
                     label="Model Yılı *"
                     value={currentVehicle.year}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, year: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.halfInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, year: text }))}
+                    containerStyle={[styles.input, styles.halfInput]}
                     keyboardType="numeric"
                     maxLength={4}
                   />
@@ -335,48 +333,43 @@ export default function CityToCityDetailsScreen({ navigation }: Props) {
                 {/* Teknik Özellikler */}
                 <Text variant="bodyMedium" style={[styles.fieldLabel, { marginTop: 16 }]}>Teknik Özellikler</Text>
                 <View style={styles.row}>
-                  <TextInput
+                  <FkTextInput
                     label="Yük Kapasitesi (ton) *"
                     value={currentVehicle.capacity}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, capacity: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.halfInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, capacity: text }))}
+                    containerStyle={[styles.input, styles.halfInput]}
                     keyboardType="numeric"
                   />
-                  <TextInput
+                  <FkTextInput
                     label="Hacim (m³) *"
                     value={currentVehicle.volume}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, volume: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.halfInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, volume: text }))}
+                    containerStyle={[styles.input, styles.halfInput]}
                     keyboardType="numeric"
                   />
                 </View>
 
                 <Text variant="bodySmall" style={styles.optionalLabel}>Kasa Boyutları (opsiyonel)</Text>
                 <View style={styles.row}>
-                  <TextInput
+                  <FkTextInput
                     label="Uzunluk (m)"
                     value={currentVehicle.length}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, length: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.thirdInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, length: text }))}
+                    containerStyle={[styles.input, styles.thirdInput]}
                     keyboardType="numeric"
                   />
-                  <TextInput
+                  <FkTextInput
                     label="Genişlik (m)"
                     value={currentVehicle.width}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, width: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.thirdInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, width: text }))}
+                    containerStyle={[styles.input, styles.thirdInput]}
                     keyboardType="numeric"
                   />
-                  <TextInput
+                  <FkTextInput
                     label="Yükseklik (m)"
                     value={currentVehicle.height}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, height: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.thirdInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, height: text }))}
+                    containerStyle={[styles.input, styles.thirdInput]}
                     keyboardType="numeric"
                   />
                 </View>
@@ -439,23 +432,21 @@ export default function CityToCityDetailsScreen({ navigation }: Props) {
                 <Text variant="bodyMedium" style={[styles.fieldLabel, { marginTop: 16 }]}>Referans Ücretlendirme</Text>
                 <Text variant="bodySmall" style={styles.optionalLabel}>Her iş için manuel teklif vereceksiniz. Bu değerler referans olarak kullanılır.</Text>
                 <View style={styles.row}>
-                  <TextInput
+                  <FkTextInput
                     label="Km Başı Ücret (₺) *"
                     value={currentVehicle.pricePerKm}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, pricePerKm: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.halfInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, pricePerKm: text }))}
+                    containerStyle={[styles.input, styles.halfInput]}
                     keyboardType="numeric"
-                    left={<TextInput.Icon icon="currency-try" />}
+                    leftIcon="currency-try"
                   />
-                  <TextInput
+                  <FkTextInput
                     label="Minimum Ücret (₺) *"
                     value={currentVehicle.minPrice}
-                    onChangeText={(text) => setCurrentVehicle(prev => ({ ...prev, minPrice: text }))}
-                    mode="outlined"
-                    style={[styles.input, styles.halfInput]}
+                    onChange={(text) => setCurrentVehicle(prev => ({ ...prev, minPrice: text }))}
+                    containerStyle={[styles.input, styles.halfInput]}
                     keyboardType="numeric"
-                    left={<TextInput.Icon icon="currency-try" />}
+                    leftIcon="currency-try"
                   />
                 </View>
 
@@ -524,7 +515,7 @@ export default function CityToCityDetailsScreen({ navigation }: Props) {
         )}
 
         {/* Bilgi Kartı */}
-        <Card style={[styles.card, styles.infoCard, { backgroundColor: isDarkMode ? '#0d2137' : '#e3f2fd' }]}>
+        <Card style={[styles.card, styles.infoCard, { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] }]}>
           <Card.Content>
             <Text variant="titleSmall" style={styles.infoTitle}>📝 Bilgi</Text>
             <Text variant="bodySmall" style={styles.infoText}>
@@ -658,7 +649,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.neutral[100],
   },
   vehicleInfo: {
     flex: 1,
@@ -675,11 +666,11 @@ const styles = StyleSheet.create({
   },
   infoTitle: {
     fontWeight: 'bold',
-    color: '#1976d2',
+    color: colors.info[600],
     marginBottom: 8,
   },
   infoText: {
-    color: '#1976d2',
+    color: colors.info[600],
     lineHeight: 18,
   },
   continueButton: {

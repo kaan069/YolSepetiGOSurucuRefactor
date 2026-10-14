@@ -15,6 +15,7 @@ export { default as FkRadioGroup } from './FkRadioGroup';
 export { default as FkSectionHeader } from './FkSectionHeader';
 export { default as FkSelectableTile } from './FkSelectableTile';
 export { default as FkStatusBadge } from './FkStatusBadge';
+export { default as FkStepHeader } from './FkStepHeader';
 export { default as FkStickyFooter } from './FkStickyFooter';
 export { default as FkSwitch } from './FkSwitch';
 export type { FkButtonVariant } from './FkButton';

@@ -28,7 +28,7 @@ export default function TransferFieldsCard({ formData, setFieldValue }: Props) {
           style={{ backgroundColor: isVip ? '#FFF3E0' : '#E8F5E9' }}
           textStyle={{ color: isVip ? '#E65100' : '#2E7D32' }}
         >
-          {isVip ? '⭐ VIP' : '🚌 Servis/Organizasyon'}
+          {isVip ? 'VIP' : 'Servis/Organizasyon'}
         </Chip>
       </View>
 

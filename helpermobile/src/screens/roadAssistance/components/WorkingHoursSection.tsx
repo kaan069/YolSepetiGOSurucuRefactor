@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput, Switch, useTheme } from 'react-native-paper';
+import { Text, Switch, useTheme } from 'react-native-paper';
+import { FkTextInput } from '../../../components/fk';
 
 interface WorkingHoursSectionProps {
   is24Hours: boolean;
@@ -36,18 +37,18 @@ export default function WorkingHoursSection({
 
       {!is24Hours && (
         <View style={styles.row}>
-          <TextInput
+          <FkTextInput
             label="Başlangıç Saati"
             value={workingHoursStart || ''}
-            onChangeText={onWorkingHoursStartChange}
-            style={[styles.halfInput, styles.inputLeft]}
+            onChange={onWorkingHoursStartChange}
+            containerStyle={[styles.halfInput, styles.inputLeft]}
             placeholder="08:00"
           />
-          <TextInput
+          <FkTextInput
             label="Bitiş Saati"
             value={workingHoursEnd || ''}
-            onChangeText={onWorkingHoursEndChange}
-            style={[styles.halfInput, styles.inputRight]}
+            onChange={onWorkingHoursEndChange}
+            containerStyle={[styles.halfInput, styles.inputRight]}
             placeholder="22:00"
           />
         </View>
@@ -79,7 +80,6 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   inputLeft: {
     marginRight: 6,

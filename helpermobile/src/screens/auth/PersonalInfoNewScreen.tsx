@@ -31,6 +31,7 @@ import {
   FkFormSection,
   FkLocationInput,
   FkPasswordInput,
+  FkStepHeader,
   FkTextInput,
 } from '../../components/fk';
 
@@ -85,7 +86,7 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
     }
     const v = validateTCNumber(form.tcNumber);
     return v.isValid
-      ? { text: '✓ Geçerli TC Kimlik No', color: tokens.colors.success }
+      ? { text: 'Geçerli TC Kimlik No', color: tokens.colors.success }
       : { text: v.error || 'Geçersiz TC Kimlik No', color: tokens.colors.error };
   }, [form.tcNumber, tokens]);
 
@@ -242,15 +243,7 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: screenBg }]}
     >
-      <View style={[styles.header, { backgroundColor: cardBg }]}>
-        <IconButton
-          icon="arrow-left"
-          size={24}
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        />
-        <ProgressBar progress={0.5} style={styles.progressBar} color={theme.colors.primary} />
-      </View>
+      <FkStepHeader title="Kişisel Bilgiler" progress={0.5} onBack={() => navigation.goBack()} />
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleContainer}>
@@ -436,9 +429,6 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingTop: 50, paddingHorizontal: 16, paddingBottom: 16, elevation: 2 },
-  backButton: { alignSelf: 'flex-start', marginBottom: 8 },
-  progressBar: { height: 4, borderRadius: 2 },
   content: { flex: 1, padding: 20 },
   titleContainer: { marginBottom: 24, alignItems: 'center' },
   title: { fontWeight: 'bold', textAlign: 'center', marginBottom: 8 },

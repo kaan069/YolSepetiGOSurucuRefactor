@@ -10,7 +10,7 @@ interface Props {
 export default function TransferInteriorPhotosCard({ interiorPhotos, onChange }: Props) {
   return (
     <FkFormSection
-      title="⭐ Araç İçi Görselleri"
+      title="Araç İçi Görselleri" icon="star-outline"
       titleColor="#FFB300"
       description="Müşterilerin aracınızın içini görebilmesi için görseller ekleyin"
     >

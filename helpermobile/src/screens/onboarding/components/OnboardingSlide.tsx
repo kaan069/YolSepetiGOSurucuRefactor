@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { OnboardingSlideData } from '../data/onboardingSlides';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { colors as dc } from '../../../theme/design';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -31,7 +32,7 @@ export default function OnboardingSlide({ slide, index, scrollX }: Props) {
 
   const gradientColors = isDarkMode
     ? ['#0d3d38', '#0a2f2b', '#071f1c'] as const
-    : ['#26a69a', '#00897b', '#00695c'] as const;
+    : [dc.primary[500], dc.primary[600], dc.primary[700]] as const;
 
   return (
     <View style={styles.slide}>
@@ -56,7 +57,7 @@ export default function OnboardingSlide({ slide, index, scrollX }: Props) {
                 <MaterialCommunityIcons
                   name={slide.icon}
                   size={80}
-                  color="#ffffff"
+                  color={dc.white}
                 />
               </View>
             )}
@@ -94,7 +95,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: '#fff',
+    backgroundColor: dc.white,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -124,7 +125,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#ffffff',
+    color: dc.white,
     textAlign: 'center',
     marginBottom: 16,
   },

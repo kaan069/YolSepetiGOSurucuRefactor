@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput, Chip } from 'react-native-paper';
+import { Text, Chip } from 'react-native-paper';
+import { FkTextInput } from '../../../components/fk';
 
 interface HomeMovingTechnicalSectionProps {
   capacity: string;
@@ -42,51 +43,51 @@ export default function HomeMovingTechnicalSection({
       <Text variant="titleSmall" style={styles.subsectionTitle}>Teknik Özellikler</Text>
 
       <View style={styles.row}>
-        <TextInput
+        <FkTextInput
           label="Yük Kapasitesi (ton) *"
           value={capacity}
-          onChangeText={onCapacityChange}
+          onChange={onCapacityChange}
           keyboardType="numeric"
-          style={[styles.halfInput, styles.inputLeft]}
-          error={!!errors.capacity}
+          containerStyle={[styles.halfInput, styles.inputLeft]}
+          invalid={!!(!!errors.capacity)}
           placeholder="3.5"
         />
-        <TextInput
+        <FkTextInput
           label="Hacim (m³) *"
           value={volume}
-          onChangeText={onVolumeChange}
+          onChange={onVolumeChange}
           keyboardType="numeric"
-          style={[styles.halfInput, styles.inputRight]}
-          error={!!errors.volume}
+          containerStyle={[styles.halfInput, styles.inputRight]}
+          invalid={!!(!!errors.volume)}
           placeholder="15"
         />
       </View>
 
       <View style={styles.row}>
-        <TextInput
+        <FkTextInput
           label="Uzunluk (m)"
           value={length}
-          onChangeText={onLengthChange}
+          onChange={onLengthChange}
           keyboardType="numeric"
-          style={[styles.halfInput, styles.inputLeft]}
+          containerStyle={[styles.halfInput, styles.inputLeft]}
           placeholder="4.2"
         />
-        <TextInput
+        <FkTextInput
           label="Genişlik (m)"
           value={width}
-          onChangeText={onWidthChange}
+          onChange={onWidthChange}
           keyboardType="numeric"
-          style={[styles.halfInput, styles.inputRight]}
+          containerStyle={[styles.halfInput, styles.inputRight]}
           placeholder="2.1"
         />
       </View>
 
-      <TextInput
+      <FkTextInput
         label="Yükseklik (m)"
         value={height}
-        onChangeText={onHeightChange}
+        onChange={onHeightChange}
         keyboardType="numeric"
-        style={styles.input}
+        containerStyle={styles.input}
         placeholder="2.2"
       />
 
@@ -129,7 +130,6 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   row: {
     flexDirection: 'row',
@@ -138,7 +138,6 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
     marginBottom: 16,
-    backgroundColor: 'white',
   },
   inputLeft: {
     marginRight: 6,

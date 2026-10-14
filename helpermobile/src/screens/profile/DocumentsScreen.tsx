@@ -149,7 +149,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
                       .map((field) => `• ${field.message}`)
                       .join('\n');
                     Alert.alert(
-                      '⚠️ Profil Tamamlama Gerekli',
+                      'Profil Tamamlama Gerekli',
                       `Profiliniz %${completenessResponse.completion_percentage} tamamlanmış.\n\nKalan eksik bilgiler:\n${missingMessages}\n\nİşleri kabul edebilmek için lütfen tüm bilgilerinizi tamamlayın.`,
                       [
                         { text: 'Daha Sonra', style: 'cancel' },
@@ -249,13 +249,13 @@ export default function DocumentsScreen({ navigation, route }: Props) {
   const statusText = (() => {
     switch (verificationStatus) {
       case 'approved':
-        return '✓ Onaylandı';
+        return 'Onaylandı';
       case 'rejected':
-        return '✗ Reddedildi';
+        return 'Reddedildi';
       case 'pending':
-        return '⏳ Yönetici Tarafından Onay Bekliyor';
+        return 'Yönetici Tarafından Onay Bekliyor';
       default:
-        return '❌ Yüklenmedi';
+        return 'Yüklenmedi';
     }
   })();
 
@@ -301,7 +301,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
           </Card>
         )}
 
-        <FkFormSection title="🪪 Ehliyet Fotoğrafı (Ön Yüz)" required>
+        <FkFormSection title="Ehliyet Fotoğrafı (Ön Yüz)" icon="card-account-details-outline" required>
           <FkDocumentUpload
             helperText="Ehliyetinizin ön yüzünü net bir şekilde çekin veya yükleyin."
             value={licensePhoto}
@@ -311,7 +311,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
           />
         </FkFormSection>
 
-        <FkFormSection title="📋 Vergi Levhası" required>
+        <FkFormSection title="Vergi Levhası" icon="clipboard-text-outline" required>
           <FkDocumentUpload
             helperText="Vergi levhanızı net bir şekilde çekin veya yükleyin."
             value={taxPlatePhoto}
@@ -321,7 +321,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
           />
         </FkFormSection>
 
-        <FkFormSection title="📜 K Belgesi" required>
+        <FkFormSection title="K Belgesi" icon="certificate-outline" required>
           <FkDocumentUpload
             helperText="K belgenizi fotoğraf çekerek, galeriden seçerek veya PDF olarak yükleyebilirsiniz."
             value={kDocumentPhoto}

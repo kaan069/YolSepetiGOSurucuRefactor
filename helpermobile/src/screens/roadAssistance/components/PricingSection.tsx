@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { FkTextInput } from '../../../components/fk';
 
 interface PricingSectionProps {
   pricePerService: string;
@@ -30,22 +31,22 @@ export default function PricingSection({
       </Text>
 
       <View style={styles.row}>
-        <TextInput
+        <FkTextInput
           label="Ortalama Hizmet Ücreti (TL) *"
           value={pricePerService}
-          onChangeText={onPricePerServiceChange}
+          onChange={onPricePerServiceChange}
           keyboardType="numeric"
-          style={[styles.halfInput, styles.inputLeft, { backgroundColor: cardBg }]}
-          error={pricePerServiceError}
+          containerStyle={[styles.halfInput, styles.inputLeft, { backgroundColor: cardBg }]}
+          invalid={!!(pricePerServiceError)}
           placeholder="150"
         />
-        <TextInput
+        <FkTextInput
           label="Km Başına Ücret (TL) *"
           value={pricePerKm}
-          onChangeText={onPricePerKmChange}
+          onChange={onPricePerKmChange}
           keyboardType="numeric"
-          style={[styles.halfInput, styles.inputRight, { backgroundColor: cardBg }]}
-          error={pricePerKmError}
+          containerStyle={[styles.halfInput, styles.inputRight, { backgroundColor: cardBg }]}
+          invalid={!!(pricePerKmError)}
           placeholder="5"
         />
       </View>

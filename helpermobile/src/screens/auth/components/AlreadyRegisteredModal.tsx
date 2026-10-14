@@ -5,6 +5,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { FkButton } from '../../../components/fk';
 import { buildSupportWhatsAppUrl } from '../../../constants/support';
 import { logger } from '../../../utils/logger';
+import { colors } from '../../../theme/design';
 
 interface Props {
   visible: boolean;
@@ -41,7 +42,7 @@ export default function AlreadyRegisteredModal({ visible, onDismiss, onLogin }: 
             bounces={false}
           >
             <View style={styles.iconCircle}>
-              <MaterialCommunityIcons name="account-check" size={40} color="#1976D2" />
+              <MaterialCommunityIcons name="account-check" size={40} color={colors.info[600]} />
             </View>
 
             <Text style={styles.title}>Bu numara zaten kayıtlı</Text>
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 420,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 20,
     overflow: 'hidden',
     elevation: 8,
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.info[50],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
@@ -111,14 +112,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1A1A1A',
+    color: colors.neutral[900],
     textAlign: 'center',
     marginBottom: 10,
   },
   description: {
     fontSize: 15,
     lineHeight: 21,
-    color: '#555',
+    color: colors.neutral[600],
     textAlign: 'center',
     marginBottom: 22,
   },

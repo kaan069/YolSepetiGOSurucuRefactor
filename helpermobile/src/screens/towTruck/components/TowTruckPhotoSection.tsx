@@ -17,7 +17,7 @@ export default function TowTruckPhotoSection({
   required,
 }: TowTruckPhotoSectionProps) {
   return (
-    <FkFormSection title={`📷 ${title}`} required={required}>
+    <FkFormSection title={`${title}`} icon="camera-outline" required={required}>
       <FkDocumentUpload
         helperText={helperText}
         value={vehiclePhoto}

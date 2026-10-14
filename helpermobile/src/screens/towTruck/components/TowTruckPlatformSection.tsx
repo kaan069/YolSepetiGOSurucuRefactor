@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput, Menu } from 'react-native-paper';
+import { Text, Menu } from 'react-native-paper';
+import { FkTextInput, FkInputIconButton } from '../../../components/fk';
 
 export const platformTypes = [
   { value: 'open', label: 'Acik Platform', icon: '' },
@@ -29,13 +30,15 @@ export default function TowTruckPlatformSection({
         visible={showPlatformMenu}
         onDismiss={() => setShowPlatformMenu(false)}
         anchor={
-          <TextInput
+          <FkTextInput
             label="Platform Turu *"
             value={platformTypes.find(p => p.value === platformType)?.label || ''}
             onFocus={() => setShowPlatformMenu(true)}
-            style={styles.input}
-            right={<TextInput.Icon icon="chevron-down" onPress={() => setShowPlatformMenu(true)} />}
+            containerStyle={styles.input}
+            rightIcon={<FkInputIconButton icon="chevron-down" onPress={() => setShowPlatformMenu(true)} />}
             editable={false}
+            onPress={() => setShowPlatformMenu(true)}
+            onChange={() => {}}
           />
         }
       >
@@ -65,6 +68,5 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-    backgroundColor: 'white',
   },
 });

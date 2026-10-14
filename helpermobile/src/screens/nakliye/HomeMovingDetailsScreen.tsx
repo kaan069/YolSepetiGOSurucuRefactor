@@ -226,7 +226,7 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleContainer}>
           <Text variant="headlineMedium" style={styles.title}>
-            🚚 Nakliye Araçlarım
+            Nakliye Araçlarım
           </Text>
           <Text variant="bodyMedium" style={styles.subtitle}>
             Evden eve ve şehirler arası nakliye hizmeti vereceğiniz araçların detaylarını girin

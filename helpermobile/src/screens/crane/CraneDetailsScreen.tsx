@@ -249,7 +249,7 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.titleContainer}>
           <Text variant="headlineMedium" style={styles.title}>
-            🏗️ Vinç Araçlarım
+            Vinç Araçlarım
           </Text>
           <Text variant="bodyMedium" style={styles.subtitle}>
             Hizmet vereceğiniz vinçlerin detaylarını girin

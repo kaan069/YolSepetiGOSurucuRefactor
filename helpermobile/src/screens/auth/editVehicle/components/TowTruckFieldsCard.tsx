@@ -41,7 +41,7 @@ export default function TowTruckFieldsCard({
       </FkFormSection>
 
       <FkFormSection
-        title="🚗 Çekebileceği Araç Türleri"
+        title="Çekebileceği Araç Türleri" icon="car-outline"
         description="Bu çekici aracın çekebileceği araç türlerini seçin (Birden fazla seçim yapabilirsiniz)"
       >
         <FkMultiSelect

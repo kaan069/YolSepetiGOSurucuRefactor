@@ -19,7 +19,7 @@ export default function VehiclePhotoSection({
   required,
 }: VehiclePhotoSectionProps) {
   return (
-    <FkFormSection title={`📷 ${title}`} required={required}>
+    <FkFormSection title={`${title}`} icon="camera-outline" required={required}>
       <FkDocumentUpload
         helperText={helperText}
         value={vehiclePhoto}

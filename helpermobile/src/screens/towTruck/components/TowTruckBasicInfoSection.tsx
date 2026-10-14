@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Text, TextInput } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { SelectDropdown } from '../../../components/common';
 import { TOW_TRUCK_BRANDS, getVehicleYears, getModelsByBrand } from '../../../data/vehicleData';
+import { FkTextInput } from '../../../components/fk';
 
 interface TowTruckBasicInfoSectionProps {
   plate: string;
@@ -44,12 +45,12 @@ export default function TowTruckBasicInfoSection({
         Temel Bilgiler
       </Text>
 
-      <TextInput
+      <FkTextInput
         label="Plaka *"
         value={plate}
-        onChangeText={onPlateChange}
-        style={styles.input}
-        error={!!errors.plate}
+        onChange={onPlateChange}
+        containerStyle={styles.input}
+        invalid={!!(!!errors.plate)}
         autoCapitalize="characters"
         placeholder="34 ABC 1234"
       />
@@ -108,6 +109,5 @@ const styles = StyleSheet.create({
   },
   input: {
     marginBottom: 16,
-    backgroundColor: 'white',
   },
 });

@@ -9,7 +9,6 @@ import {
   View,
 } from 'react-native';
 import {
-  Card,
   IconButton,
   ProgressBar,
   Text,
@@ -23,7 +22,7 @@ import { authAPI } from '../../api';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import { logger } from '../../utils/logger';
-import { FkButton, FkOTPInput } from '../../components/fk';
+import { FkButton, FkCard, FkOTPInput, FkStepHeader } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'OTPVerification'>;
 
@@ -129,15 +128,7 @@ export default function OTPVerificationScreen({ navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: screenBg }]}
     >
-      <View style={[styles.header, { backgroundColor: cardBg }]}>
-        <IconButton
-          icon="arrow-left"
-          size={24}
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        />
-        <ProgressBar progress={0.35} style={styles.progressBar} color={theme.colors.primary} />
-      </View>
+      <FkStepHeader title="Doğrulama" progress={0.35} onBack={() => navigation.goBack()} />
 
       <ScrollView
         style={styles.scrollView}
@@ -145,8 +136,8 @@ export default function OTPVerificationScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
+        <FkCard rounded="xl" padding={0} style={styles.card}>
+          <View style={styles.cardContent}>
             <View
               style={[
                 styles.iconContainer,
@@ -217,8 +208,8 @@ export default function OTPVerificationScreen({ navigation }: Props) {
                 Telefon numarasını değiştir
               </Text>
             </TouchableOpacity>
-          </Card.Content>
-        </Card>
+          </View>
+        </FkCard>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -226,9 +217,6 @@ export default function OTPVerificationScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingTop: 50, paddingHorizontal: 16, paddingBottom: 16, elevation: 2 },
-  backButton: { alignSelf: 'flex-start', marginBottom: 8 },
-  progressBar: { height: 4, borderRadius: 2 },
   scrollView: { flex: 1 },
   content: { flexGrow: 1, justifyContent: 'center', padding: 20 },
   card: { borderRadius: 16, elevation: 4 },

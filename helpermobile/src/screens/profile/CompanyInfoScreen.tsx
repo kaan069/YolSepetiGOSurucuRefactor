@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, View, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, TextInput, ActivityIndicator, Divider } from 'react-native-paper';
+import { Button, Card, Text, ActivityIndicator, Divider } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,6 +15,7 @@ import CreditCardSection from '../../components/payment/CreditCardSection';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
+import { FkFormSection, FkTextInput } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CompanyInfo'>;
 
@@ -113,7 +114,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
       // Kayıt akışındaysa başarı mesajı göster
       if (fromRegistration) {
         Alert.alert(
-          '🎉 Kayıt Başarılı',
+          'Kayıt Başarılı',
           'Tebrikler! Kaydınız başarıyla tamamlandı.\n\nBelgeleriniz yönetici tarafından onaylandıktan sonra SMS ile bilgilendirileceksiniz.',
           [
             {
@@ -149,7 +150,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
               .join('\n');
 
             Alert.alert(
-              '⚠️ Profil Tamamlama Gerekli',
+              'Profil Tamamlama Gerekli',
               `Profiliniz %${completenessResponse.completion_percentage} tamamlanmış.\n\nKalan eksik bilgiler:\n${missingMessages}\n\nİşleri kabul edebilmek için lütfen tüm bilgilerinizi tamamlayın.`,
               [
                 {
@@ -327,42 +328,37 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
           showsVerticalScrollIndicator={false}
         >
         {/* Şirket Bilgileri Card */}
-        <Card style={styles.card}>
-          <Card.Title
-            title="🏢 Şirket Bilgileri"
-            subtitle={companyInfo ? 'Bilgilerinizi güncelleyin' : 'Şirket bilgilerinizi ekleyin'}
-          />
-          <Card.Content>
-            <TextInput
+        <FkFormSection title="Şirket Bilgileri" icon="office-building-outline" description={companyInfo ? 'Bilgilerinizi güncelleyin' : 'Şirket bilgilerinizi ekleyin'}>
+            <FkTextInput
               label="Şirket Adı *"
               value={companyName}
-              onChangeText={(text) => {
+              onChange={(text) => {
                 setCompanyName(text);
                 if (companyErrors.companyName) {
                   setCompanyErrors({ ...companyErrors, companyName: '' });
                 }
               }}
-              error={!!companyErrors.companyName}
-              style={styles.input}
+              invalid={!!(!!companyErrors.companyName)}
+              containerStyle={styles.input}
               placeholder="Örnek Nakliyat Ltd. Şti."
             />
             {companyErrors.companyName && (
               <Text style={styles.errorText}>{companyErrors.companyName}</Text>
             )}
 
-            <TextInput
+            <FkTextInput
               label="Vergi Numarası *"
               value={taxNumber}
-              onChangeText={(text) => {
+              onChange={(text) => {
                 setTaxNumber(text);
                 if (companyErrors.taxNumber) {
                   setCompanyErrors({ ...companyErrors, taxNumber: '' });
                 }
               }}
-              error={!!companyErrors.taxNumber}
+              invalid={!!(!!companyErrors.taxNumber)}
               keyboardType="numeric"
               maxLength={11}
-              style={styles.input}
+              containerStyle={styles.input}
               placeholder="1234567890"
             />
             {companyErrors.taxNumber && (
@@ -377,48 +373,42 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
                 </Text>
               </View>
             )}
-          </Card.Content>
-        </Card>
+          </FkFormSection>
 
         {/* Ödeme Yöntemi Card */}
-        <Card style={styles.card}>
-          <Card.Title
-            title="💳 Ödeme Yöntemi"
-            subtitle={paymentMethod ? 'IBAN bilgilerinizi güncelleyin' : 'Kazancınızın yatırılacağı hesabı ekleyin'}
-          />
-          <Card.Content>
+        <FkFormSection title="Ödeme Yöntemi" icon="credit-card-outline" description={paymentMethod ? 'IBAN bilgilerinizi güncelleyin' : 'Kazancınızın yatırılacağı hesabı ekleyin'}>
             <Text variant="bodySmall" style={[styles.helperText, { color: appColors.text.secondary }]}>
               Kazançlarınız bu hesaba yatırılacaktır
             </Text>
 
-            <TextInput
+            <FkTextInput
               label="Hesap Sahibi Adı *"
               value={accountHolderName}
-              onChangeText={(text) => {
+              onChange={(text) => {
                 setAccountHolderName(text);
                 if (paymentErrors.accountHolderName) {
                   setPaymentErrors({ ...paymentErrors, accountHolderName: '' });
                 }
               }}
-              error={!!paymentErrors.accountHolderName}
-              style={styles.input}
+              invalid={!!(!!paymentErrors.accountHolderName)}
+              containerStyle={styles.input}
               placeholder="Ahmet Yılmaz"
             />
             {paymentErrors.accountHolderName && (
               <Text style={styles.errorText}>{paymentErrors.accountHolderName}</Text>
             )}
 
-            <TextInput
+            <FkTextInput
               label="IBAN *"
               value={iban}
-              onChangeText={(text) => {
+              onChange={(text) => {
                 setIban(text);
                 if (paymentErrors.iban) {
                   setPaymentErrors({ ...paymentErrors, iban: '' });
                 }
               }}
-              error={!!paymentErrors.iban}
-              style={styles.input}
+              invalid={!!(!!paymentErrors.iban)}
+              containerStyle={styles.input}
               placeholder="TR330006100519786457841326"
               autoCapitalize="characters"
               maxLength={32}
@@ -435,8 +425,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
                 </Text>
               </View>
             )}
-          </Card.Content>
-        </Card>
+          </FkFormSection>
 
         {/* Tek Kaydet Butonu - Hem şirket hem ödeme bilgilerini kaydeder */}
         <Button
@@ -451,15 +440,9 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
         </Button>
 
         {/* Kredi Kartı Bilgileri - Tüm kullanıcılar için */}
-        <Card style={styles.card}>
-          <Card.Title
-            title="💳 Kredi Kartı Bilgileri"
-            subtitle="Komisyon ödemeleri için kullanılacak"
-          />
-          <Card.Content>
+        <FkFormSection title="Kredi Kartı Bilgileri" icon="credit-card-outline" description="Komisyon ödemeleri için kullanılacak">
             <CreditCardSection refreshTrigger={cardRefreshTrigger} />
-          </Card.Content>
-        </Card>
+          </FkFormSection>
 
         <View style={styles.bottomSpace} />
 
@@ -519,7 +502,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
                   }
 
                   Alert.alert(
-                    '🎉 Kayıt Başarılı',
+                    'Kayıt Başarılı',
                     'Tebrikler! Kaydınız başarıyla tamamlandı.\n\nBelgeleriniz yönetici tarafından onaylandıktan sonra SMS ile bilgilendirileceksiniz.',
                     [
                       {

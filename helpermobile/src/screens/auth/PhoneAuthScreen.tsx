@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Card, ProgressBar, Text, useTheme } from 'react-native-paper';
+import { ProgressBar, Text, useTheme } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { IconButton } from 'react-native-paper';
@@ -23,10 +23,12 @@ import { useFkTokens } from '../../hooks/useFkTokens';
 import { logger } from '../../utils/logger';
 import {
   FkButton,
+  FkCard,
   FkFormError,
   FkModal,
   FkPasswordInput,
   FkPhoneInput,
+  FkStepHeader,
   FkTextInput,
 } from '../../components/fk';
 import type { FkCountry } from '../../components/fk';
@@ -182,23 +184,20 @@ export default function PhoneAuthScreen({ navigation }: Props) {
   const submitDisabled = isLoading || phoneNumber.length < 10 || !password.trim();
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: screenBg }]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: screenBg }]} edges={['bottom', 'left', 'right']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={[styles.container, { backgroundColor: screenBg }]}
       >
-        <View style={[styles.header, { backgroundColor: cardBg }]}>
-          <IconButton icon="arrow-left" size={24} onPress={() => navigation.goBack()} style={styles.backButton} />
-          <ProgressBar progress={0.5} style={styles.progressBar} color={theme.colors.primary} />
-        </View>
+        <FkStepHeader title="Giriş Yap" progress={0.5} onBack={() => navigation.goBack()} />
 
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
+          <FkCard rounded="xl" padding={0} style={styles.card}>
+            <View style={styles.cardContent}>
               <View style={[styles.logoContainer, { backgroundColor: cardBg }]}>
                 <Image
                   source={require('../../../assets/yolyardimlogo.png')}
@@ -260,8 +259,8 @@ export default function PhoneAuthScreen({ navigation }: Props) {
               <FkButton variant="ghost" onPress={() => navigation.navigate('PhoneNumber')} disabled={isLoading} fullWidth>
                 Hesabınız yok mu? Kayıt olun
               </FkButton>
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -329,14 +328,6 @@ export default function PhoneAuthScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
   container: { flex: 1 },
-  header: {
-    paddingTop: 16,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    elevation: 2,
-  },
-  backButton: { alignSelf: 'flex-start', marginBottom: 8 },
-  progressBar: { height: 4, borderRadius: 2 },
   content: { flexGrow: 1, justifyContent: 'center', padding: 20 },
   card: { borderRadius: 16, elevation: 4 },
   cardContent: { padding: 24 },

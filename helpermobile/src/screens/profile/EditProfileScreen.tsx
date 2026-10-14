@@ -87,7 +87,7 @@ export default function EditProfileScreen({ navigation }: Props) {
       return { text: `${form.tcNo.length}/11 hane`, color: tokens.colors.textSecondary };
     const v = validateTCNumber(form.tcNo);
     return v.isValid
-      ? { text: '✓ Geçerli TC Kimlik No', color: tokens.colors.success }
+      ? { text: 'Geçerli TC Kimlik No', color: tokens.colors.success }
       : { text: v.error || 'Geçersiz TC Kimlik No', color: tokens.colors.error };
   }, [form.tcNo, tokens]);
 
@@ -177,7 +177,7 @@ export default function EditProfileScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
         >
           <FkFormSection
-            title="👤 Kişisel Bilgiler"
+            title="Kişisel Bilgiler" icon="account-outline"
             description="Profilinizde görünecek bilgileri düzenleyin"
           >
             {providerLabel ? (
@@ -234,7 +234,7 @@ export default function EditProfileScreen({ navigation }: Props) {
             />
           </FkFormSection>
 
-          <FkFormSection title="🏢 İş Adresi Bilgileri">
+          <FkFormSection title="İş Adresi Bilgileri" icon="office-building-outline">
             <FkTextInput
               label="İl"
               value={form.businessAddressIl}
