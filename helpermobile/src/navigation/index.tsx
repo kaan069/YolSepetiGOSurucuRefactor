@@ -2,7 +2,10 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { StatusBar, Animated, View, StyleSheet } from 'react-native';
+import { StatusBar, Animated, View, StyleSheet, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { BottomTabNavigationOptions } from '@react-navigation/bottom-tabs';
+import { colors as d } from '../theme/design';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useJobCountsStore } from '../store/useJobCountsStore';
 import { useSyncedBlink } from '../hooks/useSyncedBlink';
@@ -189,9 +192,36 @@ const blinkStyles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#EF4444', // Kırmızı renk
+    backgroundColor: d.danger[500],
   },
 });
+
+// Alt sekme çubuğu görünümü (müşteri uygulamasıyla aynı): beyaz zemin, ince üst kenarlık,
+// aktif ana renk, pasif neutral400. Karanlık mod eski renklerini korur.
+function useTabScreenOptions(): BottomTabNavigationOptions {
+  const isDarkMode = useThemeStore((s) => s.isDarkMode);
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, Platform.OS === 'android' ? 8 : 0);
+
+  return {
+    headerShown: false,
+    tabBarActiveTintColor: isDarkMode ? '#4db6ac' : d.primary[500],
+    tabBarInactiveTintColor: isDarkMode ? '#9E9E9E' : d.neutral[400],
+    tabBarStyle: {
+      backgroundColor: isDarkMode ? '#1E1E1E' : d.white,
+      borderTopWidth: 1,
+      borderTopColor: isDarkMode ? '#333333' : d.neutral[200],
+      paddingTop: 8,
+      paddingBottom: bottomPadding + 8,
+      height: 56 + bottomPadding + 8,
+    },
+    tabBarLabelStyle: {
+      fontSize: 12,
+      fontWeight: '500',
+      marginTop: 4,
+    },
+  };
+}
 
 // This component defines the bottom tab navigator.
 // Bu component, alt tab navigator'ünü tanımlar.
@@ -211,20 +241,12 @@ function Tabs() {
     return false;
   });
 
-  const isDarkMode = useThemeStore((s) => s.isDarkMode);
+  const tabScreenOptions = useTabScreenOptions();
 
   return (
     <Tab.Navigator
       initialRouteName="HomeTab"
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? '#1E1E1E' : '#ffffff',
-          borderTopColor: isDarkMode ? '#333333' : '#e0e0e0',
-        },
-        tabBarActiveTintColor: '#26a69a',
-        tabBarInactiveTintColor: isDarkMode ? '#9E9E9E' : '#757575',
-      }}
+      screenOptions={tabScreenOptions}
     >
       <Tab.Screen
         name="HomeTab"
@@ -277,20 +299,12 @@ function Tabs() {
 
 // Employee (Eleman) kullanıcıları için 2 tab'lı navigator
 function EmployeeTabs() {
-  const isDarkMode = useThemeStore((s) => s.isDarkMode);
+  const tabScreenOptions = useTabScreenOptions();
 
   return (
     <EmployeeTab.Navigator
       initialRouteName="EmployeeJobsTab"
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: {
-          backgroundColor: isDarkMode ? '#1E1E1E' : '#ffffff',
-          borderTopColor: isDarkMode ? '#333333' : '#e0e0e0',
-        },
-        tabBarActiveTintColor: '#26a69a',
-        tabBarInactiveTintColor: isDarkMode ? '#9E9E9E' : '#757575',
-      }}
+      screenOptions={tabScreenOptions}
     >
       <EmployeeTab.Screen
         name="EmployeeJobsTab"

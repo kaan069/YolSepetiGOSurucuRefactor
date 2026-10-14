@@ -1,4 +1,5 @@
 import { colors, darkColors } from './theme';
+import { colors as d } from './design';
 
 export type SemanticColors = ReturnType<typeof getTokens>['colors'];
 
@@ -44,21 +45,21 @@ export function getTokens(isDark: boolean) {
       warning: palette.warning,
       error: palette.error,
       info: palette.info,
-      screenBg: isDark ? '#121212' : '#f5f5f5',
-      cardBg: isDark ? '#1E1E1E' : '#ffffff',
-      surfaceMuted: isDark ? '#2C2C2C' : '#f5f5f5',
-      border: isDark ? '#444444' : '#e0e0e0',
-      borderStrong: isDark ? '#5a5a5a' : '#cccccc',
+      screenBg: isDark ? '#121212' : d.neutral[50],
+      cardBg: isDark ? '#1E1E1E' : d.white,
+      surfaceMuted: isDark ? '#2C2C2C' : d.neutral[100],
+      border: isDark ? '#444444' : d.neutral[200],
+      borderStrong: isDark ? '#5a5a5a' : d.neutral[300],
       textPrimary: palette.text.primary,
       textSecondary: palette.text.secondary,
       textDisabled: palette.text.disabled,
       textHint: palette.text.hint,
       textOnPrimary: '#ffffff',
       overlay: 'rgba(0,0,0,0.5)',
-      successSoft: isDark ? '#1b3a1c' : '#e8f5e9',
-      errorSoft: isDark ? '#442726' : '#ffebee',
-      warningSoft: isDark ? '#3a2c12' : '#fff3e0',
-      infoSoft: isDark ? '#0d2137' : '#e3f2fd',
+      successSoft: isDark ? '#1b3a1c' : d.success[50],
+      errorSoft: isDark ? '#442726' : d.danger[50],
+      warningSoft: isDark ? '#3a2c12' : d.warning[50],
+      infoSoft: isDark ? '#0d2137' : d.info[50],
     },
   };
 }
