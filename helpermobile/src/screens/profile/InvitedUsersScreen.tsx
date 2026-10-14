@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ActivityIndicator, Card, Chip, Text } from 'react-native-paper';
+import { ActivityIndicator, Chip, Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -14,7 +14,7 @@ import { RootStackParamList } from '../../navigation';
 import { referralAPI } from '../../api';
 import { InvitedUser, InvitedUsersResponse } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
-import { FkButton } from '../../components/fk';
+import { FkButton, FkCard } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { formatMoney, formatDate } from '../earnings/constants';
 import { logger } from '../../utils/logger';
@@ -86,8 +86,8 @@ export default function InvitedUsersScreen({ navigation }: Props) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {invitedCount === 0 ? (
-          <Card mode="outlined" style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Content style={styles.emptyContent}>
+          <FkCard variant="outlined" style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+            <View style={styles.emptyContent}>
               <MaterialCommunityIcons
                 name="account-multiple-plus-outline"
                 size={48}
@@ -107,14 +107,13 @@ export default function InvitedUsersScreen({ navigation }: Props) {
               >
                 Referans Kodumu Gör
               </FkButton>
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         ) : (
           <>
             {/* Totals Card */}
             {totals ? (
-              <Card mode="outlined" style={[styles.card, { backgroundColor: cardBg }]}>
-                <Card.Content>
+              <FkCard variant="outlined" style={[styles.card, { backgroundColor: cardBg }]}>
                   <View style={styles.totalRow}>
                     <MaterialCommunityIcons name="cash-multiple" size={22} color={appColors.primary[400]} />
                     <View style={styles.totalTextWrapper}>
@@ -144,21 +143,21 @@ export default function InvitedUsersScreen({ navigation }: Props) {
                       </Text>
                     </View>
                   </View>
-                </Card.Content>
-              </Card>
+                
+              </FkCard>
             ) : null}
 
             {/* Stats Line */}
-            <Card mode="outlined" style={[styles.card, { backgroundColor: cardBg }]}>
-              <Card.Content style={styles.statsCardContent}>
+            <FkCard variant="outlined" style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+              <View style={styles.statsCardContent}>
                 <Text variant="bodyMedium" style={{ color: appColors.text.primary }}>
                   {invitedCount} sürücü davet ettin
                 </Text>
                 <Text variant="bodySmall" style={{ color: appColors.text.secondary }}>
                   {recentlyActiveCount} tanesi son 30 günde aktif
                 </Text>
-              </Card.Content>
-            </Card>
+              </View>
+            </FkCard>
 
             {/* Invited User List */}
             {results.map((u) => (
@@ -186,8 +185,8 @@ function InvitedUserCard({
     (parseFloat(user.earnings_from_this_user.paid_total) || 0);
 
   return (
-    <Card mode="outlined" style={[styles.card, { backgroundColor: cardBg }]}>
-      <Card.Content style={styles.userCardContent}>
+    <FkCard variant="outlined" style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+      <View style={styles.userCardContent}>
         <View style={styles.userHeader}>
           <MaterialCommunityIcons name="account-circle" size={32} color={appColors.primary[400]} />
           <View style={styles.userNameWrapper}>
@@ -245,8 +244,8 @@ function InvitedUserCard({
             </Text>
           </View>
         </View>
-      </Card.Content>
-    </Card>
+      </View>
+    </FkCard>
   );
 }
 

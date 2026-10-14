@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { StyleSheet, ScrollView, View, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, IconButton, Chip } from 'react-native-paper';
+import { Text, IconButton, Chip } from 'react-native-paper';
 import { useVehicleStore } from '../../store/useVehicleStore';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -15,6 +15,8 @@ import VehicleStatusChip from '../../components/common/VehicleStatusChip';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
+import { FkCard, FkButton } from '../../components/fk';
+import { JobSection } from '../../components/job';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VehiclesScreen'>;
 
@@ -318,16 +320,10 @@ export default function VehiclesScreen({ navigation }: Props) {
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
         {/* Tow Trucks Card - Only show if user registered for tow service */}
         {hasServiceType('tow') && (
-          <Card style={styles.card}>
-            <Card.Title
-              title={`🚛 Çekici Araçlarım (${towTrucks?.length || 0})`}
-              right={(props) => <Button {...props} onPress={() => navigation.navigate('TowTruckDetails')}>Yeni Ekle</Button>}
-            />
-            <Card.Content>
+          <JobSection title={`Çekici Araçlarım (${towTrucks?.length || 0})`} icon="tow-truck" style={styles.card}>
             {towTrucks && towTrucks.length > 0 ? (
               towTrucks.map((truck) => (
-                <Card key={truck.id} mode="outlined" style={styles.vehicleCard}>
-                  <Card.Content>
+                <FkCard key={truck.id} variant="outlined" style={styles.vehicleCard}>
                     <View style={styles.vehicleHeader}>
                       <View style={styles.vehicleInfo}>
                         <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -348,14 +344,9 @@ export default function VehiclesScreen({ navigation }: Props) {
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         {truck.verificationStatus !== 'approved' && (
-                          <Button
-                            mode="text"
-                            icon="pencil"
-                            compact
-                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: truck.id, vehicleType: 'tow' })}
-                          >
+                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: truck.id, vehicleType: 'tow' })}>
                             Düzenle
-                          </Button>
+                          </FkButton>
                         )}
                         <IconButton
                           icon="delete"
@@ -366,28 +357,21 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                     </View>
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı çekici aracınız bulunmuyor.</Text>
             )}
-            </Card.Content>
-          </Card>
+            </JobSection>
         )}
 
         {/* Cranes Card - Only show if user registered for crane service */}
         {hasServiceType('crane') && (
-          <Card style={styles.card}>
-          <Card.Title
-            title={`🏗️ Vinç Araçlarım (${cranes?.length || 0})`}
-            right={(props) => <Button {...props} onPress={() => navigation.navigate('CraneDetails')}>Yeni Ekle</Button>}
-          />
-          <Card.Content>
+          <JobSection title={`Vinç Araçlarım (${cranes?.length || 0})`} icon="crane" style={styles.card}>
             {cranes && cranes.length > 0 ? (
               cranes.map((crane) => (
-                <Card key={crane.id} mode="outlined" style={styles.vehicleCard}>
-                  <Card.Content>
+                <FkCard key={crane.id} variant="outlined" style={styles.vehicleCard}>
                     <View style={styles.vehicleHeader}>
                       <View style={styles.vehicleInfo}>
                         <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -406,14 +390,9 @@ export default function VehiclesScreen({ navigation }: Props) {
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         {crane.verificationStatus !== 'approved' && (
-                          <Button
-                            mode="text"
-                            icon="pencil"
-                            compact
-                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: crane.id, vehicleType: 'crane' })}
-                          >
+                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: crane.id, vehicleType: 'crane' })}>
                             Düzenle
-                          </Button>
+                          </FkButton>
                         )}
                         <IconButton
                           icon="delete"
@@ -425,29 +404,22 @@ export default function VehiclesScreen({ navigation }: Props) {
                       </View>
                     </View>
 
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               ))
               
             ) : (
               <Text style={styles.emptyText}>Kayıtlı vinç aracınız bulunmuyor.</Text>
             )}
-          </Card.Content>
-        </Card>
+          </JobSection>
         )}
 
         {/* Transport Vehicles Card - Only show if user registered for transport service */}
         {hasServiceType('transport') && (
-          <Card style={styles.card}>
-            <Card.Title
-              title={`🚚 Nakliye Araçlarım (${transports?.length || 0})`}
-              right={(props) => <Button {...props} onPress={() => navigation.navigate('TransportDetails')}>Yeni Ekle</Button>}
-            />
-            <Card.Content>
+          <JobSection title={`Nakliye Araçlarım (${transports?.length || 0})`} icon="truck-delivery" style={styles.card}>
             {transports && transports.length > 0 ? (
               transports.map((transport) => (
-                <Card key={transport.id} mode="outlined" style={styles.vehicleCard}>
-                  <Card.Content>
+                <FkCard key={transport.id} variant="outlined" style={styles.vehicleCard}>
                     <View style={styles.vehicleHeader}>
                       <View style={styles.vehicleInfo}>
                         <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -465,14 +437,9 @@ export default function VehiclesScreen({ navigation }: Props) {
                         </Text>
                       </View>
                       <View style={{ flexDirection: 'row' }}>
-                        <Button
-                          mode="text"
-                          icon="pencil"
-                          compact
-                          onPress={() => navigation.navigate('EditVehicle', { vehicleId: transport.id, vehicleType: 'transport' })}
-                        >
+                        <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: transport.id, vehicleType: 'transport' })}>
                           Düzenle
-                        </Button>
+                        </FkButton>
                         <IconButton
                           icon="delete"
                           size={20}
@@ -501,28 +468,21 @@ export default function VehiclesScreen({ navigation }: Props) {
                         </View>
                       </View>
                     )}
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı nakliye aracınız bulunmuyor.</Text>
             )}
-            </Card.Content>
-          </Card>
+            </JobSection>
         )}
 
         {/* Nakliye (Evden Eve) Vehicles Card */}
         {hasServiceType('nakliye') && (
-          <Card style={styles.card}>
-            <Card.Title
-              title={`🏠 Evden Eve Nakliye (${homeMoving?.length || 0})`}
-              right={(props) => <Button {...props} onPress={() => navigation.navigate('HomeMovingDetails')}>Yeni Ekle</Button>}
-            />
-            <Card.Content>
+          <JobSection title={`Evden Eve Nakliye (${homeMoving?.length || 0})`} icon="home-variant-outline" style={styles.card}>
             {homeMoving && homeMoving.length > 0 ? (
               homeMoving.map((vehicle) => (
-                <Card key={vehicle.id} mode="outlined" style={styles.vehicleCard}>
-                  <Card.Content>
+                <FkCard key={vehicle.id} variant="outlined" style={styles.vehicleCard}>
                     <View style={styles.vehicleHeader}>
                       <View style={styles.vehicleInfo}>
                         <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -545,14 +505,9 @@ export default function VehiclesScreen({ navigation }: Props) {
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         {vehicle.verificationStatus !== 'approved' && (
-                          <Button
-                            mode="text"
-                            icon="pencil"
-                            compact
-                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'homeMoving' })}
-                          >
+                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'homeMoving' })}>
                             Düzenle
-                          </Button>
+                          </FkButton>
                         )}
                         <IconButton
                           icon="delete"
@@ -583,28 +538,21 @@ export default function VehiclesScreen({ navigation }: Props) {
                         </View>
                       </View>
                     )}
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı nakliye aracınız bulunmuyor.</Text>
             )}
-            </Card.Content>
-          </Card>
+            </JobSection>
         )}
 
         {/* Road Assistance Card */}
         {hasServiceType('roadAssistance') && (
-          <Card style={styles.card}>
-            <Card.Title
-              title={`🔧 Yol Yardım Hizmetleri (${roadAssistance?.length || 0})`}
-              right={(props) => <Button {...props} onPress={() => navigation.navigate('RoadAssistanceDetails')}>Yeni Ekle</Button>}
-            />
-            <Card.Content>
+          <JobSection title={`Yol Yardım Hizmetleri (${roadAssistance?.length || 0})`} icon="car-wrench" style={styles.card}>
             {roadAssistance && roadAssistance.length > 0 ? (
               roadAssistance.map((service) => (
-                <Card key={service.id} mode="outlined" style={styles.vehicleCard}>
-                  <Card.Content>
+                <FkCard key={service.id} variant="outlined" style={styles.vehicleCard}>
                     <View style={styles.vehicleHeader}>
                       <View style={styles.vehicleInfo}>
                         <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -620,14 +568,9 @@ export default function VehiclesScreen({ navigation }: Props) {
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         {service.verificationStatus !== 'approved' && (
-                          <Button
-                            mode="text"
-                            icon="pencil"
-                            compact
-                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: service.id, vehicleType: 'roadAssistance' })}
-                          >
+                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: service.id, vehicleType: 'roadAssistance' })}>
                             Düzenle
-                          </Button>
+                          </FkButton>
                         )}
                         <IconButton
                           icon="delete"
@@ -639,28 +582,21 @@ export default function VehiclesScreen({ navigation }: Props) {
                       </View>
                     </View>
 
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı yol yardım hizmetiniz bulunmuyor.</Text>
             )}
-            </Card.Content>
-          </Card>
+            </JobSection>
         )}
 
         {/* Transfer Araçlarım */}
         {hasServiceType('transfer') && (
-          <Card style={styles.card}>
-            <Card.Title
-              title={`🚐 Transfer Araçlarım (${transfers?.length || 0})`}
-              right={(props) => <Button {...props} onPress={() => navigation.navigate('TransferVehicleDetails')}>Yeni Ekle</Button>}
-            />
-            <Card.Content>
+          <JobSection title={`Transfer Araçlarım (${transfers?.length || 0})`} icon="bus" style={styles.card}>
             {transfers && transfers.length > 0 ? (
               transfers.map((vehicle) => (
-                <Card key={vehicle.id} mode="outlined" style={styles.vehicleCard}>
-                  <Card.Content>
+                <FkCard key={vehicle.id} variant="outlined" style={styles.vehicleCard}>
                     <View style={styles.vehicleHeader}>
                       <View style={styles.vehicleInfo}>
                         <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -688,14 +624,9 @@ export default function VehiclesScreen({ navigation }: Props) {
                       </View>
                       <View style={{ flexDirection: 'row' }}>
                         {vehicle.verificationStatus !== 'approved' && (
-                          <Button
-                            mode="text"
-                            icon="pencil"
-                            compact
-                            onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'transfer' })}
-                          >
+                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'transfer' })}>
                             Düzenle
-                          </Button>
+                          </FkButton>
                         )}
                         <IconButton
                           icon="delete"
@@ -706,14 +637,13 @@ export default function VehiclesScreen({ navigation }: Props) {
                         />
                       </View>
                     </View>
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı transfer aracınız bulunmuyor.</Text>
             )}
-            </Card.Content>
-          </Card>
+            </JobSection>
         )}
       </ScrollView>
     </SafeAreaView>

@@ -3,6 +3,7 @@ import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { GuideStep } from './guideSteps';
+import { colors } from '../../theme/design';
 
 interface Props {
   step: GuideStep;
@@ -88,7 +89,7 @@ function TooltipContent({ step, currentStep, totalSteps, isLastStep, onNext, onS
       {/* Icon + Baslik */}
       <View style={styles.header}>
         <View style={styles.iconCircle}>
-          <MaterialCommunityIcons name={step.icon} size={24} color="#26a69a" />
+          <MaterialCommunityIcons name={step.icon} size={24} color={colors.primary[500]} />
         </View>
         <View style={styles.headerText}>
           <Text style={styles.title}>{step.title}</Text>
@@ -109,7 +110,7 @@ function TooltipContent({ step, currentStep, totalSteps, isLastStep, onNext, onS
         <TouchableOpacity onPress={onNext} style={styles.nextButton}>
           <Text style={styles.nextText}>{isLastStep ? 'Tamamla' : 'Ileri'}</Text>
           {!isLastStep && (
-            <MaterialCommunityIcons name="chevron-right" size={18} color="#ffffff" />
+            <MaterialCommunityIcons name="chevron-right" size={18} color={colors.white} />
           )}
         </TouchableOpacity>
       </View>
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   tooltipBody: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: 20,
     maxWidth: 320,
@@ -146,7 +147,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#e0f2f1',
+    backgroundColor: colors.primary[50],
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -157,17 +158,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1a1a1a',
+    color: colors.neutral[900],
   },
   stepIndicator: {
     fontSize: 12,
-    color: '#999',
+    color: colors.neutral[400],
     marginTop: 2,
   },
   description: {
     fontSize: 14,
     lineHeight: 21,
-    color: '#555',
+    color: colors.neutral[600],
     marginBottom: 16,
   },
   buttons: {
@@ -182,13 +183,13 @@ const styles = StyleSheet.create({
   },
   skipText: {
     fontSize: 14,
-    color: '#999',
+    color: colors.neutral[400],
     fontWeight: '500',
   },
   nextButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#26a69a',
+    backgroundColor: colors.primary[500],
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 24,
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
   },
   nextText: {
     fontSize: 14,
-    color: '#ffffff',
+    color: colors.white,
     fontWeight: '600',
   },
   // Ok stilleri
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 14,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderBottomColor: '#ffffff',
+    borderBottomColor: colors.white,
     marginBottom: -1,
   },
   arrowDown: {
@@ -221,7 +222,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 14,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
-    borderTopColor: '#ffffff',
+    borderTopColor: colors.white,
     marginTop: -1,
   },
   arrowLeft: {
@@ -230,7 +231,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 14,
     borderTopColor: 'transparent',
     borderBottomColor: 'transparent',
-    borderRightColor: '#ffffff',
+    borderRightColor: colors.white,
     marginRight: -1,
   },
   arrowRight: {
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 14,
     borderTopColor: 'transparent',
     borderBottomColor: 'transparent',
-    borderLeftColor: '#ffffff',
+    borderLeftColor: colors.white,
     marginLeft: -1,
   },
 });

@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Card, Text, Chip, IconButton, useTheme } from 'react-native-paper';
+import { Text, Chip, IconButton, useTheme } from 'react-native-paper';
 import { TransportInfo } from '../../../store/useVehicleStore';
 import { vehicleTypes } from './VehicleTypeSection';
+import { FkCard } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface AddedTransportCardProps {
   transport: TransportInfo;
@@ -13,8 +15,7 @@ export default function AddedTransportCard({ transport, onRemove }: AddedTranspo
   const theme = useTheme();
 
   return (
-    <Card mode="outlined" style={styles.transportCard}>
-      <Card.Content>
+    <FkCard variant="outlined" style={styles.transportCard}>
         <View style={styles.transportHeader}>
           <View style={styles.transportInfo}>
             <Text variant="titleMedium" style={styles.transportPlate}>
@@ -52,8 +53,8 @@ export default function AddedTransportCard({ transport, onRemove }: AddedTranspo
             )}
           </View>
         </View>
-      </Card.Content>
-    </Card>
+      
+    </FkCard>
   );
 }
 
@@ -74,23 +75,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   transportDetails: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 4,
   },
   transportSpecs: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 2,
   },
   transportServices: {
     marginTop: 12,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.neutral[200],
   },
   servicesLabel: {
     fontWeight: 'bold',
     marginBottom: 8,
-    color: '#666',
+    color: colors.neutral[500],
   },
   servicesTags: {
     flexDirection: 'row',
@@ -99,10 +100,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   servicesTag: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.info[50],
   },
   moreText: {
-    color: '#666',
+    color: colors.neutral[500],
     fontStyle: 'italic',
     marginLeft: 8,
   },

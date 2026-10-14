@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { FkTextInput } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface TechnicalSpecsSectionProps {
   maxHeight: string;
@@ -41,13 +42,13 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   input: {
     marginBottom: 16,
   },
   errorText: {
-    color: '#d32f2f',
+    color: colors.danger[600],
     fontSize: 12,
     marginTop: -12,
     marginBottom: 12,

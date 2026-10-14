@@ -44,7 +44,7 @@ export default function ServiceTypeTabs({
   });
 
   const idleBg = isDarkMode ? '#2C2C2C' : colors.neutral[100];
-  const idleText = isDarkMode ? '#E0E0E0' : colors.neutral[700];
+  const idleText = isDarkMode ? colors.neutral[200] : colors.neutral[700];
 
   return (
     <ScrollView

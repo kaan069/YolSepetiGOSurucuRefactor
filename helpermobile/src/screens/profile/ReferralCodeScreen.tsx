@@ -9,7 +9,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ActivityIndicator, Card, Text } from 'react-native-paper';
+import { ActivityIndicator, Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -17,7 +17,7 @@ import { RootStackParamList } from '../../navigation';
 import { authAPI } from '../../api';
 import { User } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
-import { FkButton } from '../../components/fk';
+import { FkButton, FkCard } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import { logger } from '../../utils/logger';
@@ -84,8 +84,8 @@ export default function ReferralCodeScreen({ navigation }: Props) {
         ) : (
           <>
             {/* Kod Kartı */}
-            <Card mode="outlined" style={[styles.card, { backgroundColor: cardBg }]}>
-              <Card.Content style={styles.codeCardContent}>
+            <FkCard variant="outlined" style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+              <View style={styles.codeCardContent}>
                 <MaterialCommunityIcons
                   name="gift-outline"
                   size={32}
@@ -122,13 +122,13 @@ export default function ReferralCodeScreen({ navigation }: Props) {
                 <Text style={[styles.helperText, { color: appColors.text.secondary }]}>
                   Bu kodu paylaşarak davet ettiğin sürücülerin işlerinden komisyon pay'ı kazan.
                 </Text>
-              </Card.Content>
-            </Card>
+              </View>
+            </FkCard>
 
             {/* Davet Ettiklerim Linki */}
             <TouchableOpacity onPress={() => navigation.navigate('InvitedUsers')}>
-              <Card mode="outlined" style={[styles.card, { backgroundColor: cardBg }]}>
-                <Card.Content style={styles.linkCardContent}>
+              <FkCard variant="outlined" style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+                <View style={styles.linkCardContent}>
                   <MaterialCommunityIcons
                     name="account-multiple-outline"
                     size={24}
@@ -149,14 +149,14 @@ export default function ReferralCodeScreen({ navigation }: Props) {
                     size={24}
                     color={appColors.text.secondary}
                   />
-                </Card.Content>
-              </Card>
+                </View>
+              </FkCard>
             </TouchableOpacity>
 
             {/* Seni Davet Eden */}
             {referredByName ? (
-              <Card mode="outlined" style={[styles.card, { backgroundColor: cardBg }]}>
-                <Card.Content style={styles.linkCardContent}>
+              <FkCard variant="outlined" style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+                <View style={styles.linkCardContent}>
                   <MaterialCommunityIcons
                     name="account-arrow-down-outline"
                     size={24}
@@ -170,8 +170,8 @@ export default function ReferralCodeScreen({ navigation }: Props) {
                       {referredByName}
                     </Text>
                   </View>
-                </Card.Content>
-              </Card>
+                </View>
+              </FkCard>
             ) : null}
           </>
         )}

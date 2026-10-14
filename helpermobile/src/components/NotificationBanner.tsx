@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { Portal, Text, Card, Button, IconButton } from 'react-native-paper';
+import { Portal, Text, Card, IconButton } from 'react-native-paper';
 import { StyleSheet, Animated, View, Dimensions, TouchableWithoutFeedback } from 'react-native';
+import { FkButton } from './fk';
+import { colors } from '../theme/design';
 
 interface NotificationBannerProps {
   visible: boolean;
@@ -115,7 +117,7 @@ export default function NotificationBanner({
                     <IconButton
                       icon="close"
                       size={20}
-                      iconColor="#666"
+                      iconColor={colors.neutral[500]}
                       onPress={handleDismiss}
                       style={styles.closeButton}
                     />
@@ -134,14 +136,9 @@ export default function NotificationBanner({
                   </Text>
 
                   {/* Action Button - Her zaman göster */}
-                  <Button
-                    mode="contained"
-                    onPress={handlePress}
-                    style={styles.actionButton}
-                    contentStyle={styles.actionButtonContent}
-                  >
+                  <FkButton onPress={handlePress} style={styles.actionButton}>
                     {actionLabel}
-                  </Button>
+                  </FkButton>
                 </View>
               </Card>
             </Animated.View>
@@ -168,7 +165,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: colors.white,
     borderRadius: 16,
     overflow: 'hidden',
   },
@@ -185,7 +182,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#E3F2FD',
+    backgroundColor: colors.info[50],
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -197,11 +194,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: 'bold',
-    color: '#1A1A1A',
+    color: colors.neutral[900],
     marginBottom: 8,
   },
   body: {
-    color: '#666',
+    color: colors.neutral[500],
     lineHeight: 22,
     marginBottom: 16,
   },

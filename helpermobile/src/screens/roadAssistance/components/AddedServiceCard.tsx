@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Card, Text, Chip, IconButton, useTheme } from 'react-native-paper';
+import { Text, Chip, IconButton, useTheme } from 'react-native-paper';
 import { RoadAssistanceInfo } from '../../../store/useVehicleStore';
 import { serviceOptions } from './ServiceTypesSection';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { FkCard } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface AddedServiceCardProps {
   service: RoadAssistanceInfo;
@@ -14,11 +16,10 @@ export default function AddedServiceCard({ service, onRemove }: AddedServiceCard
   const theme = useTheme();
   const { isDarkMode, appColors } = useAppTheme();
 
-  const serviceTagBg = isDarkMode ? '#2a1f0e' : '#fff3e0';
+  const serviceTagBg = isDarkMode ? '#2a1f0e' : colors.warning[50];
 
   return (
-    <Card mode="outlined" style={styles.serviceCard}>
-      <Card.Content>
+    <FkCard variant="outlined" style={styles.serviceCard}>
         <View style={styles.serviceHeader}>
           <View style={styles.serviceInfo}>
             <Text variant="titleMedium" style={styles.serviceTitle}>
@@ -54,8 +55,8 @@ export default function AddedServiceCard({ service, onRemove }: AddedServiceCard
             </Text>
           )}
         </View>
-      </Card.Content>
-    </Card>
+      
+    </FkCard>
   );
 }
 

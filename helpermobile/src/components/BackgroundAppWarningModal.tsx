@@ -4,6 +4,7 @@ import React from 'react';
 import { Modal, View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { colors } from '../theme/design';
 
 interface BackgroundAppWarningModalProps {
   visible: boolean;
@@ -27,7 +28,7 @@ export default function BackgroundAppWarningModal({
       <View style={styles.overlay}>
         <View style={styles.card}>
           <View style={styles.iconCircle}>
-            <MaterialCommunityIcons name="alert" size={48} color="#F57C00" />
+            <MaterialCommunityIcons name="alert" size={48} color={colors.warning[600]} />
           </View>
 
           <Text style={styles.title}>Önemli: Konum Paylaşımı</Text>
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 20,
     paddingHorizontal: 24,
     paddingTop: 24,
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#FFF3E0',
+    backgroundColor: colors.warning[50],
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -88,24 +89,24 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#333',
+    color: colors.neutral[800],
     textAlign: 'center',
     marginBottom: 12,
   },
   description: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#555',
+    color: colors.neutral[600],
     textAlign: 'center',
     marginBottom: 12,
   },
   bold: {
     fontWeight: '700',
-    color: '#E65100',
+    color: colors.warning[700],
   },
   button: {
     width: '100%',
-    backgroundColor: '#4CAF50',
+    backgroundColor: colors.success[500],
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
@@ -114,6 +115,6 @@ const styles = StyleSheet.create({
   buttonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.white,
   },
 });

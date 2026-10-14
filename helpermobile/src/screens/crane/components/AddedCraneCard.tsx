@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Card, Text, IconButton, useTheme } from 'react-native-paper';
+import { Text, IconButton, useTheme } from 'react-native-paper';
 import { CraneInfo } from '../../../store/useVehicleStore';
+import { FkCard } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface AddedCraneCardProps {
   crane: CraneInfo;
@@ -12,8 +14,7 @@ export default function AddedCraneCard({ crane, onRemove }: AddedCraneCardProps)
   const theme = useTheme();
 
   return (
-    <Card mode="outlined" style={styles.craneCard}>
-      <Card.Content>
+    <FkCard variant="outlined" style={styles.craneCard}>
         <View style={styles.craneHeader}>
           <View style={styles.craneInfo}>
             <Text variant="titleMedium" style={styles.cranePlate}>
@@ -33,8 +34,8 @@ export default function AddedCraneCard({ crane, onRemove }: AddedCraneCardProps)
             iconColor={theme.colors.error}
           />
         </View>
-      </Card.Content>
-    </Card>
+      
+    </FkCard>
   );
 }
 
@@ -55,11 +56,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   craneDetails: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 4,
   },
   craneSpecs: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 2,
   },
 });

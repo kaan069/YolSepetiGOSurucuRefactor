@@ -66,7 +66,7 @@ export default function OrdersScreen() {
   const route = useRoute<RouteType>();
   const { screenBg, cardBg, isDarkMode, textPrimary } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const headerBorder = isDarkMode ? '#333333' : colors.neutral[200];
+  const headerBorder = isDarkMode ? colors.neutral[800] : colors.neutral[200];
 
   // Filter state management (useReducer - atomik state geçişi)
   const {

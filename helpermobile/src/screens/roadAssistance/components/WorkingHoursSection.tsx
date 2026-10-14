@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Switch, useTheme } from 'react-native-paper';
 import { FkTextInput } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface WorkingHoursSectionProps {
   is24Hours: boolean;
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   switchRow: {
     flexDirection: 'row',

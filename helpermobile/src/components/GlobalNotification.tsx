@@ -5,6 +5,7 @@ import { View, StyleSheet, Animated, TouchableOpacity, Dimensions } from 'react-
 import { Text, IconButton } from 'react-native-paper';
 import { useNotificationStore, NotificationType } from '../store/useNotificationStore';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { colors } from '../theme/design';
 
 const { width } = Dimensions.get('window');
 
@@ -17,23 +18,23 @@ interface NotificationConfig {
 const notificationConfigs: Record<NotificationType, NotificationConfig> = {
   success: {
     icon: 'check-circle',
-    backgroundColor: '#4CAF50',
-    textColor: '#FFFFFF',
+    backgroundColor: colors.success[500],
+    textColor: colors.white,
   },
   error: {
     icon: 'alert-circle',
-    backgroundColor: '#F44336',
-    textColor: '#FFFFFF',
+    backgroundColor: colors.danger[500],
+    textColor: colors.white,
   },
   warning: {
     icon: 'alert',
-    backgroundColor: '#FF9800',
-    textColor: '#FFFFFF',
+    backgroundColor: colors.warning[500],
+    textColor: colors.white,
   },
   info: {
     icon: 'information',
-    backgroundColor: '#26a69a',
-    textColor: '#FFFFFF',
+    backgroundColor: colors.primary[500],
+    textColor: colors.white,
   },
 };
 

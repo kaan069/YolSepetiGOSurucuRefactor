@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import { FkTextInput } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface TransportPricingSectionProps {
   pricePerKm: string;
@@ -65,7 +66,7 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   row: {
     flexDirection: 'row',

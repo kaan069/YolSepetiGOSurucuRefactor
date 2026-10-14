@@ -42,7 +42,7 @@ export default function MyJobsTabs({
 
   const idleBg = isDarkMode ? '#1E1E1E' : colors.white;
   const idleBorder = isDarkMode ? '#444444' : colors.neutral[200];
-  const idleText = isDarkMode ? '#E0E0E0' : colors.neutral[700];
+  const idleText = isDarkMode ? colors.neutral[200] : colors.neutral[700];
 
   const chips: { value: OrderStatus; label: string; blink: boolean; pulse: Animated.AnimatedInterpolation<string> }[] = [
     { value: 'awaiting_approval', label: 'Onay Bekleyen', blink: hasAwaitingApproval, pulse: redPulse },

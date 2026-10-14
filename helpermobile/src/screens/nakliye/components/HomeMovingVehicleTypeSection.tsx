@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Menu } from 'react-native-paper';
 import { FkTextInput, FkInputIconButton } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 // Araç türleri
 export const homeMovingVehicleTypes = [
@@ -72,13 +73,13 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   input: {
     marginBottom: 16,
   },
   helperText: {
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 12,
   },
 });

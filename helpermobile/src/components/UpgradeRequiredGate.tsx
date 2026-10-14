@@ -11,9 +11,11 @@
  */
 import React from 'react';
 import { View, StyleSheet, Modal, Linking, Alert, BackHandler } from 'react-native';
-import { Text, Button } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useUpgradeStore } from '../store/useUpgradeStore';
+import { FkButton } from './fk';
+import { colors } from '../theme/design';
 
 export default function UpgradeRequiredGate() {
   const { isUpgradeRequired, info } = useUpgradeStore();
@@ -61,7 +63,7 @@ export default function UpgradeRequiredGate() {
       <View style={styles.overlay}>
         <View style={styles.card}>
           <View style={styles.iconContainer}>
-            <MaterialCommunityIcons name="cellphone-arrow-down" size={48} color="#26a69a" />
+            <MaterialCommunityIcons name="cellphone-arrow-down" size={48} color={colors.primary[500]} />
           </View>
 
           <Text variant="titleLarge" style={styles.title}>
@@ -87,16 +89,9 @@ export default function UpgradeRequiredGate() {
             </View>
           )}
 
-          <Button
-            mode="contained"
-            onPress={handleOpenStore}
-            style={styles.button}
-            contentStyle={styles.buttonContent}
-            icon="download"
-            buttonColor="#26a69a"
-          >
+          <FkButton onPress={handleOpenStore} style={styles.button} icon="download">
             Uygulamayı Güncelle
-          </Button>
+          </FkButton>
 
           <Text variant="bodySmall" style={styles.footnote}>
             Bu ekrandan çıkış yapılamaz. Yeni sürümü yükledikten sonra uygulamayı yeniden açın.
@@ -116,7 +111,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 16,
     padding: 24,
     width: '100%',
@@ -132,38 +127,38 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#e0f2f1',
+    backgroundColor: colors.primary[50],
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   title: {
     fontWeight: 'bold',
-    color: '#1a1a1a',
+    color: colors.neutral[900],
     marginBottom: 12,
     textAlign: 'center',
   },
   message: {
-    color: '#555',
+    color: colors.neutral[600],
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 16,
   },
   versionBox: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
     borderRadius: 8,
     padding: 12,
     width: '100%',
     marginBottom: 20,
   },
   versionText: {
-    color: '#666',
+    color: colors.neutral[500],
     textAlign: 'center',
     marginVertical: 2,
   },
   versionValue: {
     fontWeight: 'bold',
-    color: '#1a1a1a',
+    color: colors.neutral[900],
   },
   button: {
     width: '100%',
@@ -174,7 +169,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   footnote: {
-    color: '#999',
+    color: colors.neutral[400],
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 4,

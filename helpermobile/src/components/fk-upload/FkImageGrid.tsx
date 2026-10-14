@@ -6,6 +6,7 @@ import { useFkTokens } from '../../hooks/useFkTokens';
 import FkFormError from '../fk-ui/FkFormError';
 import FkLabel from '../fk-ui/FkLabel';
 import { pickImage } from './internal/pickerUtils';
+import { colors } from '../../theme/design';
 
 interface Props {
   value: (string | null)[];
@@ -127,7 +128,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 12,
   },
   empty: {

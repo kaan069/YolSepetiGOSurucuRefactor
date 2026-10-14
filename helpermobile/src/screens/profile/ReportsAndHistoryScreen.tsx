@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, ScrollView, View, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, Chip, Divider } from 'react-native-paper';
+import { Text, Chip, Divider } from 'react-native-paper';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -15,7 +15,7 @@ import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import { colors as dc } from '../../theme/design';
-import { FkIconChip } from '../../components/fk';
+import { FkCard, FkIconChip } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ReportsAndHistory'>;
 
@@ -232,8 +232,7 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
         }
       >
         {/* Dönem seçici - Period selector */}
-        <Card style={styles.periodCard}>
-          <Card.Content>
+        <FkCard style={styles.periodCard}>
             <Text variant="titleMedium" style={styles.periodTitle}>
               Dönem Seçin
             </Text>
@@ -253,12 +252,11 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
                 </Chip>
               ))}
             </View>
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         {/* Genel Toplam Kazanç - Overall Total Earnings */}
-        <Card style={styles.summaryCard}>
-          <Card.Content>
+        <FkCard style={styles.summaryCard}>
             <Text variant="titleMedium" style={styles.summaryTitle}>
               Toplam Kazanç (Tüm Zamanlar)
             </Text>
@@ -276,12 +274,11 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
                 </View>
               </View>
             )}
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         {/* Dönemsel Kazanç Özeti - Period Earnings Summary */}
-        <Card style={styles.summaryCard}>
-          <Card.Content>
+        <FkCard style={styles.summaryCard}>
             <Text variant="titleMedium" style={styles.summaryTitle}>
               Dönemsel Kazanç
             </Text>
@@ -332,36 +329,35 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
                 </Text>
               </>
             )}
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         {/* İşlem geçmişi - Transaction history */}
-        <Card style={styles.historyCard}>
-          <Card.Content>
+        <FkCard style={styles.historyCard}>
             <Text variant="titleMedium" style={styles.historyTitle}>
               İşlem Geçmişi
             </Text>
             <Text variant="bodySmall" style={styles.historySubtitle}>
               Son işlemlerinizin detayları
             </Text>
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         {/* İşlem listesi - Transaction list */}
         {filteredTransactions.length === 0 ? (
-          <Card style={styles.transactionCard}>
-            <Card.Content style={{ padding: 40, alignItems: 'center' }}>
+          <FkCard style={styles.transactionCard} padding={0}>
+            <View style={{ padding: 40, alignItems: 'center' }}>
               <Text style={{ color: dc.neutral[500], fontSize: 16, textAlign: 'center' }}>
                 {selectedPeriod === 'today' ? 'Bugün' : selectedPeriod === 'week' ? 'Bu hafta' : selectedPeriod === 'month' ? 'Bu ay' : 'Bu yıl'} henüz tamamlanmış iş bulunmuyor.
               </Text>
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         ) : (
           filteredTransactions.map((transaction) => {
             const serviceInfo = getServiceInfo(transaction.type);
             return (
-              <Card key={`${transaction.type}-${transaction.id}`} style={styles.transactionCard} mode="outlined">
-                <Card.Content style={styles.transactionContent}>
+              <FkCard key={`${transaction.type}-${transaction.id}`} style={styles.transactionCard} variant="outlined" padding={0}>
+                <View style={styles.transactionContent}>
                   <View style={styles.transactionHeader}>
                     <View style={styles.transactionInfo}>
                       <FkIconChip icon={serviceInfo.icon} size={40} />
@@ -402,8 +398,8 @@ export default function ReportsAndHistoryScreen({ navigation }: Props) {
                       })}
                     </Text>
                   </View>
-                </Card.Content>
-              </Card>
+                </View>
+              </FkCard>
             );
           })
         )}

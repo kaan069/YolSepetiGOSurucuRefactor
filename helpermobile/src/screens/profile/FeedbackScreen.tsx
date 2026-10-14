@@ -1,13 +1,14 @@
 import React from 'react';
 import { View, TouchableOpacity, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { colors } from '../../theme/design';
+import { FkCard } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Feedback'>;
 
@@ -45,8 +46,8 @@ export default function FeedbackScreen({ navigation }: Props) {
       </View>
 
       <View style={{ flex: 1, padding: spacing.md }}>
-        <Card mode="outlined" style={{ backgroundColor: cardBg, marginBottom: spacing.lg }}>
-          <Card.Content style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
+        <FkCard variant="outlined" style={{ backgroundColor: cardBg, marginBottom: spacing.lg }} padding={0}>
+          <View style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
             <MaterialCommunityIcons name="message-text-outline" size={moderateScale(48)} color={appColors.primary[400]} style={{ marginBottom: spacing.md }} />
             <Text variant="titleMedium" style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: spacing.sm }}>
               Görüşleriniz Bizim İçin Değerli
@@ -54,12 +55,12 @@ export default function FeedbackScreen({ navigation }: Props) {
             <Text variant="bodyMedium" style={{ color: appColors.text.secondary, textAlign: 'center', lineHeight: 22 }}>
               Öneri ve şikayetlerinizi aşağıdaki kanallardan bizimle paylaşabilirsiniz. Size en kısa sürede dönüş yapacağız.
             </Text>
-          </Card.Content>
-        </Card>
+          </View>
+        </FkCard>
 
         <TouchableOpacity onPress={openWhatsApp} style={{ marginBottom: spacing.md }}>
-          <Card mode="outlined" style={{ backgroundColor: cardBg, borderColor: '#25D366', borderWidth: 1.5 }}>
-            <Card.Content style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md }}>
+          <FkCard variant="outlined" style={{ backgroundColor: cardBg, borderColor: '#25D366', borderWidth: 1.5 }} padding={0}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md }}>
               <View style={{
                 width: moderateScale(48),
                 height: moderateScale(48),
@@ -76,13 +77,13 @@ export default function FeedbackScreen({ navigation }: Props) {
                 <Text variant="bodySmall" style={{ color: appColors.text.secondary, marginTop: 2 }}>+90 555 010 3434</Text>
               </View>
               <MaterialCommunityIcons name="chevron-right" size={moderateScale(20)} color="#25D366" />
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={openEmail} style={{ marginBottom: spacing.md }}>
-          <Card mode="outlined" style={{ backgroundColor: cardBg, borderColor: appColors.primary[400], borderWidth: 1.5 }}>
-            <Card.Content style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md }}>
+          <FkCard variant="outlined" style={{ backgroundColor: cardBg, borderColor: appColors.primary[400], borderWidth: 1.5 }} padding={0}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md }}>
               <View style={{
                 width: moderateScale(48),
                 height: moderateScale(48),
@@ -99,8 +100,8 @@ export default function FeedbackScreen({ navigation }: Props) {
                 <Text variant="bodySmall" style={{ color: appColors.text.secondary, marginTop: 2 }}>info@yolsepetigo.com</Text>
               </View>
               <MaterialCommunityIcons name="chevron-right" size={moderateScale(20)} color={appColors.primary[400]} />
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

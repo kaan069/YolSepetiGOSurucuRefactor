@@ -7,18 +7,14 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../../navigation';
 import { documentsAPI } from '../../api';
 import AppBar from '../../components/common/AppBar';
-import {
-  FkButton,
-  FkDocumentUpload,
-  FkFormSection,
-} from '../../components/fk';
+import { FkButton, FkCard, FkDocumentUpload, FkFormSection } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import { buildFullUrl } from '../../utils/fileHelpers';
@@ -294,11 +290,10 @@ export default function DocumentsScreen({ navigation, route }: Props) {
         </Text>
 
         {verificationStatus && (
-          <Card style={[styles.statusCard, { borderColor: statusColor }]}>
-            <Card.Content>
+          <FkCard style={[styles.statusCard, { borderColor: statusColor }]}>
               <Text style={[styles.statusText, { color: statusColor }]}>{statusText}</Text>
-            </Card.Content>
-          </Card>
+            
+          </FkCard>
         )}
 
         <FkFormSection title="Ehliyet Fotoğrafı (Ön Yüz)" icon="card-account-details-outline" required>
@@ -358,16 +353,15 @@ export default function DocumentsScreen({ navigation, route }: Props) {
         )}
 
         {approved && (
-          <Card style={styles.approvedInfoCard}>
-            <Card.Content>
+          <FkCard style={styles.approvedInfoCard}>
               <View style={styles.approvedInfoContent}>
                 <MaterialCommunityIcons name="check-circle" size={24} color={tokens.colors.success} />
                 <Text style={styles.approvedInfoText}>
                   Belgeleriniz onaylanmıştır. Onaylanmış belgeler değiştirilemez veya silinemez.
                 </Text>
               </View>
-            </Card.Content>
-          </Card>
+            
+          </FkCard>
         )}
 
         {fromRegistration &&

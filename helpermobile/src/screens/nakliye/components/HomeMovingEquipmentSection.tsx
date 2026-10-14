@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Chip } from 'react-native-paper';
+import { colors } from '../../../theme/design';
 
 // Nakliye donanımları
 export const homeMovingEquipmentOptions = [
@@ -57,10 +58,10 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   helperText: {
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 12,
   },
   chipContainer: {
@@ -70,6 +71,6 @@ const styles = StyleSheet.create({
   },
   equipmentChip: {
     marginBottom: 4,
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.info[50],
   },
 });

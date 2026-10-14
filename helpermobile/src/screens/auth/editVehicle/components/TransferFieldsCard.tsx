@@ -8,6 +8,7 @@ import {
   TRANSFER_VIP_VEHICLE_CLASSES,
 } from '../constants';
 import { EditVehicleFormData } from '../types';
+import { colors } from '../../../../theme/design';
 
 interface Props {
   formData: EditVehicleFormData;
@@ -25,8 +26,8 @@ export default function TransferFieldsCard({ formData, setFieldValue }: Props) {
           Transfer Tipi:
         </Text>
         <Chip
-          style={{ backgroundColor: isVip ? '#FFF3E0' : '#E8F5E9' }}
-          textStyle={{ color: isVip ? '#E65100' : '#2E7D32' }}
+          style={{ backgroundColor: isVip ? colors.warning[50] : colors.success[50] }}
+          textStyle={{ color: isVip ? colors.warning[700] : colors.success[700] }}
         >
           {isVip ? 'VIP' : 'Servis/Organizasyon'}
         </Chip>

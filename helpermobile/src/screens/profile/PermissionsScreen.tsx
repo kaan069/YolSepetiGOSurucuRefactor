@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, TouchableOpacity, Linking, Platform, AppState, AppStateStatus, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
@@ -11,6 +11,7 @@ import { RootStackParamList } from '../../navigation';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import AppBar from '../../components/common/AppBar';
+import { FkCard } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Permissions'>;
 
@@ -101,8 +102,8 @@ export default function PermissionsScreen({ navigation }: Props) {
       onPress={item.onPress}
       style={{ marginBottom: spacing.sm }}
     >
-      <Card mode="outlined" style={{ backgroundColor: cardBg }}>
-        <Card.Content style={{
+      <FkCard variant="outlined" style={{ backgroundColor: cardBg }} padding={0}>
+        <View style={{
           flexDirection: 'row',
           alignItems: 'center',
           paddingVertical: spacing.md,
@@ -141,8 +142,8 @@ export default function PermissionsScreen({ navigation }: Props) {
               color={item.granted ? appColors.success : appColors.error}
             />
           )}
-        </Card.Content>
-      </Card>
+        </View>
+      </FkCard>
     </TouchableOpacity>
   );
 
@@ -150,8 +151,8 @@ export default function PermissionsScreen({ navigation }: Props) {
     <SafeAreaView style={{ flex: 1, backgroundColor: screenBg }} edges={["bottom"]}>
       <AppBar title="İzinler" />
       <ScrollView style={{ flex: 1, padding: spacing.md }}>
-        <Card mode="outlined" style={{ backgroundColor: cardBg, marginBottom: spacing.lg }}>
-          <Card.Content style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
+        <FkCard variant="outlined" style={{ backgroundColor: cardBg, marginBottom: spacing.lg }} padding={0}>
+          <View style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
             <MaterialCommunityIcons
               name="shield-check-outline"
               size={moderateScale(48)}
@@ -172,8 +173,8 @@ export default function PermissionsScreen({ navigation }: Props) {
             }}>
               Uygulamanın düzgün çalışması için aşağıdaki izinlerin verilmesi gerekmektedir. Bir izne dokunarak ayarlar ekranına gidebilirsiniz.
             </Text>
-          </Card.Content>
-        </Card>
+          </View>
+        </FkCard>
 
         {permissionItems.map(renderPermissionItem)}
       </ScrollView>

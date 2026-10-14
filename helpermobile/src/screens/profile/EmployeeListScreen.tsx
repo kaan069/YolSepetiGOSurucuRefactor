@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, FlatList, StyleSheet, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text, FAB, IconButton, ActivityIndicator } from 'react-native-paper';
+import { Text, FAB, IconButton, ActivityIndicator } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import { useResponsive } from '../../hooks/useResponsive';
 import { Employee } from '../../api/types';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { colors } from '../../theme/design';
+import { FkCard } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmployeeList'>;
 
@@ -58,11 +59,8 @@ export default function EmployeeListScreen({ navigation }: Props) {
   };
 
   const renderEmployee = ({ item }: { item: Employee }) => (
-    <Card
-      mode="outlined"
-      style={[styles.card, { backgroundColor: cardBg }]}
-    >
-      <Card.Content style={styles.cardContent}>
+    <FkCard variant="outlined" style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+      <View style={styles.cardContent}>
         <View style={{ position: 'relative' }}>
           <View style={[styles.avatar, { backgroundColor: isDarkMode ? '#1a3a2a' : colors.success[50] }]}>
             <MaterialCommunityIcons
@@ -128,8 +126,8 @@ export default function EmployeeListScreen({ navigation }: Props) {
             disabled={deleting === item.id}
           />
         </View>
-      </Card.Content>
-    </Card>
+      </View>
+    </FkCard>
   );
 
   const renderEmpty = () => (

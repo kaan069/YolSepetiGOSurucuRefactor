@@ -4,6 +4,7 @@ import { Text } from 'react-native-paper';
 import { SelectDropdown } from '../../../components/common';
 import { getVehicleYears } from '../../../data/vehicleData';
 import { FkTextInput } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface TransportBasicInfoSectionProps {
   plate: string;
@@ -71,7 +72,7 @@ export default function TransportBasicInfoSection({
         error={errors.year}
         searchable
         searchPlaceholder="Yıl ara..."
-        primaryColor="#1565c0"
+        primaryColor={colors.info[700]}
       />
     </View>
   );
@@ -84,7 +85,7 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   input: {
     marginBottom: 16,
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
     marginLeft: 6,
   },
   errorText: {
-    color: '#d32f2f',
+    color: colors.danger[600],
     fontSize: 12,
     marginTop: -12,
     marginBottom: 12,

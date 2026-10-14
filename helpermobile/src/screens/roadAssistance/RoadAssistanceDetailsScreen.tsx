@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Button, Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useVehicleStore, RoadAssistanceInfo } from '../../store/useVehicleStore';
@@ -17,7 +17,8 @@ import {
   VehiclePhotoSection,
 } from './components';
 import { logger } from '../../utils/logger';
-import { FkTextInput } from '../../components/fk';
+import { FkButton, FkCard, FkTextInput } from '../../components/fk';
+import { colors } from '../../theme/design';
 
 const PLATE_REGEX = /^[0-9]{2}[A-Z]{1,3}[0-9]{2,4}$/;
 
@@ -249,8 +250,8 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
         </View>
 
         {/* Add New Service Form */}
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
+        <FkCard style={styles.card} padding={0}>
+          <View style={styles.cardContent}>
             <Text variant="titleMedium" style={styles.sectionTitle}>
               Yeni Araç ve Hizmet Ekle
             </Text>
@@ -285,7 +286,7 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
               searchable
               searchPlaceholder="Marka ara..."
               required
-              primaryColor="#26a69a"
+              primaryColor={colors.primary[500]}
             />
 
             <SelectDropdown
@@ -299,7 +300,7 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
               searchable
               searchPlaceholder="Model ara..."
               required
-              primaryColor="#26a69a"
+              primaryColor={colors.primary[500]}
             />
 
             <SelectDropdown
@@ -312,7 +313,7 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
               searchable
               searchPlaceholder="Yıl ara..."
               required
-              primaryColor="#26a69a"
+              primaryColor={colors.primary[500]}
             />
 
             <VehiclePhotoSection
@@ -331,37 +332,25 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
               required
             />
 
-            <Button
-              mode="contained"
-              onPress={addService}
-              loading={loading}
-              disabled={loading}
-              style={styles.addButton}
-              icon="plus"
-            >
+            <FkButton onPress={addService} loading={loading} disabled={loading} style={styles.addButton} icon="plus">
               {loading ? 'Ekleniyor...' : 'Aracı ve Hizmeti Ekle'}
-            </Button>
-          </Card.Content>
-        </Card>
+            </FkButton>
+          </View>
+        </FkCard>
 
         {/* Continue Button - Sadece düzenleme modunda göster */}
         {!fromRegistration && roadAssistance.length > 0 && (
           <View style={styles.buttonContainer}>
-            <Button
-              mode="contained"
-              onPress={handleContinue}
-              style={styles.continueButton}
-              contentStyle={styles.buttonContent}
-            >
+            <FkButton onPress={handleContinue} style={styles.continueButton}>
               Devam Et ({roadAssistance.length} Hizmet)
-            </Button>
+            </FkButton>
           </View>
         )}
 
         {/* Added Services List - Sadece düzenleme modunda göster */}
         {!fromRegistration && roadAssistance.length > 0 && (
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
+          <FkCard style={styles.card} padding={0}>
+            <View style={styles.cardContent}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
                 Eklenen Hizmetler ({roadAssistance.length})
               </Text>
@@ -373,8 +362,8 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
                   onRemove={removeRoadAssistance}
                 />
               ))}
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         )}
       </ScrollView>
 
@@ -386,7 +375,7 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   content: {
     flex: 1,
@@ -417,13 +406,13 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#e65100',
+    color: colors.warning[700],
   },
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
     marginTop: 8,
-    color: '#666',
+    color: colors.neutral[500],
   },
   input: {
     marginBottom: 12,
@@ -438,7 +427,7 @@ const styles = StyleSheet.create({
   addButton: {
     marginTop: 16,
     borderRadius: 12,
-    backgroundColor: '#e65100',
+    backgroundColor: colors.warning[700],
   },
   buttonContainer: {
     paddingBottom: 20,

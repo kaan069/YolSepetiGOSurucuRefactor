@@ -1,6 +1,7 @@
 import React from 'react';
 import { FkFormSection, FkImageGrid } from '../../../../components/fk';
 import { INTERIOR_PHOTO_SLOT_COUNT } from '../constants';
+import { colors } from '../../../../theme/design';
 
 interface Props {
   interiorPhotos: (string | null)[];
@@ -11,7 +12,7 @@ export default function TransferInteriorPhotosCard({ interiorPhotos, onChange }:
   return (
     <FkFormSection
       title="Araç İçi Görselleri" icon="star-outline"
-      titleColor="#FFB300"
+      titleColor={colors.warning[500]}
       description="Müşterilerin aracınızın içini görebilmesi için görseller ekleyin"
     >
       <FkImageGrid

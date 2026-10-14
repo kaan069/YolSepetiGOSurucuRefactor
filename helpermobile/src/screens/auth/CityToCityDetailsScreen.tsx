@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Animated, Modal, Alert } from 'react-native';
-import { Button, Card, Text, useTheme, Chip, Menu, IconButton } from 'react-native-paper';
+import { Text, useTheme, Chip, Menu, IconButton } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useVehicleStore, CityToCityInfo } from '../../store/useVehicleStore';
@@ -11,7 +11,7 @@ import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
-import { FkTextInput } from '../../components/fk';
+import { FkButton, FkCard, FkTextInput } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CityToCityDetails'>;
 
@@ -253,16 +253,15 @@ export default function CityToCityDetailsScreen({ navigation }: Props) {
         </View>
 
         {/* Add New Vehicle Form */}
-        <Card style={styles.card}>
-          <Card.Content>
+        <FkCard style={styles.card}>
             <View style={styles.cardHeader}>
               <Text variant="titleMedium" style={styles.cardTitle}>
                 {cityToCity.length === 0 ? '📝 Araç Bilgileri' : '➕ Yeni Araç Ekle'}
               </Text>
               {cityToCity.length > 0 && !showVehicleForm && (
-                <Button mode="text" onPress={() => setShowVehicleForm(true)}>
+                <FkButton variant="ghost" onPress={() => setShowVehicleForm(true)}>
                   Araç Ekle
-                </Button>
+                </FkButton>
               )}
             </View>
 
@@ -274,14 +273,9 @@ export default function CityToCityDetailsScreen({ navigation }: Props) {
                   visible={vehicleTypeMenuVisible}
                   onDismiss={() => setVehicleTypeMenuVisible(false)}
                   anchor={
-                    <Button
-                      mode="outlined"
-                      onPress={() => setVehicleTypeMenuVisible(true)}
-                      style={styles.menuButton}
-                      contentStyle={styles.menuButtonContent}
-                    >
+                    <FkButton variant="secondary" onPress={() => setVehicleTypeMenuVisible(true)} style={styles.menuButton}>
                       {selectedVehicleType ? `${selectedVehicleType.icon} ${selectedVehicleType.label}` : 'Araç Türü Seçin'}
-                    </Button>
+                    </FkButton>
                   }
                 >
                   {vehicleTypes.map((type) => (
@@ -452,35 +446,25 @@ export default function CityToCityDetailsScreen({ navigation }: Props) {
 
                 {cityToCity.length > 0 && (
                   <View style={styles.formButtons}>
-                    <Button
-                      mode="outlined"
-                      onPress={() => {
+                    <FkButton variant="secondary" onPress={() => {
                         setCurrentVehicle(getInitialVehicle());
                         setShowVehicleForm(false);
-                      }}
-                      style={styles.cancelButton}
-                    >
+                      }} style={styles.cancelButton}>
                       İptal
-                    </Button>
-                    <Button
-                      mode="contained"
-                      onPress={handleAddVehicle}
-                      disabled={!isVehicleValid()}
-                      style={styles.addButton}
-                    >
+                    </FkButton>
+                    <FkButton onPress={handleAddVehicle} disabled={!isVehicleValid()} style={styles.addButton}>
                       Araç Ekle
-                    </Button>
+                    </FkButton>
                   </View>
                 )}
               </>
             )}
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         {/* Mevcut Araçlar Listesi */}
         {cityToCity.length > 0 && (
-          <Card style={styles.card}>
-            <Card.Content>
+          <FkCard style={styles.card}>
               <Text variant="titleMedium" style={styles.cardTitle}>
                 🚛 Eklenen Araçlar ({cityToCity.length})
               </Text>
@@ -510,32 +494,24 @@ export default function CityToCityDetailsScreen({ navigation }: Props) {
                   </View>
                 );
               })}
-            </Card.Content>
-          </Card>
+            
+          </FkCard>
         )}
 
         {/* Bilgi Kartı */}
-        <Card style={[styles.card, styles.infoCard, { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] }]}>
-          <Card.Content>
+        <FkCard style={[styles.card, styles.infoCard, { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] }]}>
             <Text variant="titleSmall" style={styles.infoTitle}>📝 Bilgi</Text>
             <Text variant="bodySmall" style={styles.infoText}>
               Şehirler arası nakliye işlerinde her talep için ayrı teklif vereceksiniz.
               Mesafe, yük tipi ve özel gereksinimler fiyatı etkileyebilir.
             </Text>
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         {/* Devam Et Butonu */}
-        <Button
-          mode="contained"
-          onPress={handleContinue}
-          disabled={loading || (cityToCity.length === 0 && !isVehicleValid())}
-          style={styles.continueButton}
-          contentStyle={styles.buttonContent}
-          loading={loading}
-        >
+        <FkButton onPress={handleContinue} disabled={loading || (cityToCity.length === 0 && !isVehicleValid())} style={styles.continueButton} loading={loading}>
           {loading ? 'Kaydediliyor...' : 'Kaydet ve Devam Et'}
-        </Button>
+        </FkButton>
       </ScrollView>
 
       {/* Loading Modal */}

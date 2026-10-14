@@ -8,7 +8,7 @@ import {
     Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Card, Button, ActivityIndicator } from 'react-native-paper';
+import { Text, ActivityIndicator } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
@@ -22,6 +22,8 @@ import PhotosSection from '../../components/PhotosSection';
 import VehicleStatusSection from '../towTruckOffer/components/VehicleStatusSection';
 import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
+import { FkButton } from '../../components/fk';
+import { JobSection } from '../../components/job';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmployeeJobDetail'>;
 
@@ -212,15 +214,9 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                 <Text style={[styles.errorText, { color: appColors.text.primary }]}>
                     {error}
                 </Text>
-                <Button
-                    mode="contained"
-                    onPress={handleRetry}
-                    buttonColor={PRIMARY}
-                    style={styles.retryButton}
-                    icon="refresh"
-                >
+                <FkButton onPress={handleRetry} style={styles.retryButton} icon="refresh">
                     Tekrar Dene
-                </Button>
+                </FkButton>
             </SafeAreaView>
         );
     }
@@ -236,13 +232,9 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                 <Text style={{ color: appColors.text.secondary }}>
                     İş detayı bulunamadı.
                 </Text>
-                <Button
-                    mode="outlined"
-                    onPress={() => navigation.goBack()}
-                    style={styles.retryButton}
-                >
+                <FkButton variant="secondary" onPress={() => navigation.goBack()} style={styles.retryButton}>
                     Geri Dön
-                </Button>
+                </FkButton>
             </SafeAreaView>
         );
     }
@@ -291,19 +283,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                 </View>
 
                 {/* ── İş Bilgileri Kartı ── */}
-                <Card style={[styles.card, { backgroundColor: cardBg }]}>
-                    <Card.Title
-                        title="İş Bilgileri"
-                        titleStyle={[styles.cardTitle, { color: appColors.text.primary }]}
-                        left={() => (
-                            <MaterialCommunityIcons
-                                name="briefcase-outline"
-                                size={24}
-                                color={PRIMARY}
-                            />
-                        )}
-                    />
-                    <Card.Content style={styles.cardContent}>
+                <JobSection title="İş Bilgileri" icon="briefcase-outline" style={[styles.card, { backgroundColor: cardBg }]}><View style={styles.cardContent}>
                         {/* Service type */}
                         <View style={styles.infoRow}>
                             <MaterialCommunityIcons
@@ -370,38 +350,18 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                             value={formatDate(jobDetail.updated_at)}
                             iconColor={PRIMARY}
                         />
-                    </Card.Content>
-                </Card>
+                    </View></JobSection>
 
                 {/* ── Servis Detayları Kartı ── */}
                 {jobDetail.service_details && Object.keys(jobDetail.service_details).length > 0 && (
-                    <Card style={[styles.card, { backgroundColor: cardBg }]}>
-                        <Card.Title
-                            title={
+                    <JobSection title={
                                 jobDetail.service_type === 'towTruck' ? 'Araç Bilgileri' :
                                 jobDetail.service_type === 'crane' ? 'Yük Detayları' :
                                 jobDetail.service_type === 'roadAssistance' ? 'Arıza Detayları' :
                                 jobDetail.service_type === 'homeToHomeMoving' ? 'Nakliye Detayları' :
                                 jobDetail.service_type === 'cityToCity' ? 'Yük Detayları' :
                                 'Detaylar'
-                            }
-                            titleStyle={[styles.cardTitle, { color: appColors.text.primary }]}
-                            left={() => (
-                                <MaterialCommunityIcons
-                                    name={
-                                        jobDetail.service_type === 'towTruck' ? 'car' :
-                                        jobDetail.service_type === 'crane' ? 'crane' :
-                                        jobDetail.service_type === 'roadAssistance' ? 'car-wrench' :
-                                        jobDetail.service_type === 'homeToHomeMoving' ? 'home-group' :
-                                        jobDetail.service_type === 'cityToCity' ? 'truck' :
-                                        'clipboard-list-outline'
-                                    }
-                                    size={24}
-                                    color={PRIMARY}
-                                />
-                            )}
-                        />
-                        <Card.Content style={styles.cardContent}>
+                            } style={[styles.card, { backgroundColor: cardBg }]}><View style={styles.cardContent}>
                             {/* ─ Çekici ─ */}
                             {jobDetail.service_type === 'towTruck' && (
                                 <>
@@ -519,24 +479,11 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                     )}
                                 </>
                             )}
-                        </Card.Content>
-                    </Card>
+                        </View></JobSection>
                 )}
 
                 {/* ── Konum Bilgileri Kartı ── */}
-                <Card style={[styles.card, { backgroundColor: cardBg }]}>
-                    <Card.Title
-                        title="Konum Bilgileri"
-                        titleStyle={[styles.cardTitle, { color: appColors.text.primary }]}
-                        left={() => (
-                            <MaterialCommunityIcons
-                                name="map-marker-outline"
-                                size={24}
-                                color={PRIMARY}
-                            />
-                        )}
-                    />
-                    <Card.Content style={styles.cardContent}>
+                <JobSection title="Konum Bilgileri" icon="map-marker-outline" style={[styles.card, { backgroundColor: cardBg }]}><View style={styles.cardContent}>
                         {hasTwoPoints ? (
                             <>
                                 {loc?.pickup_address && (
@@ -548,17 +495,11 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                             iconColor={colors.warning[500]}
                                         />
                                         {loc.pickup_lat !== undefined && loc.pickup_lng !== undefined && (
-                                            <Button
-                                                mode="contained"
-                                                icon="navigation"
-                                                buttonColor={colors.warning[500]}
-                                                style={styles.pickupNavButton}
-                                                onPress={() =>
+                                            <FkButton tone="warning" icon="navigation" style={styles.pickupNavButton} onPress={() =>
                                                     openNavigation(loc.pickup_lat!, loc.pickup_lng!)
-                                                }
-                                            >
+                                                }>
                                                 Alış Noktasına Git
-                                            </Button>
+                                            </FkButton>
                                         )}
                                     </>
                                 )}
@@ -571,17 +512,11 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                             iconColor={colors.success[500]}
                                         />
                                         {loc.dropoff_lat !== undefined && loc.dropoff_lng !== undefined && (
-                                            <Button
-                                                mode="contained"
-                                                icon="navigation"
-                                                buttonColor={colors.success[500]}
-                                                style={styles.navButton}
-                                                onPress={() =>
+                                            <FkButton variant="success" icon="navigation" style={styles.navButton} onPress={() =>
                                                     openNavigation(loc.dropoff_lat!, loc.dropoff_lng!)
-                                                }
-                                            >
+                                                }>
                                                 Bırakış Noktasına Git
-                                            </Button>
+                                            </FkButton>
                                         )}
                                     </>
                                 )}
@@ -596,23 +531,16 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                         iconColor={PRIMARY}
                                     />
                                     {loc.latitude !== undefined && loc.longitude !== undefined && (
-                                        <Button
-                                            mode="contained"
-                                            icon="navigation"
-                                            buttonColor={PRIMARY}
-                                            style={styles.navButton}
-                                            onPress={() =>
+                                        <FkButton icon="navigation" style={styles.navButton} onPress={() =>
                                                 openNavigation(loc.latitude!, loc.longitude!)
-                                            }
-                                        >
+                                            }>
                                             Navigasyonu Başlat
-                                        </Button>
+                                        </FkButton>
                                     )}
                                 </>
                             )
                         )}
-                    </Card.Content>
-                </Card>
+                    </View></JobSection>
 
                 {/* ── Araç Durumu ── */}
                 <VehicleStatusSection surcharges={vehicleStatusSurcharges} totalSurcharge={0} />
@@ -622,19 +550,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
 
                 {/* ── Müşteri Bilgisi Kartı ── */}
                 {showCustomerCard && jobDetail.customer_info && (
-                    <Card style={[styles.card, { backgroundColor: cardBg }]}>
-                        <Card.Title
-                            title="Müşteri Bilgisi"
-                            titleStyle={[styles.cardTitle, { color: appColors.text.primary }]}
-                            left={() => (
-                                <MaterialCommunityIcons
-                                    name="account-outline"
-                                    size={24}
-                                    color={PRIMARY}
-                                />
-                            )}
-                        />
-                        <Card.Content style={styles.cardContent}>
+                    <JobSection title="Müşteri Bilgisi" icon="account-outline" style={[styles.card, { backgroundColor: cardBg }]}><View style={styles.cardContent}>
                             <InfoRow
                                 icon="account"
                                 label="Müşteri Adı"
@@ -647,23 +563,16 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                 value={jobDetail.customer_info.phone}
                                 iconColor={PRIMARY}
                             />
-                            <Button
-                                mode="contained"
-                                icon="phone"
-                                buttonColor={colors.success[500]}
-                                style={styles.callButton}
-                                onPress={() =>
+                            <FkButton variant="success" icon="phone" style={styles.callButton} onPress={() =>
                                     Linking.openURL(
                                         `tel:${jobDetail.customer_info!.phone}`
                                     ).catch(() =>
                                         Alert.alert('Hata', 'Arama başlatılamadı.')
                                     )
-                                }
-                            >
+                                }>
                                 Ara
-                            </Button>
-                        </Card.Content>
-                    </Card>
+                            </FkButton>
+                        </View></JobSection>
                 )}
 
                 <View style={styles.bottomSpacer} />

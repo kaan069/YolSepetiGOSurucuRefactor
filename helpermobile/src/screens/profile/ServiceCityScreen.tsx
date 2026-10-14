@@ -30,7 +30,7 @@ import {
   UIManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, Searchbar, ProgressBar } from 'react-native-paper';
+import { Card, Text, Searchbar, ProgressBar } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
@@ -43,6 +43,7 @@ import { getCityNames, TURKEY_REGIONS } from '../../data/turkeyLocations';
 import { logger } from '../../utils/logger';
 import { foldTr, sameCitySet } from '../../utils/turkishText';
 import { colors } from '../../theme/design';
+import { FkCard, FkButton } from '../../components/fk';
 
 // Android'de LayoutAnimation'ı etkinleştir (bölge aç-kapa animasyonu için)
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -318,8 +319,8 @@ export default function ServiceCityScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           {/* Başlık + sayaç + ilerleme + hızlı eylemler */}
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Content style={styles.headerCardContent}>
+          <FkCard style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+            <View style={styles.headerCardContent}>
               <View style={styles.headerTop}>
                 <View style={[styles.headerIconWrap, { backgroundColor: `${primary}1A` }]}>
                   <MaterialCommunityIcons name="map-marker-radius" size={26} color={primary} />
@@ -347,32 +348,15 @@ export default function ServiceCityScreen({ navigation }: Props) {
 
               {/* Hızlı eylemler */}
               <View style={styles.quickActions}>
-                <Button
-                  mode={allSelected ? 'contained' : 'outlined'}
-                  icon={allSelected ? 'check-all' : 'select-all'}
-                  onPress={handleSelectAll}
-                  disabled={allSelected}
-                  style={styles.quickActionButton}
-                  textColor={allSelected ? undefined : primary}
-                  buttonColor={allSelected ? primary : undefined}
-                  compact
-                >
+                <FkButton variant="ghost" icon={allSelected ? 'check-all' : 'select-all'} onPress={handleSelectAll} disabled={allSelected} style={styles.quickActionButton} size="sm">
                   Tümünü Seç
-                </Button>
-                <Button
-                  mode="outlined"
-                  icon="close-circle-outline"
-                  onPress={handleClearAll}
-                  disabled={selectedCount === 0}
-                  style={styles.quickActionButton}
-                  textColor={danger}
-                  compact
-                >
+                </FkButton>
+                <FkButton variant="secondary" tone="danger" icon="close-circle-outline" onPress={handleClearAll} disabled={selectedCount === 0} style={styles.quickActionButton} size="sm">
                   Temizle
-                </Button>
+                </FkButton>
               </View>
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
 
           {/* Canlı arama */}
           <Searchbar

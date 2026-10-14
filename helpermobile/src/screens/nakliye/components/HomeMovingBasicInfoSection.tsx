@@ -4,6 +4,7 @@ import { Text } from 'react-native-paper';
 import { SelectDropdown } from '../../../components/common';
 import { getVehicleYears } from '../../../data/vehicleData';
 import { FkTextInput } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface HomeMovingBasicInfoSectionProps {
   plate: string;
@@ -70,7 +71,7 @@ export default function HomeMovingBasicInfoSection({
         error={errors.year}
         searchable
         searchPlaceholder="Yıl ara..."
-        primaryColor="#1565c0"
+        primaryColor={colors.info[700]}
       />
     </View>
   );
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   input: {
     marginBottom: 16,

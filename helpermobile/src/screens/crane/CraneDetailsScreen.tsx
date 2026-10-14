@@ -3,7 +3,7 @@
 // This screen manages crane registration process
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Button, Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useVehicleStore, CraneInfo } from '../../store/useVehicleStore';
@@ -21,6 +21,8 @@ import {
   CraneLoadingOverlay,
 } from './components';
 import { logger } from '../../utils/logger';
+import { FkCard, FkButton } from '../../components/fk';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneDetails'>;
 
@@ -257,8 +259,8 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
         </View>
 
         {/* Add New Crane Form */}
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
+        <FkCard style={styles.card} padding={0}>
+          <View style={styles.cardContent}>
             <Text variant="titleMedium" style={styles.sectionTitle}>
               Yeni Vinç Ekle
             </Text>
@@ -298,37 +300,25 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
               errors={errors}
             />
 
-            <Button
-              mode="contained"
-              onPress={addNewCrane}
-              loading={loading}
-              disabled={loading}
-              style={styles.addButton}
-              icon="plus"
-            >
+            <FkButton onPress={addNewCrane} loading={loading} disabled={loading} style={styles.addButton} icon="plus">
               {loading ? 'Vinç Ekleniyor...' : 'Vinci Ekle'}
-            </Button>
-          </Card.Content>
-        </Card>
+            </FkButton>
+          </View>
+        </FkCard>
 
         {/* Continue Button - Sadece düzenleme modunda göster */}
         {!fromRegistration && cranes && cranes.length > 0 && (
           <View style={styles.buttonContainer}>
-            <Button
-              mode="contained"
-              onPress={handleContinue}
-              style={styles.continueButton}
-              contentStyle={styles.buttonContent}
-            >
+            <FkButton onPress={handleContinue} style={styles.continueButton}>
               Devam Et ({cranes?.length || 0} Vinç)
-            </Button>
+            </FkButton>
           </View>
         )}
 
         {/* Added Cranes List - Sadece düzenleme modunda göster */}
         {!fromRegistration && cranes && cranes.length > 0 && (
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
+          <FkCard style={styles.card} padding={0}>
+            <View style={styles.cardContent}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
                 Eklenen Vinçler ({cranes?.length || 0})
               </Text>
@@ -340,8 +330,8 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
                   onRemove={removeCrane}
                 />
               ))}
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         )}
       </ScrollView>
 
@@ -353,7 +343,7 @@ export default function CraneDetailsScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   content: {
     flex: 1,
@@ -384,7 +374,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#26a69a',
+    color: colors.primary[500],
   },
   addButton: {
     marginTop: 16,

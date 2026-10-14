@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Linking, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, Divider, ActivityIndicator } from 'react-native-paper';
+import { Card, Text, Divider, ActivityIndicator } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { ensureForegroundPermission } from '../utils/locationPermission';
@@ -17,6 +17,8 @@ import LocationAddresses from '../components/offer/LocationAddresses';
 import MapWithRoute from '../components/offer/MapWithRoute';
 import { logger } from '../utils/logger';
 import { colors } from '../theme/design';
+import { FkCard, FkButton } from '../components/fk';
+import { JobSection } from '../components/job';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Offer'>;
 
@@ -245,8 +247,7 @@ export default function OfferScreen({ route, navigation }: Props) {
             title="Güzergah"
           />
 
-          <Card style={styles.mapCard}>
-            <Card.Content>
+          <FkCard style={styles.mapCard}>
               <DistanceMetrics
                 distanceToCustomer={distance}
                 routeDistance={towTruckRequest.route_distance}
@@ -258,29 +259,17 @@ export default function OfferScreen({ route, navigation }: Props) {
                 dropoffAddress={towTruckRequest.dropoff_address}
               />
 
-              <Button
-                icon="map-marker"
-                mode="contained"
-                style={{ marginTop: 10 }}
-                onPress={() => openInGoogleMaps('pickup')}
-              >
+              <FkButton icon="map-marker" style={{ marginTop: 10 }} onPress={() => openInGoogleMaps('pickup')}>
                 Alınacak Konuma Git
-              </Button>
-              <Button
-                icon="map-marker-check"
-                mode="contained-tonal"
-                style={{ marginTop: 8 }}
-                onPress={() => openInGoogleMaps('dropoff')}
-              >
+              </FkButton>
+              <FkButton icon="map-marker-check" style={{ marginTop: 8 }} onPress={() => openInGoogleMaps('dropoff')}>
                 Bırakılacak Konuma Git
-              </Button>
-            </Card.Content>
-          </Card>
+              </FkButton>
+            
+          </FkCard>
         </>
       ) : (
-        <Card style={styles.mapCard}>
-          <Card.Title title={isCraneRequest ? "Vinç Talebi Konumu" : "Müşteri Konumu"} />
-          <Card.Content>
+        <JobSection title={isCraneRequest ? "Vinç Talebi Konumu" : "Müşteri Konumu"} style={styles.mapCard}>
             <View style={styles.locationInfo}>
               {addressDetails.district && (
                 <View style={styles.addressRow}>
@@ -301,16 +290,10 @@ export default function OfferScreen({ route, navigation }: Props) {
                 </View>
               )}
             </View>
-            <Button
-              icon="directions"
-              mode="contained"
-              style={{ marginTop: 10 }}
-              onPress={() => openInGoogleMaps('pickup')}
-            >
+            <FkButton icon="directions" style={{ marginTop: 10 }} onPress={() => openInGoogleMaps('pickup')}>
               Yol Tarifi Al
-            </Button>
-          </Card.Content>
-        </Card>
+            </FkButton>
+          </JobSection>
       )}
 
       {/* Request Details Card */}
@@ -410,9 +393,9 @@ export default function OfferScreen({ route, navigation }: Props) {
           ) : null}
         </Card.Content>
         <Card.Actions>
-          <Button mode="contained" onPress={handleAccept} style={styles.button}>
+          <FkButton onPress={handleAccept} style={styles.button}>
             {isCraneRequest || isTowTruckRequest ? 'Teklif Ver' : 'Teklif Ver'}
-          </Button>
+          </FkButton>
         </Card.Actions>
       </Card>
     </ScrollView>

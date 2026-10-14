@@ -6,6 +6,7 @@
  */
 import React, { useEffect, useRef } from 'react';
 import { View, Animated, StyleSheet, ViewStyle } from 'react-native';
+import { colors } from '../../theme/design';
 
 interface ShimmerPlaceholderProps {
   /** Placeholder genişliği */
@@ -151,13 +152,13 @@ export function StatsShimmer() {
 
 const styles = StyleSheet.create({
   placeholder: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: colors.neutral[200],
   },
 });
 
 const shimmerStyles = StyleSheet.create({
   earningsContainer: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: colors.success[50],
     padding: 20,
     borderRadius: 12,
     alignItems: 'center',
@@ -175,19 +176,19 @@ const shimmerStyles = StyleSheet.create({
   },
   distanceCard: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.neutral[100],
     borderRadius: 8,
     padding: 16,
     alignItems: 'center',
   },
   earningsCard: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: colors.success[50],
     borderRadius: 8,
     padding: 20,
     alignItems: 'center',
   },
   statsContainer: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.neutral[100],
     padding: 12,
     borderRadius: 8,
     gap: 12,

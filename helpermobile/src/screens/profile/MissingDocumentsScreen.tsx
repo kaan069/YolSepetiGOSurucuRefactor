@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, View, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
+import { FkCard } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'MissingDocuments'>;
 
@@ -145,8 +146,7 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
 
         {/* Tamamlanma Yüzdesi Card */}
         {completeness && (
-          <Card style={[styles.progressCard, { backgroundColor: cardBg }]}>
-            <Card.Content>
+          <FkCard style={[styles.progressCard, { backgroundColor: cardBg }]}>
               <View style={styles.progressHeader}>
                 <MaterialCommunityIcons name="chart-donut" size={24} color={colors.primary[500]} />
                 <Text variant="titleMedium" style={styles.progressTitle}>
@@ -171,13 +171,12 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
                   ))}
                 </View>
               )}
-            </Card.Content>
-          </Card>
+            
+          </FkCard>
         )}
 
         {/* Bilgilendirme Card */}
-        <Card style={styles.infoCard}>
-          <Card.Content>
+        <FkCard style={styles.infoCard}>
             <View style={styles.infoHeader}>
               <MaterialCommunityIcons name="information" size={24} color={colors.primary[500]} />
               <Text variant="titleMedium" style={styles.infoTitle}>
@@ -187,8 +186,8 @@ export default function MissingDocumentsScreen({ navigation }: Props) {
             <Text variant="bodyMedium" style={styles.infoText}>
               Lütfen aşağıdaki belgeleri ve bilgileri eksiksiz olarak tamamlayın. Bu bilgiler olmadan işleri kabul edemezsiniz.
             </Text>
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         {/* Evraklarım Butonu */}
         <TouchableOpacity

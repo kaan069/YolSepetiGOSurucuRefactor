@@ -8,7 +8,7 @@ import {
     Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Card, ActivityIndicator } from 'react-native-paper';
+import { Text, ActivityIndicator } from 'react-native-paper';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -18,6 +18,8 @@ import { AppBar } from '../../components/common';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useEmployeePanelStore } from '../../store/useEmployeePanelStore';
+import { FkCard } from '../../components/fk';
+import { colors as dc } from '../../theme/design';
 
 // ---------------------------------------------------------------------------
 // Config maps
@@ -38,9 +40,9 @@ const statusLabels: Record<string, string> = {
 };
 
 const statusColors: Record<string, string> = {
-    in_progress: '#2196F3',
-    pending: '#FF9800',
-    completed: '#4CAF50',
+    in_progress: dc.info[500],
+    pending: dc.warning[500],
+    completed: dc.success[500],
 };
 
 // ---------------------------------------------------------------------------
@@ -57,7 +59,7 @@ const formatDate = (dateString: string): string => {
     });
 };
 
-const PRIMARY = '#26a69a';
+const PRIMARY = dc.primary[500];
 
 // ---------------------------------------------------------------------------
 // Main screen
@@ -163,7 +165,7 @@ export default function EmployeeDashboardScreen() {
     // Main render
     // ---------------------------------------------------------------------------
 
-    const iconBg = isDarkMode ? '#1a3333' : '#e0f2f1';
+    const iconBg = isDarkMode ? '#1a3333' : dc.primary[50];
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={['bottom']}>
@@ -213,12 +215,8 @@ export default function EmployeeDashboardScreen() {
                 {/* Employer Info Card - İşveren bilgi kartı */}
                 {/* ------------------------------------------------------------------ */}
                 {dashboard?.employee_info && (
-                    <Card
-                        mode="elevated"
-                        style={[styles.card, { backgroundColor: cardBg, marginBottom: spacing.md }]}
-                        elevation={2}
-                    >
-                        <Card.Content style={styles.cardContent}>
+                    <FkCard style={[styles.card, { backgroundColor: cardBg, marginBottom: spacing.md }]} padding={0}>
+                        <View style={styles.cardContent}>
                             {/* Section header */}
                             <View style={styles.sectionHeader}>
                                 <View style={[styles.sectionIconWrap, { backgroundColor: iconBg }]}>
@@ -233,7 +231,7 @@ export default function EmployeeDashboardScreen() {
                                 </Text>
                             </View>
 
-                            <View style={[styles.divider, { backgroundColor: isDarkMode ? '#333' : '#e0e0e0' }]} />
+                            <View style={[styles.divider, { backgroundColor: isDarkMode ? dc.neutral[800] : dc.neutral[200] }]} />
 
                             {/* Employer name */}
                             <View style={styles.infoRow}>
@@ -297,19 +295,15 @@ export default function EmployeeDashboardScreen() {
                                     color={PRIMARY}
                                 />
                             </TouchableOpacity>
-                        </Card.Content>
-                    </Card>
+                        </View>
+                    </FkCard>
                 )}
 
                 {/* ------------------------------------------------------------------ */}
                 {/* Active Job Card - Aktif iş kartı */}
                 {/* ------------------------------------------------------------------ */}
-                <Card
-                    mode="elevated"
-                    style={[styles.card, { backgroundColor: cardBg, marginBottom: spacing.md }]}
-                    elevation={2}
-                >
-                    <Card.Content style={styles.cardContent}>
+                <FkCard style={[styles.card, { backgroundColor: cardBg, marginBottom: spacing.md }]} padding={0}>
+                    <View style={styles.cardContent}>
                         {/* Section header */}
                         <View style={styles.sectionHeader}>
                             <View style={[styles.sectionIconWrap, { backgroundColor: iconBg }]}>
@@ -324,7 +318,7 @@ export default function EmployeeDashboardScreen() {
                             </Text>
                         </View>
 
-                        <View style={[styles.divider, { backgroundColor: isDarkMode ? '#333' : '#e0e0e0' }]} />
+                        <View style={[styles.divider, { backgroundColor: isDarkMode ? dc.neutral[800] : dc.neutral[200] }]} />
 
                         {dashboard?.active_job ? (
                             <TouchableOpacity
@@ -366,14 +360,14 @@ export default function EmployeeDashboardScreen() {
                                                 styles.statusBadge,
                                                 {
                                                     backgroundColor:
-                                                        (statusColors[dashboard.active_job.status] ?? '#9E9E9E') + '22',
+                                                        (statusColors[dashboard.active_job.status] ?? dc.neutral[400]) + '22',
                                                 },
                                             ]}
                                         >
                                             <Text
                                                 variant="labelSmall"
                                                 style={{
-                                                    color: statusColors[dashboard.active_job.status] ?? '#9E9E9E',
+                                                    color: statusColors[dashboard.active_job.status] ?? dc.neutral[400],
                                                     fontWeight: '700',
                                                 }}
                                             >
@@ -438,8 +432,8 @@ export default function EmployeeDashboardScreen() {
                                 </Text>
                             </View>
                         )}
-                    </Card.Content>
-                </Card>
+                    </View>
+                </FkCard>
 
                 {/* ------------------------------------------------------------------ */}
                 {/* Stats Section - İstatistik bölümü */}
@@ -455,17 +449,13 @@ export default function EmployeeDashboardScreen() {
 
                         <View style={styles.statsRow}>
                             {/* Total completed */}
-                            <Card
-                                mode="elevated"
-                                style={[styles.statCard, { backgroundColor: cardBg, marginRight: spacing.sm / 2 }]}
-                                elevation={2}
-                            >
-                                <Card.Content style={styles.statCardContent}>
+                            <FkCard style={[styles.statCard, { backgroundColor: cardBg, marginRight: spacing.sm / 2 }]} padding={0}>
+                                <View style={styles.statCardContent}>
                                     <View style={[styles.statIconWrap, { backgroundColor: '#e8f5e922' }]}>
                                         <MaterialCommunityIcons
                                             name="check-circle-outline"
                                             size={moderateScale(28)}
-                                            color="#4CAF50"
+                                            color={dc.success[500]}
                                         />
                                     </View>
                                     <Text
@@ -480,21 +470,17 @@ export default function EmployeeDashboardScreen() {
                                     >
                                         Toplam{'\n'}Tamamlanan
                                     </Text>
-                                </Card.Content>
-                            </Card>
+                                </View>
+                            </FkCard>
 
                             {/* This month */}
-                            <Card
-                                mode="elevated"
-                                style={[styles.statCard, { backgroundColor: cardBg, marginLeft: spacing.sm / 2 }]}
-                                elevation={2}
-                            >
-                                <Card.Content style={styles.statCardContent}>
+                            <FkCard style={[styles.statCard, { backgroundColor: cardBg, marginLeft: spacing.sm / 2 }]} padding={0}>
+                                <View style={styles.statCardContent}>
                                     <View style={[styles.statIconWrap, { backgroundColor: '#e3f2fd22' }]}>
                                         <MaterialCommunityIcons
                                             name="calendar-month"
                                             size={moderateScale(28)}
-                                            color="#2196F3"
+                                            color={dc.info[500]}
                                         />
                                     </View>
                                     <Text
@@ -509,8 +495,8 @@ export default function EmployeeDashboardScreen() {
                                     >
                                         Bu Ay
                                     </Text>
-                                </Card.Content>
-                            </Card>
+                                </View>
+                            </FkCard>
                         </View>
                     </>
                 )}
@@ -551,7 +537,7 @@ const styles = StyleSheet.create({
         borderRadius: 24,
     },
     retryButtonText: {
-        color: '#fff',
+        color: dc.white,
         fontWeight: '700',
         fontSize: 14,
     },

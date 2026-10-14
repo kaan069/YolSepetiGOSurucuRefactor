@@ -4,6 +4,7 @@ import { Text } from 'react-native-paper';
 import { SelectDropdown } from '../../../components/common';
 import { TOW_TRUCK_BRANDS, getVehicleYears, getModelsByBrand } from '../../../data/vehicleData';
 import { FkTextInput } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface TowTruckBasicInfoSectionProps {
   plate: string;
@@ -65,7 +66,7 @@ export default function TowTruckBasicInfoSection({
         searchable={true}
         searchPlaceholder="Marka ara..."
         required
-        primaryColor="#26a69a"
+        primaryColor={colors.primary[500]}
       />
 
       <SelectDropdown
@@ -79,7 +80,7 @@ export default function TowTruckBasicInfoSection({
         searchable={true}
         searchPlaceholder="Model ara..."
         required
-        primaryColor="#26a69a"
+        primaryColor={colors.primary[500]}
       />
 
       <SelectDropdown
@@ -92,7 +93,7 @@ export default function TowTruckBasicInfoSection({
         searchable={true}
         searchPlaceholder="Yil ara..."
         required
-        primaryColor="#26a69a"
+        primaryColor={colors.primary[500]}
       />
     </View>
   );
@@ -105,7 +106,7 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   input: {
     marginBottom: 16,

@@ -20,6 +20,7 @@ import * as Location from 'expo-location';
 import * as IntentLauncher from 'expo-intent-launcher';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuthStore } from '../store/authStore';
+import { colors } from '../theme/design';
 
 type PermissionStatus = 'checking' | 'granted' | 'denied' | 'undetermined';
 
@@ -108,7 +109,7 @@ export default function LocationPermissionAlert() {
             <MaterialCommunityIcons
               name={isServiceIssue ? 'crosshairs-off' : 'map-marker-off'}
               size={48}
-              color={isServiceIssue ? '#f97316' : '#ef4444'}
+              color={isServiceIssue ? colors.secondary[500] : colors.danger[500]}
             />
           </View>
 
@@ -129,7 +130,7 @@ export default function LocationPermissionAlert() {
             onPress={openSettings}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="cog" size={20} color="#fff" />
+            <MaterialCommunityIcons name="cog" size={20} color={colors.white} />
             <Text style={styles.settingsButtonText}>
               {isServiceIssue ? 'Konum Ayarlarını Aç' : 'Ayarlara Git'}
             </Text>
@@ -140,30 +141,30 @@ export default function LocationPermissionAlert() {
             {isServiceIssue ? (
               <>
                 <View style={styles.tipRow}>
-                  <MaterialCommunityIcons name="cellphone-cog" size={16} color="#9ca3af" />
+                  <MaterialCommunityIcons name="cellphone-cog" size={16} color={colors.neutral[400]} />
                   <Text style={styles.tipText}>Ayarlar {'>'} Konum yolunu takip edin</Text>
                 </View>
                 <View style={styles.tipRow}>
-                  <MaterialCommunityIcons name="toggle-switch" size={16} color="#9ca3af" />
+                  <MaterialCommunityIcons name="toggle-switch" size={16} color={colors.neutral[400]} />
                   <Text style={styles.tipText}>Konum servisini açın</Text>
                 </View>
                 <View style={styles.tipRow}>
-                  <MaterialCommunityIcons name="arrow-left" size={16} color="#9ca3af" />
+                  <MaterialCommunityIcons name="arrow-left" size={16} color={colors.neutral[400]} />
                   <Text style={styles.tipText}>Uygulamaya geri dönün</Text>
                 </View>
               </>
             ) : (
               <>
                 <View style={styles.tipRow}>
-                  <MaterialCommunityIcons name="cellphone-cog" size={16} color="#9ca3af" />
+                  <MaterialCommunityIcons name="cellphone-cog" size={16} color={colors.neutral[400]} />
                   <Text style={styles.tipText}>Uygulama ayarlarına gidin</Text>
                 </View>
                 <View style={styles.tipRow}>
-                  <MaterialCommunityIcons name="map-marker-check" size={16} color="#9ca3af" />
+                  <MaterialCommunityIcons name="map-marker-check" size={16} color={colors.neutral[400]} />
                   <Text style={styles.tipText}>Konum iznini "Her Zaman" veya "Kullanırken" olarak ayarlayın</Text>
                 </View>
                 <View style={styles.tipRow}>
-                  <MaterialCommunityIcons name="arrow-left" size={16} color="#9ca3af" />
+                  <MaterialCommunityIcons name="arrow-left" size={16} color={colors.neutral[400]} />
                   <Text style={styles.tipText}>Uygulamaya geri dönün</Text>
                 </View>
               </>
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   alertContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: 24,
     width: '100%',
@@ -205,21 +206,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   iconBgRed: {
-    backgroundColor: '#fef2f2',
+    backgroundColor: colors.danger[50],
   },
   iconBgOrange: {
-    backgroundColor: '#fff7ed',
+    backgroundColor: colors.secondary[50],
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1f2937',
+    color: colors.neutral[800],
     textAlign: 'center',
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.neutral[500],
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
@@ -236,19 +237,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   buttonRed: {
-    backgroundColor: '#ef4444',
+    backgroundColor: colors.danger[500],
   },
   buttonOrange: {
-    backgroundColor: '#f97316',
+    backgroundColor: colors.secondary[500],
   },
   settingsButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.white,
   },
   tipsContainer: {
     width: '100%',
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.neutral[50],
     borderRadius: 12,
     padding: 12,
     gap: 8,
@@ -261,6 +262,6 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 12,
-    color: '#9ca3af',
+    color: colors.neutral[400],
   },
 });

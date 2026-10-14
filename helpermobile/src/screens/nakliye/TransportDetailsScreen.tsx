@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Button, Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useVehicleStore, TransportInfo } from '../../store/useVehicleStore';
@@ -21,6 +21,8 @@ import {
   AddedTransportCard,
   TransportLoadingOverlay,
 } from './components';
+import { FkCard, FkButton } from '../../components/fk';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransportDetails'>;
 
@@ -171,8 +173,8 @@ export default function TransportDetailsScreen({ navigation }: Props) {
         </View>
 
         {/* Add New Transport Form */}
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
+        <FkCard style={styles.card} padding={0}>
+          <View style={styles.cardContent}>
             <Text variant="titleMedium" style={styles.sectionTitle}>
               Yeni Nakliye Aracı Ekle
             </Text>
@@ -247,37 +249,25 @@ export default function TransportDetailsScreen({ navigation }: Props) {
               onToggleArea={toggleWorkingArea}
             />
 
-            <Button
-              mode="contained"
-              onPress={addVehicle}
-              style={styles.addButton}
-              contentStyle={styles.addButtonContent}
-              labelStyle={styles.addButtonLabel}
-              icon="plus"
-            >
+            <FkButton onPress={addVehicle} style={styles.addButton} icon="plus">
               Nakliye Aracını Ekle
-            </Button>
-          </Card.Content>
-        </Card>
+            </FkButton>
+          </View>
+        </FkCard>
 
         {/* Continue Button */}
         {transports.length > 0 && (
           <View style={styles.buttonContainer}>
-            <Button
-              mode="contained"
-              onPress={handleContinue}
-              style={styles.continueButton}
-              contentStyle={styles.buttonContent}
-            >
+            <FkButton onPress={handleContinue} style={styles.continueButton}>
               Devam Et ({transports.length} Araç)
-            </Button>
+            </FkButton>
           </View>
         )}
 
         {/* Added Transports List */}
         {transports.length > 0 && (
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
+          <FkCard style={styles.card} padding={0}>
+            <View style={styles.cardContent}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
                 Eklenen Nakliye Araçları ({transports.length})
               </Text>
@@ -289,8 +279,8 @@ export default function TransportDetailsScreen({ navigation }: Props) {
                   onRemove={removeVehicle}
                 />
               ))}
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         )}
       </ScrollView>
 
@@ -302,7 +292,7 @@ export default function TransportDetailsScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   content: {
     flex: 1,
@@ -333,7 +323,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#26a69a',
+    color: colors.primary[500],
   },
   addButton: {
     marginTop: 16,

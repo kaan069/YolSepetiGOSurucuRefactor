@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, View, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, ActivityIndicator, Divider } from 'react-native-paper';
+import { Text, ActivityIndicator, Divider } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -15,7 +15,7 @@ import CreditCardSection from '../../components/payment/CreditCardSection';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
-import { FkFormSection, FkTextInput } from '../../components/fk';
+import { FkButton, FkFormSection, FkTextInput } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CompanyInfo'>;
 
@@ -428,8 +428,8 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
           </FkFormSection>
 
         {/* Tek Kaydet Butonu - Hem şirket hem ödeme bilgilerini kaydeder */}
-        <Button
-          mode="contained"
+        <FkButton
+          size="lg"
           onPress={saveAllInfo}
           loading={saving}
           disabled={saving}
@@ -437,7 +437,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
           icon="content-save"
         >
           {saving ? 'Kaydediliyor...' : (companyInfo && paymentMethod) ? 'Tüm Bilgileri Güncelle' : 'Tüm Bilgileri Kaydet'}
-        </Button>
+        </FkButton>
 
         {/* Kredi Kartı Bilgileri - Tüm kullanıcılar için */}
         <FkFormSection title="Kredi Kartı Bilgileri" icon="credit-card-outline" description="Komisyon ödemeleri için kullanılacak">
@@ -449,8 +449,8 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
         {/* Devam Et Butonu - Sadece kayıt akışında göster */}
         {fromRegistration && (
           <View style={styles.continueSection}>
-            <Button
-              mode="contained"
+            <FkButton
+              size="lg"
               icon="arrow-right"
               loading={saving}
               disabled={saving}
@@ -528,7 +528,7 @@ export default function CompanyInfoScreen({ navigation, route }: Props) {
               contentStyle={{ flexDirection: 'row-reverse' }}
             >
               {saving ? 'Kaydediliyor...' : 'Kaydı Tamamla'}
-            </Button>
+            </FkButton>
           </View>
         )}
         </ScrollView>

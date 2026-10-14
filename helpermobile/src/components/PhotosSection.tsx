@@ -106,7 +106,7 @@ export default function PhotosSection({ photos }: PhotosSectionProps) {
 
           {/* Kapat butonu */}
           <TouchableOpacity style={styles.closeButton} onPress={closePhoto}>
-            <MaterialCommunityIcons name="close" size={30} color="#fff" />
+            <MaterialCommunityIcons name="close" size={30} color={colors.white} />
           </TouchableOpacity>
 
           {/* Fotoğraf sayacı */}
@@ -134,14 +134,14 @@ export default function PhotosSection({ photos }: PhotosSectionProps) {
           {/* Sol ok */}
           {selectedIndex !== null && selectedIndex > 0 && (
             <TouchableOpacity style={styles.arrowLeft} onPress={goPrev}>
-              <MaterialCommunityIcons name="chevron-left" size={40} color="#fff" />
+              <MaterialCommunityIcons name="chevron-left" size={40} color={colors.white} />
             </TouchableOpacity>
           )}
 
           {/* Sağ ok */}
           {selectedIndex !== null && selectedIndex < photos.length - 1 && (
             <TouchableOpacity style={styles.arrowRight} onPress={goNext}>
-              <MaterialCommunityIcons name="chevron-right" size={40} color="#fff" />
+              <MaterialCommunityIcons name="chevron-right" size={40} color={colors.white} />
             </TouchableOpacity>
           )}
         </View>
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 52,
     alignSelf: 'center',
-    color: '#fff',
+    color: colors.white,
     fontSize: 16,
     fontWeight: '600',
     zIndex: 10,

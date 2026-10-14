@@ -9,17 +9,13 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import authAPI from '../../api/auth';
 import { User } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
-import {
-  FkButton,
-  FkFormSection,
-  FkTextInput,
-} from '../../components/fk';
+import { FkButton, FkCard, FkFormSection, FkTextInput } from '../../components/fk';
 import { validateTCNumber } from '../../utils/tcValidation';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useFkTokens } from '../../hooks/useFkTokens';
@@ -257,19 +253,16 @@ export default function EditProfileScreen({ navigation }: Props) {
             />
           </FkFormSection>
 
-          <Card
-            style={[
+          <FkCard style={[
               styles.infoCard,
               { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] },
-            ]}
-          >
-            <Card.Content>
+            ]}>
               <Text variant="bodySmall" style={[styles.infoText, { color: tokens.colors.info }]}>
                 ℹ️ Telefon numaranız ve adres bilgileriniz müşterilerle iletişim kurmak için
                 kullanılır.
               </Text>
-            </Card.Content>
-          </Card>
+            
+          </FkCard>
 
           <FkButton
             icon="content-save"

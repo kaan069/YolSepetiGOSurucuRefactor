@@ -49,7 +49,7 @@ export default function OrdersTabs({
     count?: number,
   ) => {
     const active = mainTab === value;
-    const fg = active ? (isDarkMode ? '#E0E0E0' : colors.primary[700]) : isDarkMode ? '#9E9E9E' : colors.neutral[500];
+    const fg = active ? (isDarkMode ? colors.neutral[200] : colors.primary[700]) : isDarkMode ? colors.neutral[400] : colors.neutral[500];
     return (
       <TouchableOpacity
         style={[styles.tab, active && [styles.tabActive, { backgroundColor: activeBg }]]}

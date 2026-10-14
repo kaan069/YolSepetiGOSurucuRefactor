@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Button, Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useVehicleStore, TowTruckInfo } from '../../store/useVehicleStore';
@@ -18,6 +18,8 @@ import {
   TowTruckLoadingOverlay,
 } from './components';
 import { logger } from '../../utils/logger';
+import { FkCard, FkButton } from '../../components/fk';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TowTruckDetails'>;
 
@@ -249,8 +251,8 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
         </View>
 
         {/* Add New Vehicle Form */}
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
+        <FkCard style={styles.card} padding={0}>
+          <View style={styles.cardContent}>
             <Text variant="titleMedium" style={styles.sectionTitle}>
               Yeni Cekici Ekle
             </Text>
@@ -287,21 +289,16 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
               error={errors.supportedVehicleTypes}
             />
 
-            <Button
-              mode="contained"
-              onPress={addVehicle}
-              style={styles.addButton}
-              icon="plus"
-            >
+            <FkButton onPress={addVehicle} style={styles.addButton} icon="plus">
               Cekiciyi Ekle
-            </Button>
-          </Card.Content>
-        </Card>
+            </FkButton>
+          </View>
+        </FkCard>
 
         {/* Added Vehicles List - Sadece düzenleme modunda göster */}
         {!fromRegistration && towTrucks && towTrucks.length > 0 && (
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
+          <FkCard style={styles.card} padding={0}>
+            <View style={styles.cardContent}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
                 Eklenen Araclar ({towTrucks?.length || 0})
               </Text>
@@ -313,23 +310,17 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
                   onRemove={removeVehicle}
                 />
               ))}
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         )}
       </ScrollView>
 
       {/* Continue Button - Sadece düzenleme modunda göster */}
       {!fromRegistration && towTrucks && towTrucks.length > 0 && (
         <View style={styles.fixedFooter}>
-          <Button
-            mode="contained"
-            onPress={handleContinue}
-            style={styles.continueButton}
-            contentStyle={styles.buttonContent}
-            icon="arrow-right"
-          >
+          <FkButton onPress={handleContinue} style={styles.continueButton} icon="arrow-right">
             Devam Et ({towTrucks?.length || 0} Arac)
-          </Button>
+          </FkButton>
         </View>
       )}
 
@@ -341,7 +332,7 @@ export default function TowTruckDetailsScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   content: {
     flex: 1,
@@ -375,7 +366,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#26a69a',
+    color: colors.primary[500],
   },
   addButton: {
     marginTop: 16,
@@ -386,12 +377,12 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     paddingHorizontal: 20,
     paddingVertical: 16,
     paddingBottom: 24,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.neutral[200],
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,

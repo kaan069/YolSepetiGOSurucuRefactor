@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text, Switch, List, useTheme } from 'react-native-paper';
+import { Text, Switch, List, useTheme } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import AppBar from '../../components/common/AppBar';
@@ -9,6 +9,7 @@ import { useThemeStore } from '../../store/useThemeStore';
 import { useGuideStore } from '../../store/useGuideStore';
 import { APP_VERSION } from '../../constants/appVersion';
 import { colors } from '../../theme/design';
+import { JobSection } from '../../components/job';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AppSettings'>;
 
@@ -21,31 +22,23 @@ export default function AppSettingsScreen({ navigation }: Props) {
       <AppBar title="Uygulama Ayarları" />
       <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
 
-        <Card style={styles.card}>
-          <Card.Title title="Görünüm" />
-          <Card.Content>
+        <JobSection title="Görünüm" icon="palette-outline" style={styles.card}>
             <View style={styles.settingRow}>
               <Text variant="bodyLarge">Karanlık Mod</Text>
               <Switch value={isDarkMode} onValueChange={toggleDarkMode} />
             </View>
-          </Card.Content>
-        </Card>
+          </JobSection>
 
-        <Card style={styles.card}>
-          <Card.Title title="Dil ve Bölge" />
-          <Card.Content>
+        <JobSection title="Dil ve Bölge" icon="translate" style={styles.card}>
             <List.Item
               title="Dil Seçimi"
               description="Türkçe"
               left={(props) => <List.Icon {...props} icon="translate" />}
               right={(props) => <List.Icon {...props} icon="chevron-right" />}
             />
-          </Card.Content>
-        </Card>
+          </JobSection>
 
-        <Card style={styles.card}>
-          <Card.Title title="Rehber" />
-          <Card.Content>
+        <JobSection title="Rehber" icon="map-legend" style={styles.card}>
             <List.Item
               title="Tanıtım Slaytları"
               description="Uygulama tanıtım slaytlarını tekrar izleyin"
@@ -65,12 +58,9 @@ export default function AppSettingsScreen({ navigation }: Props) {
                 }, 500);
               }}
             />
-          </Card.Content>
-        </Card>
+          </JobSection>
 
-        <Card style={styles.card}>
-          <Card.Title title="Hakkında" />
-          <Card.Content>
+        <JobSection title="Hakkında" icon="information-outline" style={styles.card}>
             <List.Item
               title="Uygulama Sürümü"
               description={`v${APP_VERSION}`}
@@ -81,8 +71,7 @@ export default function AppSettingsScreen({ navigation }: Props) {
               left={(props) => <List.Icon {...props} icon="email" />}
               right={(props) => <List.Icon {...props} icon="chevron-right" />}
             />
-          </Card.Content>
-        </Card>
+          </JobSection>
       </ScrollView>
     </SafeAreaView>
   );

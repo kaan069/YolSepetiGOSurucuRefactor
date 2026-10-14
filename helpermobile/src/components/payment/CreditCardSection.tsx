@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { StyleSheet, View, TouchableOpacity, Alert, Dimensions, FlatList, Modal as RNModal } from 'react-native';
-import { Button, Card, Text, TextInput, HelperText, IconButton, ActivityIndicator, Modal, Portal } from 'react-native-paper';
+import { Text, TextInput, HelperText, IconButton, ActivityIndicator, Modal, Portal } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import WebView, { WebViewNavigation } from 'react-native-webview';
 import { useNotificationStore } from '../../store/useNotificationStore';
@@ -9,6 +9,7 @@ import { getReadablePaymentError } from './commission/paymentUtils';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
+import { FkCard, FkButton } from '../fk';
 
 interface CreditCardSectionProps {
   refreshTrigger?: number;
@@ -377,8 +378,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
     const brandInfo = getCardBrandInfo(card.card_association);
 
     return (
-      <Card key={card.id} style={[styles.savedCard, { borderColor: isDarkMode ? colors.neutral[700] : colors.neutral[200] }, card.is_default && styles.defaultCard]}>
-        <Card.Content>
+      <FkCard key={card.id} style={[styles.savedCard, { borderColor: isDarkMode ? colors.neutral[700] : colors.neutral[200] }, card.is_default && styles.defaultCard]}>
           <View style={styles.cardHeader}>
             <View style={styles.cardInfo}>
               <View style={[styles.cardBrandBadge, { backgroundColor: brandInfo.color + '20' }]}>
@@ -433,8 +433,8 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
               <Text style={[styles.cardActionText, { color: colors.danger[500] }]}>Sil</Text>
             </TouchableOpacity>
           </View>
-        </Card.Content>
-      </Card>
+        
+      </FkCard>
     );
   };
 
@@ -478,8 +478,7 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
 
       {/* Yeni Kart Ekleme Formu */}
       {showAddCard && (
-        <Card style={styles.formCard}>
-          <Card.Content>
+        <FkCard style={styles.formCard}>
             <View style={styles.formHeader}>
               <Text variant="titleMedium" style={styles.formTitle}>Yeni Kart Ekle</Text>
               {savedCards.length > 0 && (
@@ -611,18 +610,11 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
               left={<TextInput.Icon icon="tag" />}
             />
 
-            <Button
-              mode="contained"
-              onPress={handleSave}
-              loading={saving}
-              disabled={saving}
-              style={styles.saveButton}
-              icon="shield-check"
-            >
+            <FkButton onPress={handleSave} loading={saving} disabled={saving} style={styles.saveButton} icon="shield-check">
               {saving ? 'Dogrulaniyor...' : 'Karti Dogrula ve Kaydet'}
-            </Button>
-          </Card.Content>
-        </Card>
+            </FkButton>
+          
+        </FkCard>
       )}
 
       {/* iyzico Logo */}
@@ -706,23 +698,15 @@ export default function CreditCardSection({ refreshTrigger }: CreditCardSectionP
             placeholder="Is Bankasi Kartim"
           />
           <View style={styles.modalActions}>
-            <Button
-              mode="outlined"
-              onPress={() => {
+            <FkButton variant="secondary" onPress={() => {
                 setEditAliasModal(false);
                 setEditingCard(null);
-              }}
-              style={styles.modalButton}
-            >
+              }} style={styles.modalButton}>
               Iptal
-            </Button>
-            <Button
-              mode="contained"
-              onPress={handleSaveAlias}
-              style={styles.modalButton}
-            >
+            </FkButton>
+            <FkButton onPress={handleSaveAlias} style={styles.modalButton}>
               Kaydet
-            </Button>
+            </FkButton>
           </View>
         </Modal>
       </Portal>

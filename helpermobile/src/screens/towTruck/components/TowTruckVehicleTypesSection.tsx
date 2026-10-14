@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { colors } from '../../../theme/design';
 
 export const vehicleTypes = [
   { value: 'car', label: 'Otomobil', icon: '' },
@@ -50,7 +51,7 @@ export default function TowTruckVehicleTypesSection({
             <MaterialCommunityIcons
               name={supportedVehicleTypes.includes(vehicleType.value) ? 'checkbox-marked' : 'checkbox-blank-outline'}
               size={26}
-              color={supportedVehicleTypes.includes(vehicleType.value) ? '#26a69a' : '#888'}
+              color={supportedVehicleTypes.includes(vehicleType.value) ? colors.primary[500] : colors.neutral[400]}
             />
             <Text style={[
               styles.checkboxLabel,
@@ -72,16 +73,16 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   vehicleTypesHelperText: {
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 16,
     fontSize: 16,
     fontWeight: '500',
   },
   errorText: {
-    color: '#d32f2f',
+    color: colors.danger[600],
     fontSize: 12,
     marginBottom: 12,
   },
@@ -93,25 +94,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     borderRadius: 12,
     marginBottom: 10,
     borderWidth: 2,
     borderColor: '#d0d0d0',
   },
   checkboxItemSelected: {
-    backgroundColor: '#e8f5e9',
-    borderColor: '#26a69a',
+    backgroundColor: colors.success[50],
+    borderColor: colors.primary[500],
   },
   checkboxLabel: {
     fontSize: 17,
     marginLeft: 12,
-    color: '#333',
+    color: colors.neutral[800],
     fontWeight: '500',
     flex: 1,
   },
   checkboxLabelSelected: {
-    color: '#1b5e20',
+    color: colors.success[800],
     fontWeight: '600',
   },
 });

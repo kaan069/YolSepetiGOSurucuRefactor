@@ -7,6 +7,7 @@ import FkButton from '../fk-ui/FkButton';
 import FkFormError from '../fk-ui/FkFormError';
 import FkLabel from '../fk-ui/FkLabel';
 import { pickImage } from './internal/pickerUtils';
+import { colors } from '../../theme/design';
 
 export type FkImageSource = 'camera' | 'gallery' | 'both';
 
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     right: 6,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     borderRadius: 14,
   },
   actionsRow: { flexDirection: 'row', gap: 12 },

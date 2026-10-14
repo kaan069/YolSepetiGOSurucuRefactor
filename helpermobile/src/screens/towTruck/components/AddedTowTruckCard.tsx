@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Card, Text, IconButton, useTheme } from 'react-native-paper';
+import { Text, IconButton, useTheme } from 'react-native-paper';
 import { TowTruckInfo } from '../../../store/useVehicleStore';
 import { platformTypes, vehicleTypes } from './index';
+import { FkCard } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface AddedTowTruckCardProps {
   vehicle: TowTruckInfo;
@@ -13,8 +15,7 @@ export default function AddedTowTruckCard({ vehicle, onRemove }: AddedTowTruckCa
   const theme = useTheme();
 
   return (
-    <Card mode="outlined" style={styles.vehicleCard}>
-      <Card.Content>
+    <FkCard variant="outlined" style={styles.vehicleCard}>
         <View style={styles.vehicleHeader}>
           <View style={styles.vehicleInfo}>
             <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -42,8 +43,8 @@ export default function AddedTowTruckCard({ vehicle, onRemove }: AddedTowTruckCa
             iconColor={theme.colors.error}
           />
         </View>
-      </Card.Content>
-    </Card>
+      
+    </FkCard>
   );
 }
 
@@ -64,15 +65,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   vehicleDetails: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 4,
   },
   vehicleSpecs: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 2,
   },
   supportedTypes: {
-    color: '#26a69a',
+    color: colors.primary[500],
     marginTop: 4,
     fontSize: 12,
     fontWeight: '500',

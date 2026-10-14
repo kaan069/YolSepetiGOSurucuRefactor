@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, View, RefreshControl, Modal, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text, Divider, Appbar } from 'react-native-paper';
+import { Text, Divider, Appbar } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
@@ -13,6 +13,7 @@ import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import { colors as dc } from '../../theme/design';
+import { FkCard } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RatingsAndReviews'>;
 
@@ -147,8 +148,7 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
         }
       >
         {/* Genel Bakış Kartı */}
-        <Card style={[styles.card, { backgroundColor: cardBg }]}>
-          <Card.Content>
+        <FkCard style={[styles.card, { backgroundColor: cardBg }]}>
             <Text variant="titleLarge" style={styles.sectionTitle}>
               Puanlama İstatistikleriniz
             </Text>
@@ -175,12 +175,11 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
                 </View>
               </>
             )}
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         {/* Yorumlar */}
-        <Card style={[styles.card, { backgroundColor: cardBg }]}>
-          <Card.Content>
+        <FkCard style={[styles.card, { backgroundColor: cardBg }]}>
             <Text variant="titleMedium" style={styles.sectionTitle}>
               Müşteri Yorumları ({totalCount})
             </Text>
@@ -220,12 +219,11 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
                 </View>
               ))
             )}
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         {/* Bilgi Notları */}
-        <Card style={[styles.card, styles.infoCard]}>
-          <Card.Content>
+        <FkCard style={[styles.card, styles.infoCard]}>
             <View style={styles.infoHeader}>
               <MaterialCommunityIcons name="information" size={24} color={dc.info[600]} />
               <Text variant="titleSmall" style={[styles.sectionTitle, { marginLeft: 8, marginBottom: 0 }]}>
@@ -239,8 +237,8 @@ export default function RatingsAndReviewsScreen({ navigation }: Props) {
               • Yüksek puan daha fazla müşteri anlamına gelir{'\n'}
               • Müşteri yorumlarına yanıt veremezsiniz
             </Text>
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
       </ScrollView>
 
       {/* İpuçları Modal */}

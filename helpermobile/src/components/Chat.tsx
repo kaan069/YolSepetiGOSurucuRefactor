@@ -2,7 +2,9 @@
 // Bu component, sürücü ve müşteri arasında iletişim için bir mock sohbet arayüzü sağlar.
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView } from 'react-native';
-import { Text, TextInput, Button, Card } from 'react-native-paper';
+import { Text, TextInput } from 'react-native-paper';
+import { FkCard, FkButton } from './fk';
+import { colors } from '../theme/design';
 
 // Type definition for a single message.
 // Tek bir mesaj için tip tanımı.
@@ -55,8 +57,8 @@ export default function Chat() {
   };
 
   return (
-    <Card style={styles.card}>
-      <Card.Content style={styles.content}>
+    <FkCard style={styles.card} padding={0}>
+      <View style={styles.content}>
         {/* ScrollView to show messages - compatible with parent ScrollView */}
         {/* Mesajları göstermek için ScrollView - üst ScrollView ile uyumlu */}
         <ScrollView
@@ -85,12 +87,12 @@ export default function Chat() {
             mode="outlined"
             dense
           />
-          <Button mode="contained" onPress={handleSend} style={styles.sendButton}>
+          <FkButton onPress={handleSend} style={styles.sendButton}>
             Gönder
-          </Button>
+          </FkButton>
         </View>
-      </Card.Content>
-    </Card>
+      </View>
+    </FkCard>
   );
 }
 
@@ -114,10 +116,10 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
   },
   userMessage: {
-    backgroundColor: '#FFF',
+    backgroundColor: colors.white,
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: '#EEE',
+    borderColor: colors.neutral[100],
   },
   messageText: {
     fontSize: 16,
@@ -127,7 +129,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#EEE',
+    borderTopColor: colors.neutral[100],
   },
   input: {
     flex: 1,

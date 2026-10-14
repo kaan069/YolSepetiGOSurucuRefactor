@@ -6,6 +6,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { CONTRACTS, Contract } from '../constants/contracts';
 import ContractModal from '../components/ContractModal';
 import { colors } from '../theme/design';
+import { FkCard } from '../components/fk';
 
 export default function ContractsListScreen() {
   const theme = useTheme();
@@ -97,8 +98,7 @@ export default function ContractsListScreen() {
         </View>
 
         {/* Info Section */}
-        <Card style={styles.infoCard}>
-          <Card.Content>
+        <FkCard style={styles.infoCard}>
             <View style={styles.infoHeader}>
               <MaterialCommunityIcons
                 name="information"
@@ -119,8 +119,8 @@ export default function ContractsListScreen() {
             <Text variant="bodyMedium" style={styles.infoText}>
               • Sorularınız için müşteri hizmetleri ile iletişime geçebilirsiniz.
             </Text>
-          </Card.Content>
-        </Card>
+          
+        </FkCard>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

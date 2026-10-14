@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Card, Text, Chip, IconButton, useTheme } from 'react-native-paper';
+import { Text, Chip, IconButton, useTheme } from 'react-native-paper';
 import { HomeMovingInfo } from '../../../store/useVehicleStore';
 import { homeMovingVehicleTypes } from './HomeMovingVehicleTypeSection';
+import { FkCard } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 interface AddedHomeMovingCardProps {
   vehicle: HomeMovingInfo;
@@ -13,8 +15,7 @@ export default function AddedHomeMovingCard({ vehicle, onRemove }: AddedHomeMovi
   const theme = useTheme();
 
   return (
-    <Card mode="outlined" style={styles.vehicleCard}>
-      <Card.Content>
+    <FkCard variant="outlined" style={styles.vehicleCard}>
         <View style={styles.vehicleHeader}>
           <View style={styles.vehicleInfo}>
             <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -49,8 +50,8 @@ export default function AddedHomeMovingCard({ vehicle, onRemove }: AddedHomeMovi
             )}
           </View>
         )}
-      </Card.Content>
-    </Card>
+      
+    </FkCard>
   );
 }
 
@@ -71,11 +72,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   vehicleDetails: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 4,
   },
   vehicleSpecs: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 2,
   },
   equipmentTags: {
@@ -86,10 +87,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   equipmentTag: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.info[50],
   },
   moreText: {
-    color: '#666',
+    color: colors.neutral[500],
     fontStyle: 'italic',
     marginLeft: 8,
   },

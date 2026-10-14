@@ -14,7 +14,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { Text, Button, TextInput, Card } from 'react-native-paper';
+import { Text, TextInput } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -22,6 +22,7 @@ import { cancellationAPI } from '../../api/requests';
 import type { CanCancelResponse } from '../../api/types';
 import type { ServiceType } from '../../constants/serviceTypes';
 import { colors } from '../../theme/design';
+import { FkCard, FkButton } from '../fk';
 
 type ModalStep = 'checking' | 'confirm' | 'cancelling';
 
@@ -152,44 +153,34 @@ export default function CancelJobModal({
           {/* Onay aşaması - Hata durumu */}
           {step === 'confirm' && errorMessage && (
             <View style={styles.contentContainer}>
-              <Card style={styles.errorCard}>
-                <Card.Content style={styles.errorContent}>
+              <FkCard style={styles.errorCard} padding={0}>
+                <View style={styles.errorContent}>
                   <MaterialCommunityIcons name="alert-circle" size={56} color={colors.danger[500]} />
                   <Text style={styles.errorTitle}>İşlem Yapılamıyor</Text>
                   <Text style={styles.errorText}>{errorMessage}</Text>
-                </Card.Content>
-              </Card>
-              <Button
-                mode="contained"
-                onPress={onClose}
-                style={styles.closeActionButton}
-                buttonColor={colors.neutral[500]}
-              >
+                </View>
+              </FkCard>
+              <FkButton onPress={onClose} style={styles.closeActionButton}>
                 Kapat
-              </Button>
+              </FkButton>
             </View>
           )}
 
           {/* Onay aşaması - İptal edilemez */}
           {step === 'confirm' && !errorMessage && canCancelData && !canCancelData.can_cancel && (
             <View style={styles.contentContainer}>
-              <Card style={styles.warningCard}>
-                <Card.Content style={styles.warningContent}>
+              <FkCard style={styles.warningCard} padding={0}>
+                <View style={styles.warningContent}>
                   <MaterialCommunityIcons name="cancel" size={56} color={colors.warning[500]} />
                   <Text style={styles.warningTitle}>İptal Edilemiyor</Text>
                   <Text style={styles.warningText}>
                     {canCancelData.reason || 'Bu iş şu anda iptal edilemiyor.'}
                   </Text>
-                </Card.Content>
-              </Card>
-              <Button
-                mode="contained"
-                onPress={onClose}
-                style={styles.closeActionButton}
-                buttonColor={colors.neutral[500]}
-              >
+                </View>
+              </FkCard>
+              <FkButton onPress={onClose} style={styles.closeActionButton}>
                 Kapat
-              </Button>
+              </FkButton>
             </View>
           )}
 
@@ -197,8 +188,8 @@ export default function CancelJobModal({
           {step === 'confirm' && !errorMessage && canCancelData?.can_cancel && (
             <View style={styles.contentContainer}>
               {/* Uyarı başlığı */}
-              <Card style={styles.alertCard}>
-                <Card.Content style={styles.alertContent}>
+              <FkCard style={styles.alertCard} padding={0}>
+                <View style={styles.alertContent}>
                   <MaterialCommunityIcons name="alert-outline" size={40} color={colors.danger[500]} />
                   <Text style={styles.alertTitle}>İşi iptal etmek istediğinize emin misiniz?</Text>
                   {canCancelData.within_grace_period && (
@@ -209,13 +200,12 @@ export default function CancelJobModal({
                       </Text>
                     </View>
                   )}
-                </Card.Content>
-              </Card>
+                </View>
+              </FkCard>
 
               {/* İade bilgileri */}
               {canCancelData.refund_info && (
-                <Card style={styles.refundCard}>
-                  <Card.Content>
+                <FkCard style={styles.refundCard}>
                     <Text style={styles.refundTitle}>İade / Kesinti Bilgisi</Text>
                     <View style={styles.refundRow}>
                       <Text style={styles.refundLabel}>Toplam Tutar</Text>
@@ -244,13 +234,12 @@ export default function CancelJobModal({
                         {canCancelData.refund_info.deduction_amount} TL
                       </Text>
                     </View>
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               )}
 
               {/* İptal sebebi */}
-              <Card style={styles.reasonCard}>
-                <Card.Content>
+              <FkCard style={styles.reasonCard}>
                   <Text style={styles.reasonTitle}>İptal Sebebi</Text>
                   <TextInput
                     mode="outlined"
@@ -263,29 +252,17 @@ export default function CancelJobModal({
                     outlineColor={colors.neutral[200]}
                     activeOutlineColor={colors.danger[500]}
                   />
-                </Card.Content>
-              </Card>
+                
+              </FkCard>
 
               {/* Aksiyon butonları */}
               <View style={styles.actionButtons}>
-                <Button
-                  mode="outlined"
-                  onPress={onClose}
-                  style={styles.cancelButton}
-                  textColor={colors.neutral[500]}
-                >
+                <FkButton variant="secondary" onPress={onClose} style={styles.cancelButton}>
                   Vazgeç
-                </Button>
-                <Button
-                  mode="contained"
-                  onPress={handleCancel}
-                  style={styles.confirmButton}
-                  buttonColor={colors.danger[500]}
-                  disabled={!reason.trim()}
-                  icon="cancel"
-                >
+                </FkButton>
+                <FkButton variant="danger" onPress={handleCancel} style={styles.confirmButton} disabled={!reason.trim()} icon="cancel">
                   İptal Et
-                </Button>
+                </FkButton>
               </View>
             </View>
           )}

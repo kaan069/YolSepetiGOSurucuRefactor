@@ -32,7 +32,7 @@ export default function JobMapSection({
   const dropoffLng = parseFloat(towTruckRequest.dropoff_longitude);
 
   const chipBg = isDarkMode ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-  const chipText = isDarkMode ? '#e0e0e0' : colors.neutral[800];
+  const chipText = isDarkMode ? colors.neutral[200] : colors.neutral[800];
 
   return (
     <View style={styles.mapSection}>

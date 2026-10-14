@@ -16,6 +16,7 @@ import {
 import { Text } from 'react-native-paper';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { colors } from '../theme/design';
 
 export default function NetworkStatusAlert() {
   const [isConnected, setIsConnected] = useState<boolean | null>(true);
@@ -75,7 +76,7 @@ export default function NetworkStatusAlert() {
             <MaterialCommunityIcons
               name="wifi-off"
               size={48}
-              color="#ef4444"
+              color={colors.danger[500]}
             />
           </View>
 
@@ -96,7 +97,7 @@ export default function NetworkStatusAlert() {
               <MaterialCommunityIcons
                 name="loading"
                 size={24}
-                color="#6b7280"
+                color={colors.neutral[500]}
               />
             </Animated.View>
             <Text style={styles.loadingText}>
@@ -107,15 +108,15 @@ export default function NetworkStatusAlert() {
           {/* İpuçları */}
           <View style={styles.tipsContainer}>
             <View style={styles.tipRow}>
-              <MaterialCommunityIcons name="wifi" size={16} color="#9ca3af" />
+              <MaterialCommunityIcons name="wifi" size={16} color={colors.neutral[400]} />
               <Text style={styles.tipText}>Wi-Fi bağlantınızı kontrol edin</Text>
             </View>
             <View style={styles.tipRow}>
-              <MaterialCommunityIcons name="signal-cellular-3" size={16} color="#9ca3af" />
+              <MaterialCommunityIcons name="signal-cellular-3" size={16} color={colors.neutral[400]} />
               <Text style={styles.tipText}>Mobil veri açık mı kontrol edin</Text>
             </View>
             <View style={styles.tipRow}>
-              <MaterialCommunityIcons name="airplane" size={16} color="#9ca3af" />
+              <MaterialCommunityIcons name="airplane" size={16} color={colors.neutral[400]} />
               <Text style={styles.tipText}>Uçak modu kapalı olmalı</Text>
             </View>
           </View>
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   alertContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: 24,
     width: '100%',
@@ -150,7 +151,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#fef2f2',
+    backgroundColor: colors.danger[50],
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -158,13 +159,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1f2937',
+    color: colors.neutral[800],
     textAlign: 'center',
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.neutral[500],
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: colors.neutral[100],
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,
@@ -181,12 +182,12 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 13,
-    color: '#6b7280',
+    color: colors.neutral[500],
     fontWeight: '500',
   },
   tipsContainer: {
     width: '100%',
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.neutral[50],
     borderRadius: 12,
     padding: 12,
     gap: 8,
@@ -198,6 +199,6 @@ const styles = StyleSheet.create({
   },
   tipText: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: colors.neutral[400],
   },
 });

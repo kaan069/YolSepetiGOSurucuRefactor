@@ -23,6 +23,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useAuthStore } from '../store/authStore';
 import { REQUIRE_BACKGROUND_RUNNING_PERMISSION, REQUIRE_BATTERY_OPTIMIZATION_CHECK } from '../constants/appConfig';
 import { isIgnoringBatteryOptimizations } from '../../modules/battery-optimization-check';
+import { colors } from '../theme/design';
 
 type GateStatus =
   | 'checking'
@@ -153,7 +154,7 @@ export default function BackgroundPermissionGate() {
             <MaterialCommunityIcons
               name={isBackgroundLocation ? 'map-marker-alert' : 'battery-alert-variant-outline'}
               size={48}
-              color={isBackgroundLocation ? '#2563eb' : '#d97706'}
+              color={isBackgroundLocation ? colors.info[600] : colors.warning[600]}
             />
           </View>
 
@@ -177,7 +178,7 @@ export default function BackgroundPermissionGate() {
             onPress={isBackgroundLocation ? handleRequestBackgroundLocation : handleRequestBatteryOptimization}
             activeOpacity={0.8}
           >
-            <MaterialCommunityIcons name="cog" size={20} color="#fff" />
+            <MaterialCommunityIcons name="cog" size={20} color={colors.white} />
             <Text style={styles.settingsButtonText}>
               {isBackgroundLocation ? 'Konum İznini Ayarla' : 'Pil Optimizasyonunu Kapat'}
             </Text>
@@ -189,30 +190,30 @@ export default function BackgroundPermissionGate() {
               Platform.OS === 'android' ? (
                 <>
                   <View style={styles.tipRow}>
-                    <MaterialCommunityIcons name="cellphone-cog" size={16} color="#9ca3af" />
+                    <MaterialCommunityIcons name="cellphone-cog" size={16} color={colors.neutral[400]} />
                     <Text style={styles.tipText}>Uygulama ayarlarına gidin</Text>
                   </View>
                   <View style={styles.tipRow}>
-                    <MaterialCommunityIcons name="map-marker-check" size={16} color="#9ca3af" />
+                    <MaterialCommunityIcons name="map-marker-check" size={16} color={colors.neutral[400]} />
                     <Text style={styles.tipText}>İzinler {'>'} Konum {'>'} Her zaman izin ver</Text>
                   </View>
                   <View style={styles.tipRow}>
-                    <MaterialCommunityIcons name="arrow-left" size={16} color="#9ca3af" />
+                    <MaterialCommunityIcons name="arrow-left" size={16} color={colors.neutral[400]} />
                     <Text style={styles.tipText}>Uygulamaya geri dönün</Text>
                   </View>
                 </>
               ) : (
                 <>
                   <View style={styles.tipRow}>
-                    <MaterialCommunityIcons name="cellphone-cog" size={16} color="#9ca3af" />
+                    <MaterialCommunityIcons name="cellphone-cog" size={16} color={colors.neutral[400]} />
                     <Text style={styles.tipText}>Ayarlar {'>'} Yol SepetiGo Sürücü</Text>
                   </View>
                   <View style={styles.tipRow}>
-                    <MaterialCommunityIcons name="map-marker-check" size={16} color="#9ca3af" />
+                    <MaterialCommunityIcons name="map-marker-check" size={16} color={colors.neutral[400]} />
                     <Text style={styles.tipText}>Konum {'>'} Her Zaman</Text>
                   </View>
                   <View style={styles.tipRow}>
-                    <MaterialCommunityIcons name="arrow-left" size={16} color="#9ca3af" />
+                    <MaterialCommunityIcons name="arrow-left" size={16} color={colors.neutral[400]} />
                     <Text style={styles.tipText}>Uygulamaya geri dönün</Text>
                   </View>
                 </>
@@ -220,15 +221,15 @@ export default function BackgroundPermissionGate() {
             ) : (
               <>
                 <View style={styles.tipRow}>
-                  <MaterialCommunityIcons name="cellphone-cog" size={16} color="#9ca3af" />
+                  <MaterialCommunityIcons name="cellphone-cog" size={16} color={colors.neutral[400]} />
                   <Text style={styles.tipText}>Açılan pencerede "İzin Ver" seçin</Text>
                 </View>
                 <View style={styles.tipRow}>
-                  <MaterialCommunityIcons name="battery-check" size={16} color="#9ca3af" />
+                  <MaterialCommunityIcons name="battery-check" size={16} color={colors.neutral[400]} />
                   <Text style={styles.tipText}>Bu, uygulamanın arka planda çalışmasını sağlar</Text>
                 </View>
                 <View style={styles.tipRow}>
-                  <MaterialCommunityIcons name="arrow-left" size={16} color="#9ca3af" />
+                  <MaterialCommunityIcons name="arrow-left" size={16} color={colors.neutral[400]} />
                   <Text style={styles.tipText}>Uygulamaya geri dönün</Text>
                 </View>
               </>
@@ -249,7 +250,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   alertContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: 24,
     width: '100%',
@@ -270,21 +271,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   iconBgBlue: {
-    backgroundColor: '#eff6ff',
+    backgroundColor: colors.info[50],
   },
   iconBgAmber: {
-    backgroundColor: '#fffbeb',
+    backgroundColor: colors.warning[50],
   },
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1f2937',
+    color: colors.neutral[800],
     textAlign: 'center',
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.neutral[500],
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
@@ -301,19 +302,19 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   buttonBlue: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.info[600],
   },
   buttonAmber: {
-    backgroundColor: '#d97706',
+    backgroundColor: colors.warning[600],
   },
   settingsButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.white,
   },
   tipsContainer: {
     width: '100%',
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.neutral[50],
     borderRadius: 12,
     padding: 12,
     gap: 8,
@@ -326,6 +327,6 @@ const styles = StyleSheet.create({
   tipText: {
     flex: 1,
     fontSize: 12,
-    color: '#9ca3af',
+    color: colors.neutral[400],
   },
 });

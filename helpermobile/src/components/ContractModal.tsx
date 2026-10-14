@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Modal, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
-import { Portal, Text, Button, IconButton, useTheme } from 'react-native-paper';
+import { Portal, Text, IconButton, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { Contract } from '../constants/contracts';
 import { colors } from '../theme/design';
+import { FkButton } from './fk';
 
 interface ContractModalProps {
   visible: boolean;
@@ -158,24 +159,13 @@ export default function ContractModal({ visible, contract, onDismiss, showAccept
           {/* Footer */}
           <View style={styles.footer}>
             {showAcceptButton ? (
-              <Button
-                mode="contained"
-                onPress={handleAccept}
-                disabled={!scrolledToBottom}
-                style={[styles.closeButtonFooter, !scrolledToBottom && styles.disabledButton]}
-                contentStyle={styles.closeButtonContent}
-              >
+              <FkButton onPress={handleAccept} disabled={!scrolledToBottom} style={[styles.closeButtonFooter, !scrolledToBottom && styles.disabledButton]}>
                 {scrolledToBottom ? 'Sözleşmeyi Onayla' : 'Sözleşmeyi okumak için aşağı kaydırın'}
-              </Button>
+              </FkButton>
             ) : (
-              <Button
-                mode="contained"
-                onPress={handleDismiss}
-                style={styles.closeButtonFooter}
-                contentStyle={styles.closeButtonContent}
-              >
+              <FkButton onPress={handleDismiss} style={styles.closeButtonFooter}>
                 Kapat
-              </Button>
+              </FkButton>
             )}
           </View>
         </View>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, ScrollView, View, FlatList, Alert, Clipboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, TextInput, IconButton, Chip, Divider } from 'react-native-paper';
+import { Card, Text, TextInput, IconButton, Chip, Divider } from 'react-native-paper';
 import { useAuthStore } from '../store/authStore';
 import { useVehicleStore } from '../store/useVehicleStore';
 import { useRegistrationDataStore } from '../store/useRegistrationDataStore';
@@ -11,6 +11,8 @@ import { useNotificationStore } from '../store/notificationStore';
 import { scheduleLocalNotification } from '../lib/notifications';
 import * as Notifications from 'expo-notifications';
 import { logger } from '../utils/logger';
+import { FkCard, FkButton } from '../components/fk';
+import { colors } from '../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileTab'>;
 
@@ -176,9 +178,9 @@ export default function ProfileScreen({ navigation }: Props) {
               keyboardType="phone-pad"
               style={{ marginTop: 8 }}
             />
-            <Button mode="contained" onPress={saveProfile} style={{ marginTop: 12 }}>
+            <FkButton onPress={saveProfile} style={{ marginTop: 12 }}>
               Bilgileri Kaydet
-            </Button>
+            </FkButton>
           </Card.Content>
         </Card>
 
@@ -188,13 +190,12 @@ export default function ProfileScreen({ navigation }: Props) {
           <Card style={styles.card}>
             <Card.Title
               title={`🚛 Çekici Araçlarım (${towTrucks.length})`}
-              right={(props) => <Button {...props} onPress={() => navigation.navigate('TowTruckDetails')}>Yeni Ekle</Button>}
+              right={(props) => <FkButton variant="ghost">Yeni Ekle</FkButton>}
             />
             <Card.Content>
             {towTrucks.length > 0 ? (
               towTrucks.map((truck) => (
-                <Card key={truck.id} mode="outlined" style={styles.vehicleCard}>
-                  <Card.Content>
+                <FkCard key={truck.id} variant="outlined" style={styles.vehicleCard}>
                     <View style={styles.vehicleHeader}>
                       <View style={styles.vehicleInfo}>
                         <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -220,13 +221,13 @@ export default function ProfileScreen({ navigation }: Props) {
                         <IconButton
                           icon="delete"
                           size={20}
-                          iconColor="#d32f2f"
+                          iconColor={colors.danger[600]}
                           onPress={() => handleDeleteTowTruck(truck.id, truck.plate)}
                         />
                       </View>
                     </View>
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı çekici aracınız bulunmuyor.</Text>
@@ -241,13 +242,12 @@ export default function ProfileScreen({ navigation }: Props) {
           <Card style={styles.card}>
           <Card.Title
             title={`🏗️ Vinç Araçlarım (${cranes.length})`}
-            right={(props) => <Button {...props} onPress={() => navigation.navigate('CraneDetails')}>Yeni Ekle</Button>}
+            right={(props) => <FkButton variant="ghost">Yeni Ekle</FkButton>}
           />
           <Card.Content>
             {cranes.length > 0 ? (
               cranes.map((crane) => (
-                <Card key={crane.id} mode="outlined" style={styles.vehicleCard}>
-                  <Card.Content>
+                <FkCard key={crane.id} variant="outlined" style={styles.vehicleCard}>
                     <View style={styles.vehicleHeader}>
                       <View style={styles.vehicleInfo}>
                         <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -271,13 +271,13 @@ export default function ProfileScreen({ navigation }: Props) {
                         <IconButton
                           icon="delete"
                           size={20}
-                          iconColor="#d32f2f"
+                          iconColor={colors.danger[600]}
                           onPress={() => handleDeleteCrane(crane.id, crane.plate)}
                         />
                       </View>
                     </View>
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı vinç aracınız bulunmuyor.</Text>
@@ -292,13 +292,12 @@ export default function ProfileScreen({ navigation }: Props) {
           <Card style={styles.card}>
             <Card.Title
               title={`🚚 Nakliye Araçlarım (${transports.length})`}
-              right={(props) => <Button {...props} onPress={() => navigation.navigate('TransportDetails')}>Yeni Ekle</Button>}
+              right={(props) => <FkButton variant="ghost">Yeni Ekle</FkButton>}
             />
             <Card.Content>
             {transports.length > 0 ? (
               transports.map((transport) => (
-                <Card key={transport.id} mode="outlined" style={styles.vehicleCard}>
-                  <Card.Content>
+                <FkCard key={transport.id} variant="outlined" style={styles.vehicleCard}>
                     <View style={styles.vehicleHeader}>
                       <View style={styles.vehicleInfo}>
                         <Text variant="titleMedium" style={styles.vehiclePlate}>
@@ -324,7 +323,7 @@ export default function ProfileScreen({ navigation }: Props) {
                         <IconButton
                           icon="delete"
                           size={20}
-                          iconColor="#d32f2f"
+                          iconColor={colors.danger[600]}
                           onPress={() => handleDeleteTransport(transport.id, transport.plate)}
                         />
                       </View>
@@ -349,8 +348,8 @@ export default function ProfileScreen({ navigation }: Props) {
                         </View>
                       </View>
                     )}
-                  </Card.Content>
-                </Card>
+                  
+                </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı nakliye aracınız bulunmuyor.</Text>
@@ -378,14 +377,9 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text variant="bodySmall" style={styles.testDescription}>
                 Uygulama içinde banner olarak gösterilir
               </Text>
-              <Button
-                mode="contained"
-                onPress={handleSendLocalNotification}
-                icon="bell-outline"
-                style={styles.testButton}
-              >
+              <FkButton onPress={handleSendLocalNotification} icon="bell-outline" style={styles.testButton}>
                 Local Bildirim Gönder
-              </Button>
+              </FkButton>
             </View>
 
             <Divider style={styles.divider} />
@@ -398,15 +392,9 @@ export default function ProfileScreen({ navigation }: Props) {
               <Text variant="bodySmall" style={styles.testDescription}>
                 Sistem bildirimi olarak üstten gelir
               </Text>
-              <Button
-                mode="contained"
-                onPress={handleSendPushNotification}
-                icon="bell-ring-outline"
-                style={styles.testButton}
-                buttonColor="#f97316"
-              >
+              <FkButton onPress={handleSendPushNotification} icon="bell-ring-outline" style={styles.testButton}>
                 Push Bildirim Gönder
-              </Button>
+              </FkButton>
             </View>
 
             <Divider style={styles.divider} />
@@ -420,8 +408,7 @@ export default function ProfileScreen({ navigation }: Props) {
                 Production build'de Firebase'den bildirim göndermek için kullanın
               </Text>
 
-              <Card mode="outlined" style={styles.tokenCard}>
-                <Card.Content>
+              <FkCard variant="outlined" style={styles.tokenCard}>
                   {fcmToken ? (
                     <>
                       <Text variant="bodySmall" style={styles.tokenLabel}>
@@ -430,15 +417,9 @@ export default function ProfileScreen({ navigation }: Props) {
                       <Text variant="bodySmall" style={styles.tokenText} selectable>
                         {fcmToken}
                       </Text>
-                      <Button
-                        mode="outlined"
-                        onPress={handleCopyToken}
-                        icon="content-copy"
-                        style={styles.copyButton}
-                        compact
-                      >
+                      <FkButton variant="secondary" onPress={handleCopyToken} icon="content-copy" style={styles.copyButton} size="sm">
                         Kopyala
-                      </Button>
+                      </FkButton>
                     </>
                   ) : (
                     <View style={styles.noTokenContainer}>
@@ -450,8 +431,8 @@ export default function ProfileScreen({ navigation }: Props) {
                       </Text>
                     </View>
                   )}
-                </Card.Content>
-              </Card>
+                
+              </FkCard>
             </View>
           </Card.Content>
         </Card>
@@ -463,20 +444,15 @@ export default function ProfileScreen({ navigation }: Props) {
             <Text variant="bodyMedium" style={styles.debugText}>
               Backend entegrasyonu için tüm kayıt verilerini konsola yazdır
             </Text>
-            <Button
-              mode="contained-tonal"
-              onPress={handleDebugData}
-              style={styles.debugButton}
-              icon="console"
-            >
+            <FkButton onPress={handleDebugData} style={styles.debugButton} icon="console">
               Tüm Verileri Console'a Yazdır
-            </Button>
+            </FkButton>
           </Card.Content>
         </Card>
 
-        <Button mode="text" onPress={logout} style={{ marginTop: 24, marginBottom: 24 }}>
+        <FkButton variant="ghost" onPress={logout} style={{ marginTop: 24, marginBottom: 24 }}>
           Çıkış Yap
-        </Button>
+        </FkButton>
       </ScrollView>
     </SafeAreaView>
   );
@@ -509,16 +485,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   vehicleDetails: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 4,
   },
   vehicleSpecs: {
-    color: '#666',
+    color: colors.neutral[500],
     marginTop: 2,
     fontSize: 12,
   },
   priceText: {
-    color: '#26a69a',
+    color: colors.primary[500],
     fontWeight: 'bold',
     marginTop: 4,
     fontSize: 12,
@@ -527,12 +503,12 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.neutral[200],
   },
   equipmentLabel: {
     fontWeight: 'bold',
     marginBottom: 6,
-    color: '#666',
+    color: colors.neutral[500],
   },
   equipmentTags: {
     flexDirection: 'row',
@@ -541,30 +517,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   equipmentChip: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.info[50],
     marginBottom: 4,
   },
   moreText: {
-    color: '#666',
+    color: colors.neutral[500],
     fontStyle: 'italic',
     marginLeft: 8,
   },
   emptyText: {
     textAlign: 'center',
-    color: '#666',
+    color: colors.neutral[500],
     fontStyle: 'italic',
     paddingVertical: 20,
   },
   debugText: {
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 12,
     textAlign: 'center',
   },
   debugButton: {
-    backgroundColor: '#fff3e0',
+    backgroundColor: colors.warning[50],
   },
   sectionDescription: {
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -577,10 +553,10 @@ const styles = StyleSheet.create({
   testTitle: {
     fontWeight: 'bold',
     marginBottom: 4,
-    color: '#333',
+    color: colors.neutral[800],
   },
   testDescription: {
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 12,
     fontSize: 12,
   },
@@ -589,18 +565,18 @@ const styles = StyleSheet.create({
   },
   tokenCard: {
     marginTop: 12,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   tokenLabel: {
     fontWeight: 'bold',
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 8,
   },
   tokenText: {
     fontFamily: 'monospace',
     fontSize: 11,
-    color: '#333',
-    backgroundColor: '#fff',
+    color: colors.neutral[800],
+    backgroundColor: colors.white,
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
@@ -613,12 +589,12 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   noTokenText: {
-    color: '#ff9800',
+    color: colors.warning[500],
     fontWeight: 'bold',
     marginBottom: 4,
   },
   noTokenSubtext: {
-    color: '#666',
+    color: colors.neutral[500],
     textAlign: 'center',
     fontSize: 12,
   },

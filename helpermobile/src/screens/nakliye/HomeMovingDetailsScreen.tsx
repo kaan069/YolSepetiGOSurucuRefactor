@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { Button, Card, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { useVehicleStore, HomeMovingInfo, MovingVehicleType } from '../../store/useVehicleStore';
@@ -31,6 +31,8 @@ import {
   VehiclePhotoSection,
 } from './components';
 import { logger } from '../../utils/logger';
+import { FkCard, FkButton } from '../../components/fk';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeMovingDetails'>;
 
@@ -234,8 +236,8 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
         </View>
 
         {/* Add New Vehicle Form */}
-        <Card style={styles.card}>
-          <Card.Content style={styles.cardContent}>
+        <FkCard style={styles.card} padding={0}>
+          <View style={styles.cardContent}>
             <Text variant="titleMedium" style={styles.sectionTitle}>
               Yeni Araç Ekle
             </Text>
@@ -261,7 +263,7 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
               placeholder="Araç tipi seçin"
               error={errors.movingVehicleType}
               required
-              primaryColor="#1565c0"
+              primaryColor={colors.info[700]}
             />
 
             <VehiclePhotoSection
@@ -280,39 +282,25 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
               required
             />
 
-            <Button
-              mode="contained"
-              onPress={addVehicle}
-              loading={loading}
-              disabled={loading}
-              style={styles.addButton}
-              contentStyle={styles.addButtonContent}
-              labelStyle={styles.addButtonLabel}
-              icon="plus"
-            >
+            <FkButton onPress={addVehicle} loading={loading} disabled={loading} style={styles.addButton} icon="plus">
               {loading ? 'Araç Ekleniyor...' : 'Aracı Ekle'}
-            </Button>
-          </Card.Content>
-        </Card>
+            </FkButton>
+          </View>
+        </FkCard>
 
         {/* Continue Button */}
         {homeMoving.length > 0 && (
           <View style={styles.buttonContainer}>
-            <Button
-              mode="contained"
-              onPress={handleContinue}
-              style={styles.continueButton}
-              contentStyle={styles.buttonContent}
-            >
+            <FkButton onPress={handleContinue} style={styles.continueButton}>
               Devam Et ({homeMoving.length} Araç)
-            </Button>
+            </FkButton>
           </View>
         )}
 
         {/* Added Vehicles List */}
         {homeMoving.length > 0 && (
-          <Card style={styles.card}>
-            <Card.Content style={styles.cardContent}>
+          <FkCard style={styles.card} padding={0}>
+            <View style={styles.cardContent}>
               <Text variant="titleMedium" style={styles.sectionTitle}>
                 Eklenen Araçlar ({homeMoving.length})
               </Text>
@@ -324,8 +312,8 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
                   onRemove={removeVehicle}
                 />
               ))}
-            </Card.Content>
-          </Card>
+            </View>
+          </FkCard>
         )}
       </ScrollView>
 
@@ -337,7 +325,7 @@ export default function HomeMovingDetailsScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   content: {
     flex: 1,
@@ -368,12 +356,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontWeight: 'bold',
     marginBottom: 16,
-    color: '#1565c0',
+    color: colors.info[700],
   },
   addButton: {
     marginTop: 16,
     borderRadius: 12,
-    backgroundColor: '#1565c0',
+    backgroundColor: colors.info[700],
   },
   addButtonContent: {
     paddingVertical: 10,

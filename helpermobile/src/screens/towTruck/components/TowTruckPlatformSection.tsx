@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Menu } from 'react-native-paper';
 import { FkTextInput, FkInputIconButton } from '../../../components/fk';
+import { colors } from '../../../theme/design';
 
 export const platformTypes = [
   { value: 'open', label: 'Acik Platform', icon: '' },
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   input: {
     marginBottom: 16,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { StyleSheet, ScrollView, View, TouchableOpacity, Alert, RefreshControl, Dimensions, FlatList, Modal as RNModal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Card, Text, TextInput, HelperText, IconButton, ActivityIndicator, Modal, Portal } from 'react-native-paper';
+import { Text, TextInput, HelperText, IconButton, ActivityIndicator, Modal, Portal } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import WebView, { WebViewNavigation } from 'react-native-webview';
@@ -13,6 +13,7 @@ import AppBar from '../../components/common/AppBar';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import { colors as dc } from '../../theme/design';
+import { FkCard, FkButton } from '../../components/fk';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CreditCardInfo'>;
 
@@ -380,8 +381,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
     const brandInfo = getCardBrandInfo(card.card_association);
 
     return (
-      <Card key={card.id} style={[styles.savedCard, card.is_default && styles.defaultCard]}>
-        <Card.Content>
+      <FkCard key={card.id} style={[styles.savedCard, card.is_default && styles.defaultCard]}>
           <View style={styles.cardHeader}>
             <View style={styles.cardInfo}>
               <View style={[styles.cardBrandBadge, { backgroundColor: brandInfo.color + '20' }]}>
@@ -436,8 +436,8 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
               <Text style={[styles.cardActionText, { color: dc.danger[500] }]}>Sil</Text>
             </TouchableOpacity>
           </View>
-        </Card.Content>
-      </Card>
+        
+      </FkCard>
     );
   };
 
@@ -493,8 +493,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
 
         {/* Yeni Kart Ekleme Formu */}
         {showAddCard && (
-          <Card style={styles.card}>
-            <Card.Content>
+          <FkCard style={styles.card}>
               <View style={styles.formHeader}>
                 <Text variant="titleMedium" style={styles.formTitle}>Yeni Kart Ekle</Text>
                 {savedCards.length > 0 && (
@@ -645,18 +644,11 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
                 left={<TextInput.Icon icon="tag" />}
               />
 
-              <Button
-                mode="contained"
-                onPress={handleSave}
-                loading={saving}
-                disabled={saving}
-                style={styles.saveButton}
-                icon="shield-check"
-              >
+              <FkButton onPress={handleSave} loading={saving} disabled={saving} style={styles.saveButton} icon="shield-check">
                 {saving ? 'Dogrulaniyor...' : 'Karti Dogrula ve Kaydet'}
-              </Button>
-            </Card.Content>
-          </Card>
+              </FkButton>
+            
+          </FkCard>
         )}
 
         {/* iyzico Logo */}
@@ -739,23 +731,15 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
             placeholder="Is Bankasi Kartim"
           />
           <View style={styles.modalActions}>
-            <Button
-              mode="outlined"
-              onPress={() => {
+            <FkButton variant="secondary" onPress={() => {
                 setEditAliasModal(false);
                 setEditingCard(null);
-              }}
-              style={styles.modalButton}
-            >
+              }} style={styles.modalButton}>
               Iptal
-            </Button>
-            <Button
-              mode="contained"
-              onPress={handleSaveAlias}
-              style={styles.modalButton}
-            >
+            </FkButton>
+            <FkButton onPress={handleSaveAlias} style={styles.modalButton}>
               Kaydet
-            </Button>
+            </FkButton>
           </View>
         </Modal>
       </Portal>

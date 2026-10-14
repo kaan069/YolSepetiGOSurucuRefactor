@@ -22,17 +22,10 @@ import { useAuthStore } from '../../store/authStore';
 import { vehiclesAPI } from '../../api';
 import { AppBar } from '../../components/common';
 import { useAppTheme } from '../../hooks/useAppTheme';
-import {
-  FkButton,
-  FkDocumentUpload,
-  FkFormSection,
-  FkImageGrid,
-  FkSelect,
-  FkTextInput,
-  FkVehiclePlateInput,
-} from '../../components/fk';
+import { FkButton, FkCard, FkDocumentUpload, FkFormSection, FkImageGrid, FkSelect, FkTextInput, FkVehiclePlateInput } from '../../components/fk';
 import { TRANSPORT_VEHICLE_BRANDS, getVehicleYears, getModelsByBrand } from '../../data/vehicleData';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferVehicleDetails'>;
 
@@ -101,7 +94,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
   const { setIsAuthenticated } = useAuthStore();
   const { screenBg, cardBg, textPrimary, textSecondary } = useAppTheme();
 
-  const primaryColor = '#5C6BC0';
+  const primaryColor = colors.info[500];
 
   // Kayıt akışında Servis/VIP seçimi PhoneNumberScreen'de yapıldığı için burada
   // önceden doldurulur ve "1. Transfer Tipi Seçin" adımı tamamen gizlenir.
@@ -324,8 +317,8 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
         </View>
 
         {!hideTypeSelection && (
-        <Card style={[styles.card, { backgroundColor: cardBg }]}>
-          <Card.Content style={styles.cardContent}>
+        <FkCard style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+          <View style={styles.cardContent}>
             <Text variant="titleMedium" style={[styles.sectionTitle, { color: primaryColor }]}>
               1. Transfer Tipi Seçin
             </Text>
@@ -337,7 +330,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
               <TouchableOpacity
                 style={[
                   styles.typeCard,
-                  { borderColor: hasOrganization ? primaryColor : '#e0e0e0' },
+                  { borderColor: hasOrganization ? primaryColor : colors.neutral[200] },
                   hasOrganization && { backgroundColor: primaryColor + '15' },
                 ]}
                 onPress={() => toggleTransferType('organization')}
@@ -347,7 +340,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
                     <MaterialCommunityIcons name="check-circle" size={20} color={primaryColor} />
                   </View>
                 )}
-                <MaterialCommunityIcons name="bus-multiple" size={36} color={hasOrganization ? primaryColor : '#999'} />
+                <MaterialCommunityIcons name="bus-multiple" size={36} color={hasOrganization ? primaryColor : colors.neutral[400]} />
                 <Text style={[styles.typeCardText, { color: hasOrganization ? primaryColor : textSecondary }]}>
                   Organizasyon
                 </Text>
@@ -357,7 +350,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
               <TouchableOpacity
                 style={[
                   styles.typeCard,
-                  { borderColor: hasVip ? primaryColor : '#e0e0e0' },
+                  { borderColor: hasVip ? primaryColor : colors.neutral[200] },
                   hasVip && { backgroundColor: primaryColor + '15' },
                 ]}
                 onPress={() => toggleTransferType('vip')}
@@ -367,15 +360,14 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
                     <MaterialCommunityIcons name="check-circle" size={20} color={primaryColor} />
                   </View>
                 )}
-                <MaterialCommunityIcons name="car-estate" size={36} color={hasVip ? primaryColor : '#999'} />
+                <MaterialCommunityIcons name="car-estate" size={36} color={hasVip ? primaryColor : colors.neutral[400]} />
                 <Text style={[styles.typeCardText, { color: hasVip ? primaryColor : textSecondary }]}>VIP</Text>
                 <Text style={[styles.typeCardSubtext, { color: textSecondary }]}>Özel / Lüx</Text>
               </TouchableOpacity>
             </View>
 
             {hasAnyType && (
-              <Card style={[styles.infoCard, { backgroundColor: primaryColor + '10' }]}>
-                <Card.Content>
+              <FkCard style={[styles.infoCard, { backgroundColor: primaryColor + '10' }]}>
                   <View style={styles.infoCardHeader}>
                     <MaterialCommunityIcons name="information-outline" size={20} color={primaryColor} />
                     <Text variant="titleSmall" style={[styles.infoCardTitle, { color: primaryColor }]}>
@@ -389,33 +381,33 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
                       ? 'VIP transfer için ehliyet, trafik sigortası, kasko, D2/A1/A2 yetki belgesi, SRC1/SRC2, psikoteknik rapor, yolcu koltuk sigortası ve turizm taşımacılık belgesi gereklidir.'
                       : 'Organizasyon/servis transfer için ehliyet, trafik sigortası, kasko, D2/B2 yetki belgesi, S plaka belgesi, güzergah izin belgesi, SRC-2, psikoteknik rapor ve yolcu koltuk sigortası gereklidir.'}
                   </Text>
-                </Card.Content>
-              </Card>
+                
+              </FkCard>
             )}
-          </Card.Content>
-        </Card>
+          </View>
+        </FkCard>
         )}
 
         {hasAnyType && (
           <View style={styles.addButtonsRow}>
             {hasOrganization && (
               <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: '#4CAF50' }]}
+                style={[styles.addButton, { backgroundColor: colors.success[500] }]}
                 onPress={() => openAddModal('organization')}
               >
-                <MaterialCommunityIcons name="bus-multiple" size={24} color="#fff" />
+                <MaterialCommunityIcons name="bus-multiple" size={24} color={colors.white} />
                 <Text style={styles.addButtonText}>Servis Aracı Ekle</Text>
-                <MaterialCommunityIcons name="plus-circle" size={20} color="#fff" />
+                <MaterialCommunityIcons name="plus-circle" size={20} color={colors.white} />
               </TouchableOpacity>
             )}
             {hasVip && (
               <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: '#FFB300' }]}
+                style={[styles.addButton, { backgroundColor: colors.warning[500] }]}
                 onPress={() => openAddModal('vip')}
               >
-                <MaterialCommunityIcons name="car-estate" size={24} color="#fff" />
+                <MaterialCommunityIcons name="car-estate" size={24} color={colors.white} />
                 <Text style={styles.addButtonText}>VIP Aracı Ekle</Text>
-                <MaterialCommunityIcons name="plus-circle" size={20} color="#fff" />
+                <MaterialCommunityIcons name="plus-circle" size={20} color={colors.white} />
               </TouchableOpacity>
             )}
           </View>
@@ -429,9 +421,9 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
             {addedVehicles.map((v, i) => {
               const isExpanded = expandedVehicleIndex === i;
               const isVipVehicle = v.type === 'vip';
-              const badgeColor = isVipVehicle ? '#FFB300' : '#4CAF50';
-              const badgeBg = isVipVehicle ? '#FFF3E0' : '#E8F5E9';
-              const badgeTextColor = isVipVehicle ? '#E65100' : '#2E7D32';
+              const badgeColor = isVipVehicle ? colors.warning[500] : colors.success[500];
+              const badgeBg = isVipVehicle ? colors.warning[50] : colors.success[50];
+              const badgeTextColor = isVipVehicle ? colors.warning[700] : colors.success[700];
 
               return (
                 <Card key={i} style={[styles.vehicleAccordion, { backgroundColor: cardBg }]}>
@@ -545,14 +537,14 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={[styles.container, { backgroundColor: screenBg }]}
         >
-          <View style={[styles.modalHeader, { backgroundColor: modalType === 'vip' ? '#FFB300' : '#4CAF50' }]}>
+          <View style={[styles.modalHeader, { backgroundColor: modalType === 'vip' ? colors.warning[500] : colors.success[500] }]}>
             <TouchableOpacity onPress={() => setModalVisible(false)} style={styles.modalClose}>
-              <MaterialCommunityIcons name="close" size={24} color="#fff" />
+              <MaterialCommunityIcons name="close" size={24} color={colors.white} />
             </TouchableOpacity>
             <MaterialCommunityIcons
               name={modalType === 'vip' ? 'car-estate' : 'bus-multiple'}
               size={32}
-              color="#fff"
+              color={colors.white}
             />
             <Text style={styles.modalTitle}>
               {modalType === 'vip' ? 'VIP Aracı Ekle' : 'Servis Aracı Ekle'}
@@ -573,7 +565,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
             {modalType === 'vip' && (
               <FkFormSection
                 title="Araç İçi Görselleri (VIP)" icon="star-outline"
-                titleColor="#FFB300"
+                titleColor={colors.warning[500]}
                 description="Müşterilerin aracınızın içini görebilmesi için en az 1 görsel ekleyin"
                 required
               >
@@ -681,7 +673,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
               disabled={modalLoading}
               icon="plus"
               fullWidth
-              style={{ marginBottom: 16, backgroundColor: modalType === 'vip' ? '#FFB300' : '#4CAF50' }}
+              style={{ marginBottom: 16, backgroundColor: modalType === 'vip' ? colors.warning[500] : colors.success[500] }}
             >
               {modalLoading ? 'Ekleniyor...' : 'Aracı Kaydet'}
             </FkButton>
@@ -722,18 +714,18 @@ const styles = StyleSheet.create({
   infoCardTitle: { fontWeight: 'bold' },
   addButtonsRow: { gap: 10, marginBottom: 16 },
   addButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 14, borderRadius: 14, elevation: 3 },
-  addButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  addButtonText: { color: colors.white, fontWeight: 'bold', fontSize: 16 },
   vehicleAccordion: { borderRadius: 14, marginBottom: 10, elevation: 2 },
   accordionHeader: { flexDirection: 'row', alignItems: 'center', padding: 14 },
   accordionIcon: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   typeBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 10 },
-  accordionBody: { paddingHorizontal: 14, paddingBottom: 14, borderTopWidth: 1, borderTopColor: '#eee', paddingTop: 12 },
+  accordionBody: { paddingHorizontal: 14, paddingBottom: 14, borderTopWidth: 1, borderTopColor: colors.neutral[100], paddingTop: 12 },
   accordionPhoto: { width: '100%', height: 160, borderRadius: 12, marginBottom: 12 },
   accordionInfoRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4 },
   modalHeader: { paddingTop: 50, paddingBottom: 20, alignItems: 'center', gap: 8 },
   modalClose: { position: 'absolute', top: 50, left: 16 },
-  modalTitle: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  modalTitle: { color: colors.white, fontSize: 20, fontWeight: 'bold' },
   loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', zIndex: 999 },
-  loadingBox: { backgroundColor: '#fff', borderRadius: 16, padding: 32, alignItems: 'center', gap: 16 },
-  loadingText: { fontSize: 16, fontWeight: '600', color: '#333' },
+  loadingBox: { backgroundColor: colors.white, borderRadius: 16, padding: 32, alignItems: 'center', gap: 16 },
+  loadingText: { fontSize: 16, fontWeight: '600', color: colors.neutral[800] },
 });

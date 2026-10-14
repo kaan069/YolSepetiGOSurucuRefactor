@@ -22,6 +22,7 @@ import { REQUIRE_ACCOUNT_READINESS } from '../constants/appConfig';
 import { authAPI } from '../api';
 import { AccountReadinessResponse } from '../api/types';
 import { logger } from '../utils/logger';
+import { colors } from '../theme/design';
 
 interface Props {
   navigationRef: React.RefObject<any>;
@@ -114,12 +115,12 @@ export default function AccountReadinessGate({ navigationRef }: Props) {
   // Kriter durumunu belirle
   const getStatusIcon = (isComplete: boolean, status?: string | null) => {
     if (isComplete) {
-      return { name: 'check-circle', color: '#4CAF50' };
+      return { name: 'check-circle', color: colors.success[500] };
     }
     if (status === 'pending') {
-      return { name: 'clock-outline', color: '#ff9800' };
+      return { name: 'clock-outline', color: colors.warning[500] };
     }
-    return { name: 'close-circle', color: '#f44336' };
+    return { name: 'close-circle', color: colors.danger[500] };
   };
 
   const getLicenseStatusText = () => {
@@ -172,7 +173,7 @@ export default function AccountReadinessGate({ navigationRef }: Props) {
           <View style={styles.gateContainer}>
             {/* İkon */}
             <View style={styles.iconContainer}>
-              <MaterialCommunityIcons name="shield-check-outline" size={48} color="#2563eb" />
+              <MaterialCommunityIcons name="shield-check-outline" size={48} color={colors.info[600]} />
             </View>
 
             {/* Başlık */}
@@ -273,9 +274,9 @@ export default function AccountReadinessGate({ navigationRef }: Props) {
               disabled={isChecking}
             >
               {isChecking ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator size="small" color={colors.white} />
               ) : (
-                <MaterialCommunityIcons name="refresh" size={20} color="#fff" />
+                <MaterialCommunityIcons name="refresh" size={20} color={colors.white} />
               )}
               <Text style={styles.refreshButtonText}>
                 {isChecking ? 'Kontrol ediliyor...' : 'Yenile'}
@@ -284,7 +285,7 @@ export default function AccountReadinessGate({ navigationRef }: Props) {
 
             {/* Bilgilendirme */}
             <View style={styles.infoContainer}>
-              <MaterialCommunityIcons name="information-outline" size={16} color="#9ca3af" />
+              <MaterialCommunityIcons name="information-outline" size={16} color={colors.neutral[400]} />
               <Text style={styles.infoText}>
                 Tüm belgeleriniz onaylandığında size SMS ile bildirim gönderilecektir.
               </Text>
@@ -308,7 +309,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   gateContainer: {
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.white,
     borderRadius: 20,
     padding: 24,
     width: '100%',
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: '#eff6ff',
+    backgroundColor: colors.info[50],
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -333,13 +334,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#1f2937',
+    color: colors.neutral[800],
     textAlign: 'center',
     marginBottom: 8,
   },
   description: {
     fontSize: 14,
-    color: '#6b7280',
+    color: colors.neutral[500],
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
@@ -352,7 +353,7 @@ const styles = StyleSheet.create({
   criteriaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f9fafb',
+    backgroundColor: colors.neutral[50],
     borderRadius: 12,
     padding: 12,
     gap: 10,
@@ -363,14 +364,14 @@ const styles = StyleSheet.create({
   criteriaTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1f2937',
+    color: colors.neutral[800],
   },
   criteriaStatus: {
     fontSize: 12,
     marginTop: 2,
   },
   fixButton: {
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.info[600],
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
@@ -378,13 +379,13 @@ const styles = StyleSheet.create({
   fixButtonText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.white,
   },
   refreshButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2563eb',
+    backgroundColor: colors.info[600],
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
@@ -395,7 +396,7 @@ const styles = StyleSheet.create({
   refreshButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#fff',
+    color: colors.white,
   },
   infoContainer: {
     flexDirection: 'row',
@@ -406,7 +407,7 @@ const styles = StyleSheet.create({
   infoText: {
     flex: 1,
     fontSize: 11,
-    color: '#9ca3af',
+    color: colors.neutral[400],
     lineHeight: 16,
   },
 });

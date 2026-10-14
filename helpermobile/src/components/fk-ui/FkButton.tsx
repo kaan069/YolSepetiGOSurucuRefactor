@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  StyleProp,
   StyleSheet,
   Text,
   TextStyle,
@@ -24,9 +25,9 @@ interface Props {
   icon?: string;
   fullWidth?: boolean;
   size?: 'sm' | 'md' | 'lg';
-  style?: ViewStyle;
-  contentStyle?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   iconPosition?: 'left' | 'right';
   /** Renk tonu — özellikle çerçeveli/metin butonlarda (ör. secondary + danger = kırmızı çerçeve) */
   tone?: 'primary' | 'danger' | 'warning' | 'success';

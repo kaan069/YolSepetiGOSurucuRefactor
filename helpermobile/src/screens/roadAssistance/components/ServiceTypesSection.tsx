@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Chip } from 'react-native-paper';
+import { colors } from '../../../theme/design';
 
 // Yol yardım hizmet türleri
 export const serviceOptions = [
@@ -59,14 +60,14 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   helperText: {
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 12,
   },
   errorText: {
-    color: '#d32f2f',
+    color: colors.danger[600],
     fontSize: 12,
     marginBottom: 8,
   },
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
   },
   serviceChip: {
     marginBottom: 4,
-    backgroundColor: '#fff3e0',
+    backgroundColor: colors.warning[50],
   },
   serviceChipSelected: {
     backgroundColor: '#ffcc80',

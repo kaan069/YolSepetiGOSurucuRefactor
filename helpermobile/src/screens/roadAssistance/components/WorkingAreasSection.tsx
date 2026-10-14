@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text, Chip } from 'react-native-paper';
+import { colors } from '../../../theme/design';
 
 // Çalışma bölgeleri
 export const workingAreaOptions = [
@@ -49,10 +50,10 @@ const styles = StyleSheet.create({
   subsectionTitle: {
     fontWeight: 'bold',
     marginBottom: 12,
-    color: '#666',
+    color: colors.neutral[500],
   },
   errorText: {
-    color: '#d32f2f',
+    color: colors.danger[600],
     fontSize: 12,
     marginBottom: 8,
   },
@@ -63,6 +64,6 @@ const styles = StyleSheet.create({
   },
   areaChip: {
     marginBottom: 4,
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.info[50],
   },
 });

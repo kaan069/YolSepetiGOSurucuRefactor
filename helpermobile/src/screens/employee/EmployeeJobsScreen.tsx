@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, ActivityIndicator, Card } from 'react-native-paper';
+import { Text, ActivityIndicator } from 'react-native-paper';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -18,6 +18,8 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 import { useResponsive } from '../../hooks/useResponsive';
 import { useEmployeePanelStore } from '../../store/useEmployeePanelStore';
 import { EmployeeJob } from '../../api/types';
+import { FkCard } from '../../components/fk';
+import { colors as dc } from '../../theme/design';
 
 // ---------------------------------------------------------------------------
 // Config maps
@@ -32,10 +34,10 @@ const serviceTypeConfig: Record<string, { label: string; icon: string }> = {
 };
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-    in_progress: { label: 'Devam Ediyor', color: '#2196F3' },
-    pending: { label: 'Bekliyor', color: '#FF9800' },
-    completed: { label: 'Tamamlandı', color: '#4CAF50' },
-    cancelled: { label: 'İptal', color: '#EF4444' },
+    in_progress: { label: 'Devam Ediyor', color: dc.info[500] },
+    pending: { label: 'Bekliyor', color: dc.warning[500] },
+    completed: { label: 'Tamamlandı', color: dc.success[500] },
+    cancelled: { label: 'İptal', color: dc.danger[500] },
 };
 
 // ---------------------------------------------------------------------------
@@ -68,7 +70,7 @@ interface JobCardProps {
 
 function JobCard({ item, onPress, cardBg, appColors, moderateScale, spacing, isDarkMode }: JobCardProps) {
     const serviceInfo = serviceTypeConfig[item.service_type] ?? { label: item.service_type, icon: 'briefcase-outline' };
-    const statusInfo = statusConfig[item.status] ?? { label: item.status, color: '#9E9E9E' };
+    const statusInfo = statusConfig[item.status] ?? { label: item.status, color: dc.neutral[400] };
 
     return (
         <TouchableOpacity
@@ -76,10 +78,10 @@ function JobCard({ item, onPress, cardBg, appColors, moderateScale, spacing, isD
             activeOpacity={0.75}
             style={styles.cardTouchable}
         >
-            <Card mode="outlined" style={[styles.card, { backgroundColor: cardBg }]}>
-                <Card.Content style={styles.cardContent}>
+            <FkCard variant="outlined" style={[styles.card, { backgroundColor: cardBg }]} padding={0}>
+                <View style={styles.cardContent}>
                     {/* Icon + Service type label */}
-                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#1a3a2a' : '#E8F5E9' }]}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#1a3a2a' : dc.success[50] }]}>
                         <MaterialCommunityIcons
                             name={serviceInfo.icon}
                             size={moderateScale(24)}
@@ -115,8 +117,8 @@ function JobCard({ item, onPress, cardBg, appColors, moderateScale, spacing, isD
                             {statusInfo.label}
                         </Text>
                     </View>
-                </Card.Content>
-            </Card>
+                </View>
+            </FkCard>
         </TouchableOpacity>
     );
 }
@@ -264,8 +266,8 @@ export default function EmployeeJobsScreen() {
                     <RefreshControl
                         refreshing={refreshing}
                         onRefresh={handleRefresh}
-                        colors={['#26a69a']}
-                        tintColor="#26a69a"
+                        colors={[dc.primary[500]]}
+                        tintColor={dc.primary[500]}
                     />
                 }
             />
