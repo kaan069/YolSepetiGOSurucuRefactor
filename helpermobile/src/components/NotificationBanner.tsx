@@ -3,6 +3,7 @@ import { Portal, Text, Card, IconButton } from 'react-native-paper';
 import { StyleSheet, Animated, View, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import { FkButton } from './fk';
 import { colors } from '../theme/design';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 interface NotificationBannerProps {
   visible: boolean;
@@ -112,7 +113,7 @@ export default function NotificationBanner({
                   {/* Icon ve Close Button */}
                   <View style={styles.header}>
                     <View style={styles.iconContainer}>
-                      <Text style={styles.icon}>🔔</Text>
+                      <MaterialCommunityIcons name="bell-ring-outline" size={22} color={colors.primary[500]} />
                     </View>
                     <IconButton
                       icon="close"

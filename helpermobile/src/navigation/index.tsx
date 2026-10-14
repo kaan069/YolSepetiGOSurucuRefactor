@@ -50,7 +50,6 @@ import PersonalInfoNewScreen from '../screens/auth/PersonalInfoNewScreen';
 import VehicleTypeSelectionScreen from '../screens/auth/VehicleTypeSelectionScreen';
 import { TowTruckDetailsScreen } from '../screens/towTruck';
 import { TransportDetailsScreen, HomeMovingDetailsScreen } from '../screens/nakliye';
-import CityToCityDetailsScreen from '../screens/auth/CityToCityDetailsScreen';
 import EditVehicleScreen from '../screens/auth/EditVehicleScreen';
 import { CityMovingOfferScreen, HomeMovingOfferScreen, NakliyeJobDetailScreen } from '../screens/nakliye';
 import { RoadAssistanceOfferScreen, RoadAssistanceDetailsScreen } from '../screens/roadAssistance';
@@ -78,7 +77,6 @@ export type RootStackParamList = {
   TransportDetails: { fromRegistration?: boolean } | undefined;
   RoadAssistanceDetails: { fromRegistration?: boolean } | undefined;
   HomeMovingDetails: { fromRegistration?: boolean } | undefined;
-  CityToCityDetails: { fromRegistration?: boolean } | undefined;
   TransferVehicleDetails: { fromRegistration?: boolean } | undefined;
 
   // Main App Screens
@@ -383,7 +381,6 @@ function AppStack() {
       <Stack.Screen name="TransportDetails" component={TransportDetailsScreen} />
       <Stack.Screen name="RoadAssistanceDetails" component={RoadAssistanceDetailsScreen} />
       <Stack.Screen name="HomeMovingDetails" component={HomeMovingDetailsScreen} />
-      <Stack.Screen name="CityToCityDetails" component={CityToCityDetailsScreen} />
       <Stack.Screen name="TransferVehicleDetails" component={TransferVehicleScreen} />
 
       {/* Profile Screens - Profil Ekranları */}
@@ -437,7 +434,6 @@ function AuthStack() {
       <Stack.Screen name="TransportDetails" component={TransportDetailsScreen} />
       <Stack.Screen name="RoadAssistanceDetails" component={RoadAssistanceDetailsScreen} />
       <Stack.Screen name="HomeMovingDetails" component={HomeMovingDetailsScreen} />
-      <Stack.Screen name="CityToCityDetails" component={CityToCityDetailsScreen} />
       <Stack.Screen name="TransferVehicleDetails" component={TransferVehicleScreen} />
       <Stack.Screen name="DocumentsScreen" component={DocumentsScreen} />
       <Stack.Screen name="CompanyInfo" component={CompanyInfoScreen} />

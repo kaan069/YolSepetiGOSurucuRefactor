@@ -300,7 +300,7 @@ export default function AccountReadinessGate({ navigationRef }: Props) {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
   },
   scrollContent: {
@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.info[600],
     paddingVertical: 14,
     paddingHorizontal: 24,
-    borderRadius: 12,
+    borderRadius: 16,
     gap: 8,
     width: '100%',
     marginBottom: 16,

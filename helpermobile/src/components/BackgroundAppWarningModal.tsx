@@ -57,7 +57,7 @@ export default function BackgroundAppWarningModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
   button: {
     width: '100%',
     backgroundColor: colors.success[500],
-    borderRadius: 12,
+    borderRadius: 16,
     paddingVertical: 14,
     alignItems: 'center',
     marginTop: 12,

@@ -14,33 +14,7 @@ export const STATUS_LABELS: Record<OrderStatus, string> = {
   cancelled: 'İptal Edildi',
 };
 
-/**
- * Status color mapping for UI theming
- * Uses consistent color scheme across the app
- */
-export const STATUS_COLORS: Record<OrderStatus, string> = {
-  pending: '#FFA726',      // Orange - waiting
-  accepted: '#66BB6A',     // Green - accepted
-  awaiting_approval: '#FFCA28', // Amber/Yellow - requires action
-  awaiting_payment: '#9C27B0',  // Purple - payment required
-  in_progress: '#42A5F5',  // Blue - active
-  completed: '#26A69A',    // Teal - finished
-  cancelled: '#EF5350',    // Red - cancelled
-};
-
-/**
- * Status icon mapping for UI
- * Emoji-based icons for quick visual recognition
- */
-export const STATUS_ICONS: Record<OrderStatus, string> = {
-  pending: '⏳',
-  accepted: '✅',
-  awaiting_approval: '⏰',
-  awaiting_payment: '💳',
-  in_progress: '🔄',
-  completed: '✔️',
-  cancelled: '❌',
-};
+// Durum renkleri ve ikonları: theme/design.ts → statusColors (tek kaynak)
 
 /**
  * WebSocket event types for new approval workflow

@@ -10,7 +10,6 @@ import messaging from '@react-native-firebase/messaging';
 import * as Location from 'expo-location';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import NewJobNotification from '../components/NewJobNotification';
 import { useDriverStore } from '../store/driverStore';
 import { useAuthStore } from '../store/authStore';
 import { useResponsive } from '../hooks/useResponsive';
@@ -37,9 +36,6 @@ export default function HomeScreen() {
   // State for the map's currently viewed region.
   // Haritanın mevcut olarak görüntülenen bölgesi için state.
   const [region, setRegion] = useState<Region | null>(null);
-  // State to control the visibility of the new job notification banner.
-  // Yeni iş bildirim banner'ının görünürlüğünü kontrol eden state.
-  const [newJobVisible, setNewJobVisible] = useState(false);
 
   // Hizmet şehirleri (service_cities) boş mu? Boşsa banner göster.
   // AsyncStorage'daki eski user objesi service_cities içermeyebilir; backend'den taze çekmeden
@@ -215,9 +211,6 @@ export default function HomeScreen() {
         )}
       </View>
 
-      {/* Notification banner for new jobs. */}
-      {/* Yeni işler için bildirim banner'ı. */}
-      <NewJobNotification visible={newJobVisible} onDismiss={() => setNewJobVisible(false)} />
     </SafeAreaView>
   );
 }
