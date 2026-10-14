@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Button } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Location from 'expo-location';
@@ -38,6 +38,9 @@ import DriverPhotoUpload from '../../components/DriverPhotoUpload';
 import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModal';
 import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import { logger } from '../../utils/logger';
+import { FkEmptyState } from '../../components/fk';
+import { JobActions } from '../../components/job';
+import { spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NakliyeJobDetail'>;
 
@@ -337,12 +340,16 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
   // Error
   if (!request) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={["bottom"]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
         <AppBar title="Nakliye İş Detayı" />
-        <Text>Nakliye iş detayı bulunamadı.</Text>
-        <Button mode="outlined" onPress={() => navigation.goBack()} style={{ marginTop: 16 }}>
-          Geri Dön
-        </Button>
+        <FkEmptyState
+          icon="file-search-outline"
+          title="Nakliye iş detayı bulunamadı"
+          actionLabel="Geri Dön"
+          actionVariant="secondary"
+          onAction={() => navigation.goBack()}
+          style={styles.container}
+        />
       </SafeAreaView>
     );
   }
@@ -479,48 +486,33 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
 
         <CompleteJobCard visible={isInProgress} />
 
-        {/* Teklifi Geri Çek Butonu */}
-        {isAwaitingApproval && trackingToken && (
-          <Button
-            icon="undo"
-            mode="outlined"
-            textColor="#FF9800"
-            loading={withdrawLoading}
-            disabled={withdrawLoading}
-            style={{ borderColor: '#FF9800', marginBottom: 8 }}
-            onPress={() => {
-              Alert.alert('Teklifi Geri Çek', 'Teklifinizi geri çekmek istediğinize emin misiniz?', [
-                { text: 'Vazgeç', style: 'cancel' },
-                { text: 'Geri Çek', style: 'destructive', onPress: async () => {
-                  setWithdrawLoading(true);
-                  try {
-                    const withdrawFn = isHomeMoving ? requestsAPI.withdrawHomeMovingOffer : requestsAPI.withdrawCityMovingOffer;
-                    await withdrawFn(trackingToken);
-                    Alert.alert('Başarılı', 'Teklifiniz geri çekildi.');
-                    navigation.navigate('Tabs', { screen: 'OrdersTab' });
-                  } catch (err: any) {
-                    Alert.alert('Hata', err?.response?.data?.error || 'Teklif geri çekilemedi.');
-                  } finally { setWithdrawLoading(false); }
-                }}
-              ]);
-            }}
-          >
-            Teklifi Geri Cek
-          </Button>
-        )}
-
-        {/* İşi İptal Et Butonu */}
-        {(isInProgress || isAwaitingApproval) && trackingToken && (
-          <Button
-            icon="cancel"
-            mode="outlined"
-            textColor="#F44336"
-            style={{ borderColor: '#F44336', marginBottom: 16 }}
-            onPress={() => setShowCancelModal(true)}
-          >
-            İşi İptal Et
-          </Button>
-        )}
+        {/* Teklifi Geri Çek / İşi İptal Et */}
+        <JobActions
+          withdraw={
+            isAwaitingApproval && trackingToken
+              ? {
+                  loading: withdrawLoading,
+                  onPress: () => {
+                    Alert.alert('Teklifi Geri Çek', 'Teklifinizi geri çekmek istediğinize emin misiniz?', [
+                      { text: 'Vazgeç', style: 'cancel' },
+                      { text: 'Geri Çek', style: 'destructive', onPress: async () => {
+                        setWithdrawLoading(true);
+                        try {
+                          const withdrawFn = isHomeMoving ? requestsAPI.withdrawHomeMovingOffer : requestsAPI.withdrawCityMovingOffer;
+                          await withdrawFn(trackingToken);
+                          Alert.alert('Başarılı', 'Teklifiniz geri çekildi.');
+                          navigation.navigate('Tabs', { screen: 'OrdersTab' });
+                        } catch (err: any) {
+                          Alert.alert('Hata', err?.response?.data?.error || 'Teklif geri çekilemedi.');
+                        } finally { setWithdrawLoading(false); }
+                      }}
+                    ]);
+                  },
+                }
+              : null
+          }
+          cancel={(isInProgress || isAwaitingApproval) && trackingToken ? { onPress: () => setShowCancelModal(true) } : null}
+        />
       </ScrollView>
 
       <CommissionPaymentModal
@@ -574,7 +566,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    padding: 16,
+    padding: spacing.md,
     paddingBottom: 100,
   },
 });

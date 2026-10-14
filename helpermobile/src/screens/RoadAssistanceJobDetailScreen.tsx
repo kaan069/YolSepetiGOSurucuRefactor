@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Linking, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text, Button } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Location from 'expo-location';
@@ -26,6 +26,17 @@ import BackgroundAppWarningModal from '../components/BackgroundAppWarningModal';
 import { useBackgroundAppWarning } from '../hooks/useBackgroundAppWarning';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { logger } from '../utils/logger';
+import { FkEmptyState } from '../components/fk';
+import {
+  InfoRow,
+  JobActions,
+  JobAwaitingApprovalBanner,
+  JobCompleteCard,
+  JobEarningsCard,
+  JobLocationCard,
+  JobSection,
+} from '../components/job';
+import { CustomerInfoCard, ProblemDetailsCard } from './roadAssistance/components';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RoadAssistanceJobDetail'>;
 
@@ -241,22 +252,12 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
     Alert.alert('Ödeme Hatası', errorMessage);
   };
 
-  // Dynamic colors
-  const bannerBg = isDarkMode ? '#2a2200' : '#FFF9C4';
-  const bannerTitleColor = isDarkMode ? '#FFB74D' : '#E65100';
-  const earningsBg = isDarkMode ? '#1a2e1a' : '#E8F5E9';
-  const distanceBg = isDarkMode ? '#0d2137' : '#E3F2FD';
-  const distanceValueColor = isDarkMode ? '#90CAF9' : '#1976D2';
-  const problemChipBg = isDarkMode ? '#2a1f0e' : '#FFF3E0';
-  const problemChipTextColor = isDarkMode ? '#FFB74D' : '#e65100';
-  const descriptionBg = isDarkMode ? '#2a2a2a' : '#f9f9f9';
-
   // Loading
   if (loading) {
     return (
       <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={["top", "bottom"]}>
         <LoadingSpinner size={80} />
-        <Text style={{ marginTop: 16 }}>Yol yardım iş detayları yükleniyor...</Text>
+        <Text style={{ marginTop: 16, color: appColors.text.secondary }}>Yol yardım iş detayları yükleniyor...</Text>
       </SafeAreaView>
     );
   }
@@ -264,12 +265,16 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
   // Error
   if (!request) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={["bottom"]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
         <AppBar title="Yol Yardım İş Detayı" />
-        <Text>Yol yardım iş detayı bulunamadı.</Text>
-        <Button mode="outlined" onPress={() => navigation.goBack()} style={{ marginTop: 16 }}>
-          Geri Dön
-        </Button>
+        <FkEmptyState
+          icon="file-search-outline"
+          title="Yol yardım iş detayı bulunamadı"
+          actionLabel="Geri Dön"
+          actionVariant="secondary"
+          onAction={() => navigation.goBack()}
+          style={styles.container}
+        />
       </SafeAreaView>
     );
   }
@@ -292,19 +297,7 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
       <ScrollView contentContainerStyle={styles.scrollContent}>
 
         {/* Onay Bekliyor Banner */}
-        {isAwaitingApproval && (
-          <Card style={[styles.card, { backgroundColor: bannerBg }]}>
-            <Card.Content>
-              <View style={styles.bannerContent}>
-                <MaterialCommunityIcons name="clock-alert-outline" size={48} color="#F57C00" />
-                <Text style={[styles.bannerTitle, { color: bannerTitleColor }]}>Müşteri Onayı Bekleniyor</Text>
-                <Text style={[styles.bannerText, { color: appColors.text.secondary }]}>
-                  Teklifiniz müşteriye iletildi. Müşteri teklifi onayladığında iş başlayacak.
-                </Text>
-              </View>
-            </Card.Content>
-          </Card>
-        )}
+        {isAwaitingApproval && <JobAwaitingApprovalBanner showTrackingNote={false} />}
 
         {/* Komisyon Ödeme Ekranı — ödeme bittiyse asla gösterme */}
         {isAwaitingPayment && !paymentCompleted && (
@@ -330,21 +323,12 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
         )}
 
         {/* Kazanç Kartı */}
-        {(isAwaitingApproval || isInProgress || isCompleted) && finalPrice && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <View style={[styles.earningsContainer, { backgroundColor: earningsBg }]}>
-                <Text style={styles.earningsLabel}>
-                  {isCompleted ? 'Bu İşten Kazancınız' : isAwaitingApproval ? 'Teklif Tutarı' : 'Tahmini Kazancınız'}
-                </Text>
-                <Text style={styles.earningsValue}>{finalPrice} TL</Text>
-                <Text style={[styles.earningsStatus, { color: appColors.text.secondary }]}>
-                  {isCompleted ? 'İş tamamlandı' : isAwaitingApproval ? 'Onay bekleniyor' : 'İş devam ediyor'}
-                </Text>
-              </View>
-            </Card.Content>
-          </Card>
-        )}
+        {(isAwaitingApproval || isInProgress || isCompleted) && finalPrice ? (
+          <JobEarningsCard
+            amount={finalPrice}
+            status={isCompleted ? 'completed' : isAwaitingApproval ? 'awaiting_approval' : 'in_progress'}
+          />
+        ) : null}
 
         {/* Sigortalı iş fiyat detayı */}
         {request.pricing && (
@@ -364,189 +348,78 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
         )}
 
         {/* Müşteri Bilgileri - Sadece devam eden işlerde */}
-        {isInProgress && (request.requestOwnerNameSurname || request.requestOwnerPhone || request.request_owner_phone) && (
-          <Card style={styles.card}>
-            <Card.Title
-              title="Müşteri Bilgileri"
-              left={() => <MaterialCommunityIcons name="account" size={24} color="#4CAF50" />}
-            />
-            <Card.Content>
-              {(request.requestOwnerNameSurname || request.request_owner_name) && (
-                <View style={styles.infoRow}>
-                  <MaterialCommunityIcons name="account-circle" size={20} color="#666" />
-                  <Text style={[styles.infoLabel, { color: appColors.text.secondary }]}>İsim:</Text>
-                  <Text style={[styles.infoValue, { color: appColors.text.primary }]}>{request.requestOwnerNameSurname || request.request_owner_name}</Text>
-                </View>
-              )}
-              {(request.requestOwnerPhone || request.request_owner_phone) && (
-                <>
-                  <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="phone" size={20} color="#666" />
-                    <Text style={[styles.infoLabel, { color: appColors.text.secondary }]}>Telefon:</Text>
-                    <Text style={[styles.infoValue, { color: appColors.text.primary }]}>{request.requestOwnerPhone || request.request_owner_phone}</Text>
-                  </View>
-                  <Button
-                    mode="contained"
-                    icon="phone"
-                    onPress={() => {
-                      const phone = (request.requestOwnerPhone || request.request_owner_phone || '').replace(/[^0-9]/g, '');
-                      Linking.openURL(`tel:${phone}`).catch(() => Alert.alert('Hata', 'Telefon açılamadı'));
-                    }}
-                    style={styles.callButton}
-                    buttonColor="#4CAF50"
-                  >
-                    Müşteriyi Ara
-                  </Button>
-                </>
-              )}
-            </Card.Content>
-          </Card>
+        {isInProgress && (
+          <CustomerInfoCard
+            name={request.requestOwnerNameSurname || request.request_owner_name}
+            phone={request.requestOwnerPhone || request.request_owner_phone}
+          />
         )}
 
         {/* Mesafe Bilgisi */}
         {!isAwaitingPayment && distanceToLocation !== null && (
-          <Card style={styles.card}>
-            <Card.Title title="Mesafe Bilgisi" titleStyle={styles.cardTitle} />
-            <Card.Content>
-              <View style={[styles.distanceContainer, { backgroundColor: distanceBg }]}>
-                <Text style={[styles.distanceLabel, { color: appColors.text.secondary }]}>Müşteriye uzaklık</Text>
-                <Text style={[styles.distanceValue, { color: distanceValueColor }]}>{distanceToLocation.toFixed(1)} km</Text>
-              </View>
-            </Card.Content>
-          </Card>
+          <JobSection title="Mesafe Bilgisi" icon="map-marker-distance">
+            <InfoRow label="Müşteriye uzaklık" value={`${distanceToLocation.toFixed(1)} km`} emphasize />
+          </JobSection>
         )}
 
         {/* Konum Kartı */}
         {!isAwaitingPayment && (
-          <Card style={styles.card}>
-            <Card.Title
-              title="Müşteri Konumu"
-              titleStyle={[styles.cardTitle, { color: '#4CAF50' }]}
-            />
-            <Card.Content>
-              <Text style={[styles.addressText, { color: appColors.text.primary }]}>{request.address || request.location_address || 'Adres belirtilmemiş'}</Text>
-              <Button icon="directions" mode="contained" buttonColor="#4CAF50" onPress={openLocationInGoogleMaps}>
-                Yol Tarifi Al
-              </Button>
-            </Card.Content>
-          </Card>
+          <JobLocationCard
+            title="Müşteri Konumu"
+            points={[
+              {
+                type: 'single',
+                address: request.address || request.location_address,
+                latitude: request.latitude,
+                longitude: request.longitude,
+                directionsLabel: 'Yol Tarifi Al',
+              },
+            ]}
+          />
         )}
 
         {/* Araç Problemleri */}
         {!isAwaitingPayment && (
-          <Card style={styles.card}>
-            <Card.Title
-              title="Araç Problemleri"
-              titleStyle={styles.cardTitle}
-              left={() => <MaterialCommunityIcons name="car-wrench" size={24} color="#f44336" />}
-            />
-            <Card.Content>
-              {/* Araç Tipi */}
-              {request.vehicle_type && (
-                <View style={styles.detailRow}>
-                  <Text style={[styles.detailLabel, { color: appColors.text.secondary }]}>Araç Tipi:</Text>
-                  <Text style={[styles.detailValue, { color: appColors.text.primary }]}>{getVehicleTypeLabel(request.vehicle_type)}</Text>
-                </View>
-              )}
-
-              {/* Problem Tipleri */}
-              {request.problem_types && request.problem_types.length > 0 && (
-                <>
-                  <Text style={[styles.detailLabel, { marginTop: 12, marginBottom: 8, color: appColors.text.secondary }]}>Sorun Türü:</Text>
-                  <View style={styles.problemChipsContainer}>
-                    {request.problem_types.map((type: string, index: number) => (
-                      <View key={index} style={[styles.problemChip, { backgroundColor: problemChipBg }]}>
-                        <MaterialCommunityIcons
-                          name={getProblemIcon(type) as any}
-                          size={16}
-                          color="#f57c00"
-                        />
-                        <Text style={[styles.problemChipText, { color: problemChipTextColor }]}>{getProblemLabel(type)}</Text>
-                      </View>
-                    ))}
-                  </View>
-                </>
-              )}
-
-              {/* Açıklama */}
-              {(request.description || request.problem_description || request.additional_notes) && (
-                <>
-                  <Text style={[styles.detailLabel, { marginTop: 12, color: appColors.text.secondary }]}>Açıklama:</Text>
-                  <Text style={[styles.descriptionText, { color: appColors.text.primary, backgroundColor: descriptionBg }]}>
-                    {request.description || request.problem_description || request.additional_notes}
-                  </Text>
-                </>
-              )}
-            </Card.Content>
-          </Card>
+          <ProblemDetailsCard
+            vehicleType={request.vehicle_type}
+            problemTypes={request.problem_types}
+            problemDescription={request.description || request.problem_description || request.additional_notes}
+          />
         )}
 
         {/* İşi Tamamla Butonu */}
-        {isInProgress && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Button
-                icon="check-circle"
-                mode="contained"
-                buttonColor="#4CAF50"
-                contentStyle={{ paddingVertical: 8 }}
-                onPress={handleCompleteJob}
-              >
-                İşi Tamamla
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
+        {isInProgress && <JobCompleteCard onComplete={handleCompleteJob} />}
 
-        {/* Teklifi Geri Çek Butonu */}
-        {isAwaitingApproval && (request.tracking_token || request.trackingToken) && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Button
-                icon="undo"
-                mode="outlined"
-                textColor="#FF9800"
-                loading={withdrawLoading}
-                disabled={withdrawLoading}
-                style={{ borderColor: '#FF9800' }}
-                onPress={() => {
-                  Alert.alert('Teklifi Geri Çek', 'Teklifinizi geri çekmek istediğinize emin misiniz?', [
-                    { text: 'Vazgeç', style: 'cancel' },
-                    { text: 'Geri Çek', style: 'destructive', onPress: async () => {
-                      setWithdrawLoading(true);
-                      try {
-                        await requestsAPI.withdrawRoadAssistanceOffer((request.tracking_token || request.trackingToken)!);
-                        Alert.alert('Başarılı', 'Teklifiniz geri çekildi.');
-                        navigation.navigate('Tabs', { screen: 'OrdersTab' });
-                      } catch (err: any) {
-                        Alert.alert('Hata', err?.response?.data?.error || 'Teklif geri çekilemedi.');
-                      } finally { setWithdrawLoading(false); }
-                    }}
-                  ]);
-                }}
-              >
-                Teklifi Geri Cek
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
-
-        {/* İşi İptal Et Butonu */}
-        {(isInProgress || isAwaitingApproval) && (request.tracking_token || request.trackingToken) && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Button
-                icon="cancel"
-                mode="outlined"
-                textColor="#F44336"
-                style={{ borderColor: '#F44336' }}
-                onPress={() => setShowCancelModal(true)}
-              >
-                İşi İptal Et
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
+        {/* Teklifi Geri Çek / İşi İptal Et */}
+        <JobActions
+          withdraw={
+            isAwaitingApproval && (request.tracking_token || request.trackingToken)
+              ? {
+                  loading: withdrawLoading,
+                  onPress: () => {
+                    Alert.alert('Teklifi Geri Çek', 'Teklifinizi geri çekmek istediğinize emin misiniz?', [
+                      { text: 'Vazgeç', style: 'cancel' },
+                      { text: 'Geri Çek', style: 'destructive', onPress: async () => {
+                        setWithdrawLoading(true);
+                        try {
+                          await requestsAPI.withdrawRoadAssistanceOffer((request.tracking_token || request.trackingToken)!);
+                          Alert.alert('Başarılı', 'Teklifiniz geri çekildi.');
+                          navigation.navigate('Tabs', { screen: 'OrdersTab' });
+                        } catch (err: any) {
+                          Alert.alert('Hata', err?.response?.data?.error || 'Teklif geri çekilemedi.');
+                        } finally { setWithdrawLoading(false); }
+                      }}
+                    ]);
+                  },
+                }
+              : null
+          }
+          cancel={
+            (isInProgress || isAwaitingApproval) && (request.tracking_token || request.trackingToken)
+              ? { onPress: () => setShowCancelModal(true) }
+              : null
+          }
+        />
       </ScrollView>
 
       {/* Komisyon Ödeme Modal — başarı sonrası asla geri açılmaz */}
@@ -601,128 +474,5 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: 16,
     paddingBottom: 100,
-  },
-  card: {
-    marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  bannerContent: {
-    padding: 16,
-    alignItems: 'center',
-  },
-  bannerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginTop: 12,
-    textAlign: 'center',
-  },
-  bannerText: {
-    fontSize: 14,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  earningsContainer: {
-    padding: 20,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  earningsLabel: {
-    fontSize: 14,
-    color: '#2E7D32',
-    marginBottom: 8,
-  },
-  earningsValue: {
-    fontSize: 36,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-  },
-  earningsStatus: {
-    fontSize: 12,
-    marginTop: 4,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-    gap: 12,
-  },
-  infoLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    minWidth: 80,
-  },
-  infoValue: {
-    fontSize: 15,
-    fontWeight: '500',
-    flex: 1,
-  },
-  callButton: {
-    marginTop: 12,
-    borderRadius: 12,
-  },
-  distanceContainer: {
-    padding: 16,
-    borderRadius: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  distanceLabel: {
-    fontSize: 14,
-  },
-  distanceValue: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  addressText: {
-    fontSize: 15,
-    marginBottom: 12,
-  },
-  detailsContainer: {
-    padding: 16,
-    borderRadius: 8,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-  },
-  detailLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  detailValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    flex: 1,
-    textAlign: 'right',
-  },
-  problemChipsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  problemChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: '#f57c00',
-  },
-  problemChipText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  descriptionText: {
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: 8,
-    padding: 12,
-    borderRadius: 8,
   },
 });

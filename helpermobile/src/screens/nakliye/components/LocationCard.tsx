@@ -1,9 +1,6 @@
 // Konum kartı - Nakliye iş detayı (Alış/Teslim noktası)
 import React from 'react';
-import { StyleSheet, Linking, Platform, Alert } from 'react-native';
-import { Card, Text, Button } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useAppTheme } from '../../../hooks/useAppTheme';
+import { JobLocationCard } from '../../../components/job';
 
 interface LocationCardProps {
   type: 'pickup' | 'dropoff';
@@ -30,78 +27,29 @@ export default function LocationCard({
   visible,
   showDirectionsButton = true,
 }: LocationCardProps) {
-  const { appColors } = useAppTheme();
-
   if (!visible) return null;
 
   const isPickup = type === 'pickup';
   const title = isPickup ? 'Alış Noktası' : 'Teslim Noktası';
-  const color = isPickup ? '#4CAF50' : '#F44336';
-  const iconName = isPickup ? 'map-marker' : 'map-marker-check';
-
-  const openInMaps = () => {
-    const scheme = Platform.select({ ios: 'maps:', android: 'geo:' });
-    const url = Platform.select({
-      ios: `${scheme}${latitude},${longitude}?q=${latitude},${longitude}`,
-      android: `${scheme}${latitude},${longitude}?q=${latitude},${longitude}`,
-    });
-
-    if (url) {
-      Linking.canOpenURL(url).then((supported) => {
-        if (supported) {
-          Linking.openURL(url);
-        } else {
-          Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`);
-        }
-      }).catch(() => {
-        Alert.alert('Hata', 'Harita açılamadı');
-      });
-    }
-  };
+  const detail =
+    floor !== undefined && floor !== null
+      ? `Kat: ${floor} ${hasElevator ? '(Asansör var)' : '(Asansör yok)'}`
+      : undefined;
 
   return (
-    <Card style={styles.card}>
-      <Card.Title
-        title={title}
-        titleStyle={[styles.title, { color }]}
-        left={() => <MaterialCommunityIcons name={iconName} size={24} color={color} />}
-      />
-      <Card.Content>
-        <Text style={[styles.address, { color: appColors.text.primary }]}>{address || 'Adres belirtilmemiş'}</Text>
-        {floor !== undefined && floor !== null && (
-          <Text style={[styles.floor, { color: appColors.text.secondary }]}>
-            Kat: {floor} {hasElevator ? '(Asansör var)' : '(Asansör yok)'}
-          </Text>
-        )}
-        {showDirectionsButton && (
-          <Button
-            icon="directions"
-            mode={isPickup ? 'contained' : 'outlined'}
-            buttonColor={isPickup ? color : undefined}
-            onPress={openInMaps}
-          >
-            {title}na Yol Tarifi
-          </Button>
-        )}
-      </Card.Content>
-    </Card>
+    <JobLocationCard
+      title={title}
+      icon={isPickup ? 'map-marker-outline' : 'map-marker-check-outline'}
+      points={[
+        {
+          type,
+          address,
+          latitude,
+          longitude,
+          detail,
+          directionsLabel: showDirectionsButton ? `${title}na Yol Tarifi` : undefined,
+        },
+      ]}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  address: {
-    fontSize: 15,
-    marginBottom: 8,
-  },
-  floor: {
-    fontSize: 13,
-    marginBottom: 12,
-  },
-});

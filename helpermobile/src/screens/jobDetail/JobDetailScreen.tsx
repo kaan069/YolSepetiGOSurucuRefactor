@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { StyleSheet, ScrollView, Linking, Platform, Alert, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text, Button } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Location from 'expo-location';
@@ -36,6 +36,9 @@ import VehicleStatusSection from '../towTruckOffer/components/VehicleStatusSecti
 import { calculateDistance, getStatus, getRequestId } from './utils';
 import { LocationCoords } from './types';
 import { logger } from '../../utils/logger';
+import { FkEmptyState } from '../../components/fk';
+import { JobActions } from '../../components/job';
+import { spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetail'>;
 
@@ -320,11 +323,16 @@ export default function JobDetailScreen({ route, navigation }: Props) {
   // Error state
   if (!towTruckRequest) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]}>
-        <Text>İş detayı bulunamadı.</Text>
-        <Button mode="outlined" onPress={() => navigation.goBack()} style={styles.backButton}>
-          Geri Dön
-        </Button>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
+        <AppBar title="Çekici İş Detayı" onBackPress={handleBackPress} />
+        <FkEmptyState
+          icon="file-search-outline"
+          title="İş detayı bulunamadı"
+          actionLabel="Geri Dön"
+          actionVariant="secondary"
+          onAction={() => navigation.goBack()}
+          style={styles.container}
+        />
       </SafeAreaView>
     );
   }
@@ -418,49 +426,38 @@ export default function JobDetailScreen({ route, navigation }: Props) {
               onComplete={handleCompleteJob}
             />
 
-            {/* Teklifi Geri Çek Butonu */}
-            {isAwaitingApproval && towTruckRequest.trackingToken && (
-              <Button
-                icon="undo"
-                mode="outlined"
-                textColor="#FF9800"
-                loading={withdrawLoading}
-                disabled={withdrawLoading}
-                style={{ marginHorizontal: 16, marginBottom: 8, borderColor: '#FF9800' }}
-                onPress={() => {
-                  Alert.alert('Teklifi Geri Çek', 'Teklifinizi geri çekmek istediğinize emin misiniz?', [
-                    { text: 'Vazgeç', style: 'cancel' },
-                    {
-                      text: 'Geri Çek', style: 'destructive', onPress: async () => {
-                        setWithdrawLoading(true);
-                        try {
-                          await requestsAPI.withdrawTowTruckOffer(towTruckRequest.trackingToken!);
-                          Alert.alert('Başarılı', 'Teklifiniz geri çekildi.');
-                          navigation.navigate('Tabs', { screen: 'OrdersTab' });
-                        } catch (err: any) {
-                          Alert.alert('Hata', err?.response?.data?.error || 'Teklif geri çekilemedi.');
-                        } finally { setWithdrawLoading(false); }
-                      }
+            {/* Teklifi Geri Çek / İşi İptal Et */}
+            <JobActions
+              withdraw={
+                isAwaitingApproval && towTruckRequest.trackingToken
+                  ? {
+                      loading: withdrawLoading,
+                      onPress: () => {
+                        Alert.alert('Teklifi Geri Çek', 'Teklifinizi geri çekmek istediğinize emin misiniz?', [
+                          { text: 'Vazgeç', style: 'cancel' },
+                          {
+                            text: 'Geri Çek', style: 'destructive', onPress: async () => {
+                              setWithdrawLoading(true);
+                              try {
+                                await requestsAPI.withdrawTowTruckOffer(towTruckRequest.trackingToken!);
+                                Alert.alert('Başarılı', 'Teklifiniz geri çekildi.');
+                                navigation.navigate('Tabs', { screen: 'OrdersTab' });
+                              } catch (err: any) {
+                                Alert.alert('Hata', err?.response?.data?.error || 'Teklif geri çekilemedi.');
+                              } finally { setWithdrawLoading(false); }
+                            }
+                          }
+                        ]);
+                      },
                     }
-                  ]);
-                }}
-              >
-                Teklifi Geri Cek
-              </Button>
-            )}
-
-            {/* İşi İptal Et Butonu */}
-            {(isInProgress || isAwaitingApproval) && towTruckRequest.trackingToken && (
-              <Button
-                icon="cancel"
-                mode="outlined"
-                textColor="#F44336"
-                style={{ marginHorizontal: 16, marginBottom: 16, borderColor: '#F44336' }}
-                onPress={() => setShowCancelModal(true)}
-              >
-                İşi İptal Et
-              </Button>
-            )}
+                  : null
+              }
+              cancel={
+                (isInProgress || isAwaitingApproval) && towTruckRequest.trackingToken
+                  ? { onPress: () => setShowCancelModal(true) }
+                  : null
+              }
+            />
           </>
         )}
       </ScrollView>
@@ -489,13 +486,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    paddingTop: 8,
+    padding: spacing.md,
     paddingBottom: 100,
   },
   loadingText: {
-    marginTop: 16,
-  },
-  backButton: {
-    marginTop: 16,
+    marginTop: spacing.md,
   },
 });

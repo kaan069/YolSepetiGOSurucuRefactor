@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { ensureForegroundPermission } from '../../utils/locationPermission';
@@ -23,6 +23,8 @@ import { useEmployeeStore } from '../../store/useEmployeeStore';
 import { EmployeeSelector } from '../../components/common';
 import { ProviderType } from '../../api/types';
 import { logger } from '../../utils/logger';
+import { FkButton, FkEmptyState, FkLoadingOverlay, FkStickyFooter } from '../../components/fk';
+import { spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RoadAssistanceOffer'>;
 
@@ -212,12 +214,16 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
 
   if (!request) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={['bottom']}>
         <AppBar title="Yol Yardım Talebi" />
-        <Text>Talep bulunamadı.</Text>
-        <Button mode="outlined" onPress={() => navigation.goBack()} style={styles.backButton}>
-          Geri Dön
-        </Button>
+        <FkEmptyState
+          icon="file-search-outline"
+          title="Talep bulunamadı"
+          actionLabel="Geri Dön"
+          actionVariant="secondary"
+          onAction={() => navigation.goBack()}
+          style={styles.container}
+        />
       </SafeAreaView>
     );
   }
@@ -275,28 +281,23 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
             error={priceError}
           />
 
-          <Button
-            mode="contained"
+        </ScrollView>
+
+        <FkStickyFooter safeArea={false}>
+          <FkButton
             onPress={handleSubmitOffer}
             loading={submitting}
             disabled={submitting || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
-            style={styles.submitButton}
-            contentStyle={styles.submitButtonContent}
-            icon="send"
+            icon="send-check-outline"
+            size="lg"
+            fullWidth
           >
-            {submitting ? 'Gönderiliyor...' : 'Teklif Gönder'}
-          </Button>
-        </ScrollView>
+            Teklif Gönder
+          </FkButton>
+        </FkStickyFooter>
       </KeyboardAvoidingView>
 
-      {submitting && (
-        <View style={styles.overlay}>
-          <View style={styles.overlayContent}>
-            <LoadingSpinner size={100} />
-            <Text style={styles.overlayText}>Teklif gönderiliyor...</Text>
-          </View>
-        </View>
-      )}
+      {submitting && <FkLoadingOverlay />}
     </SafeAreaView>
   );
 }
@@ -313,45 +314,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: spacing.md,
+    paddingBottom: spacing.lg,
   },
   loadingText: {
-    marginTop: 16,
-  },
-  backButton: {
-    marginTop: 16,
-  },
-  submitButton: {
-    marginTop: 8,
-    marginBottom: 20,
-    borderRadius: 8,
-    backgroundColor: '#26a69a',
-  },
-  submitButtonContent: {
-    paddingVertical: 8,
-  },
-  overlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999,
-  },
-  overlayContent: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 40,
-    alignItems: 'center',
-  },
-  overlayText: {
-    marginTop: 20,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    marginTop: spacing.md,
   },
 });

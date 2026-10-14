@@ -1,21 +1,17 @@
 /**
  * VehicleStatusSection Component
  *
- * Araç durumu ve ek ücretleri gösteren bileşen.
- * Backend'den gelen surcharges listesini dinamik olarak gösterir.
- * Her durum için ek ücret varsa turuncu, yoksa yeşil gösterilir.
- *
- * Örnek durumlar:
- * - Araç yolda mı?
- * - Vites kilitli mi?
- * - Araç saplanmış mı?
- * - Araç yürür durumda mı?
+ * Araç durumu ve ek ücretler. Backend'den gelen surcharges listesini gösterir:
+ * ek ücret varsa turuncu uyarı, yoksa yeşil onay.
+ * (Araç yolda mı? Vites kilitli mi? Araç saplanmış mı? Yürür durumda mı?)
  */
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
+import { StyleSheet, Text, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { JobSection } from '../../../components/job';
+import { FkPill } from '../../../components/fk';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { colors, radius, spacing } from '../../../theme/design';
 
 interface Surcharge {
   /** Soru metni (örn: "Araç yolda mı?") */
@@ -33,177 +29,111 @@ interface VehicleStatusSectionProps {
   totalSurcharge: number;
 }
 
-/**
- * Sayıyı Türkçe formatla (binlik ayracı ile)
- */
-const formatNumber = (num: number): string => {
-  return num.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
-};
+/** Sayıyı Türkçe formatla (binlik ayracı ile) */
+const formatNumber = (num: number): string =>
+  num.toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
-export default function VehicleStatusSection({
-  surcharges,
-  totalSurcharge,
-}: VehicleStatusSectionProps) {
-  const { isDarkMode, appColors, cardBg } = useAppTheme();
-
-  // Surcharges yoksa gösterme
-  if (!surcharges || surcharges.length === 0) {
-    return null;
-  }
-
-  const borderColor = isDarkMode ? '#333' : '#F0F0F0';
-  const statusCardBg = isDarkMode ? '#2a2a2a' : '#F9F9F9';
-  const warningBadgeBg = isDarkMode ? '#2a1f0e' : '#FFF3E0';
-  const totalSurchargeBg = isDarkMode ? '#2a1f0e' : '#FFF3E0';
+export default function VehicleStatusSection({ surcharges, totalSurcharge }: VehicleStatusSectionProps) {
+  const { appColors } = useAppTheme();
+  if (!surcharges || surcharges.length === 0) return null;
 
   return (
-    <View style={[styles.section, { backgroundColor: cardBg }]}>
-      {/* Section Header */}
-      <View style={[styles.sectionHeader, { borderBottomColor: borderColor }]}>
-        <MaterialCommunityIcons name="clipboard-check-outline" size={20} color="#26a69a" />
-        <Text style={[styles.sectionTitle, { color: appColors.text.primary }]}>Araç Durumu</Text>
-
-        {/* Ek ücret varsa uyarı badge'i */}
-        {totalSurcharge > 0 && (
-          <View style={[styles.warningBadge, { backgroundColor: warningBadgeBg }]}>
-            <MaterialCommunityIcons name="alert" size={14} color="#FF9800" />
-            <Text style={styles.warningBadgeText}>Ek durumlar var</Text>
-          </View>
-        )}
+    <JobSection
+      title="Araç Durumu"
+      icon="clipboard-check-outline"
+      right={totalSurcharge > 0 ? <FkPill icon="alert" label="Ek durumlar var" color="warning" size="sm" /> : undefined}
+    >
+      <View style={styles.grid}>
+        {surcharges.map((surcharge, index) => {
+          const hasExtra = surcharge.amount > 0;
+          return (
+            <View
+              key={index}
+              style={[
+                styles.tile,
+                {
+                  backgroundColor: hasExtra ? colors.warning[50] : colors.neutral[50],
+                  borderColor: hasExtra ? colors.warning[200] : 'transparent',
+                },
+              ]}
+            >
+              <MaterialCommunityIcons
+                name={hasExtra ? 'alert-circle' : 'check-circle'}
+                size={22}
+                color={hasExtra ? colors.warning[500] : colors.success[500]}
+              />
+              <Text style={[styles.question, { color: appColors.text.secondary }]} numberOfLines={2}>
+                {surcharge.question}
+              </Text>
+              <Text style={[styles.answer, { color: hasExtra ? colors.warning[700] : appColors.text.primary }]}>
+                {surcharge.answer}
+              </Text>
+              {hasExtra && <Text style={styles.amount}>+₺{formatNumber(surcharge.amount)}</Text>}
+            </View>
+          );
+        })}
       </View>
 
-      {/* Section Content */}
-      <View style={styles.sectionContent}>
-        {/* Durum Kartları Grid */}
-        <View style={styles.statusGrid}>
-          {surcharges.map((surcharge, index) => {
-            const hasExtraCharge = surcharge.amount > 0;
-
-            return (
-              <View key={index} style={[styles.statusCard, { backgroundColor: statusCardBg }]}>
-                <MaterialCommunityIcons
-                  name={hasExtraCharge ? 'alert-circle' : 'check-circle'}
-                  size={24}
-                  color={hasExtraCharge ? '#FF9800' : '#4CAF50'}
-                />
-                <Text style={[styles.statusLabel, { color: appColors.text.secondary }]} numberOfLines={2}>
-                  {surcharge.question}
-                </Text>
-                <Text
-                  style={[styles.statusValue, hasExtraCharge && styles.statusValueWarning]}
-                >
-                  {surcharge.answer}
-                </Text>
-                {hasExtraCharge && (
-                  <Text style={styles.surchargeAmount}>+₺{formatNumber(surcharge.amount)}</Text>
-                )}
-              </View>
-            );
-          })}
+      {totalSurcharge > 0 && (
+        <View style={styles.total}>
+          <MaterialCommunityIcons name="cash-plus" size={20} color={colors.warning[600]} />
+          <Text style={styles.totalLabel}>Toplam Ek Ücret</Text>
+          <Text style={styles.totalValue}>+₺{formatNumber(totalSurcharge)}</Text>
         </View>
-
-        {/* Toplam Ek Ücret */}
-        {totalSurcharge > 0 && (
-          <View style={[styles.totalSurchargeCard, { backgroundColor: totalSurchargeBg }]}>
-            <MaterialCommunityIcons name="cash-plus" size={20} color="#E65100" />
-            <Text style={styles.totalSurchargeLabel}>Toplam Ek Ücret</Text>
-            <Text style={styles.totalSurchargeValue}>+₺{formatNumber(totalSurcharge)}</Text>
-          </View>
-        )}
-      </View>
-    </View>
+      )}
+    </JobSection>
   );
 }
 
 const styles = StyleSheet.create({
-  section: {
-    marginHorizontal: 12,
-    marginVertical: 6,
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  sectionContent: {
-    padding: 16,
-  },
-  // Warning Badge
-  warningBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginLeft: 'auto',
-    gap: 4,
-  },
-  warningBadgeText: {
-    fontSize: 11,
-    color: '#E65100',
-    fontWeight: '600',
-  },
-  // Status Grid
-  statusGrid: {
+  grid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: spacing.sm,
   },
-  statusCard: {
-    flex: 1,
-    minWidth: '45%',
-    borderRadius: 8,
-    padding: 12,
+  tile: {
+    width: '48.5%',
+    flexGrow: 1,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    padding: spacing.sm + 4,
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
-  statusLabel: {
+  question: {
     fontSize: 12,
-    fontWeight: '500',
     textAlign: 'center',
+    lineHeight: 16,
   },
-  statusValue: {
-    fontSize: 13,
-    color: '#333',
-    fontWeight: '600',
-  },
-  statusValueWarning: {
-    color: '#E65100',
-  },
-  surchargeAmount: {
-    fontSize: 12,
-    color: '#E65100',
+  answer: {
+    fontSize: 14,
     fontWeight: '700',
-    marginTop: 4,
   },
-  // Total Surcharge
-  totalSurchargeCard: {
+  amount: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.warning[700],
+  },
+  total: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 8,
-    padding: 12,
-    marginTop: 12,
-    gap: 8,
+    gap: spacing.sm,
+    marginTop: spacing.sm + 4,
+    padding: spacing.sm + 4,
+    borderRadius: radius.md,
+    backgroundColor: colors.warning[50],
+    borderWidth: 1,
+    borderColor: colors.warning[200],
   },
-  totalSurchargeLabel: {
+  totalLabel: {
     flex: 1,
     fontSize: 14,
-    color: '#E65100',
-    fontWeight: '500',
+    fontWeight: '600',
+    color: colors.warning[800],
   },
-  totalSurchargeValue: {
+  totalValue: {
     fontSize: 16,
-    color: '#E65100',
-    fontWeight: '700',
+    fontWeight: '800',
+    color: colors.warning[700],
   },
 });

@@ -1,8 +1,8 @@
 // Yük detayları kartı - Nakliye
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Card, Text, Divider } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { InfoRow, JobSection } from '../../../components/job';
+import { FkInfoBanner } from '../../../components/fk';
+import { spacing } from '../../../theme/design';
 
 interface LoadDetailsCardProps {
   loadType?: string;
@@ -37,147 +37,44 @@ export default function LoadDetailsCard({
   hasElevatorFrom,
   hasElevatorTo,
 }: LoadDetailsCardProps) {
+  const rows: { icon: string; label: string; value: string }[] = [];
+  if (loadType) rows.push({ icon: 'package-variant-closed', label: 'Yük Türü', value: loadType });
+  if (loadWeight) rows.push({ icon: 'weight-kilogram', label: 'Yük Ağırlığı', value: `${loadWeight} kg` });
+  if (loadVolume) rows.push({ icon: 'cube-outline', label: 'Hacim', value: `${loadVolume} m³` });
+  if (width || length || height) {
+    rows.push({
+      icon: 'ruler-square',
+      label: 'Boyutlar (E x B x Y)',
+      value: `${width || '-'} x ${length || '-'} x ${height || '-'} cm`,
+    });
+  }
+  if (roomCount) rows.push({ icon: 'floor-plan', label: 'Oda Sayısı', value: roomCount });
+  if (floorFrom !== undefined && floorFrom !== null) {
+    rows.push({
+      icon: 'stairs-up',
+      label: 'Alınacak Kat',
+      value: `${floorFrom}. kat ${hasElevatorFrom ? '(Asansör var)' : '(Asansör yok)'}`,
+    });
+  }
+  if (floorTo !== undefined && floorTo !== null) {
+    rows.push({
+      icon: 'stairs-down',
+      label: 'Bırakılacak Kat',
+      value: `${floorTo}. kat ${hasElevatorTo ? '(Asansör var)' : '(Asansör yok)'}`,
+    });
+  }
+  if (distanceToPickup !== null && distanceToPickup !== undefined) {
+    rows.push({ icon: 'map-marker-distance', label: 'Müşteriye uzaklığınız', value: `${distanceToPickup.toFixed(0)} km` });
+  }
+
   return (
-    <Card style={styles.card}>
-      <Card.Content>
-        <View style={styles.header}>
-          <MaterialCommunityIcons name="package-variant-closed" size={24} color="#26a69a" />
-          <Text variant="titleMedium" style={styles.title}>Yük Detayları</Text>
-        </View>
-        <Divider style={styles.divider} />
-
-        {loadType && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Yük Türü:</Text>
-            <Text style={styles.value}>{loadType}</Text>
-          </View>
-        )}
-
-        {loadWeight && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Yük Ağırlığı:</Text>
-            <Text style={styles.value}>{loadWeight} kg</Text>
-          </View>
-        )}
-
-        {loadVolume && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Hacim:</Text>
-            <Text style={styles.value}>{loadVolume} m³</Text>
-          </View>
-        )}
-
-        {/* Boyut bilgileri - En, Boy, Yükseklik */}
-        {(width || length || height) && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Boyutlar (E x B x Y):</Text>
-            <Text style={styles.value}>
-              {width || '-'} x {length || '-'} x {height || '-'} cm
-            </Text>
-          </View>
-        )}
-
-        {roomCount && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Oda Sayısı:</Text>
-            <Text style={styles.value}>{roomCount}</Text>
-          </View>
-        )}
-
-        {floorFrom !== undefined && floorFrom !== null && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Alınacak Kat:</Text>
-            <Text style={styles.value}>
-              {floorFrom}. kat {hasElevatorFrom ? '(Asansör var)' : '(Asansör yok)'}
-            </Text>
-          </View>
-        )}
-
-        {floorTo !== undefined && floorTo !== null && (
-          <View style={styles.row}>
-            <Text style={styles.label}>Bırakılacak Kat:</Text>
-            <Text style={styles.value}>
-              {floorTo}. kat {hasElevatorTo ? '(Asansör var)' : '(Asansör yok)'}
-            </Text>
-          </View>
-        )}
-
-        {notes && (
-          <View style={styles.notesContainer}>
-            <Text style={styles.label}>Notlar:</Text>
-            <Text style={styles.notesText}>{notes}</Text>
-          </View>
-        )}
-
-        {distanceToPickup !== null && distanceToPickup !== undefined && (
-          <View style={styles.distanceRow}>
-            <MaterialCommunityIcons name="map-marker-distance" size={20} color="#666" />
-            <Text style={styles.distanceText}>
-              Müşteriye uzaklığınız: {distanceToPickup.toFixed(0)} km
-            </Text>
-          </View>
-        )}
-      </Card.Content>
-    </Card>
+    <JobSection title="Yük Detayları" icon="package-variant-closed">
+      {rows.map((r, i) => (
+        <InfoRow key={r.label} icon={r.icon} label={r.label} value={r.value} divider={i < rows.length - 1} />
+      ))}
+      {notes ? (
+        <FkInfoBanner type="neutral" icon="note-text-outline" title="Notlar" message={notes} style={{ marginTop: spacing.sm }} />
+      ) : null}
+    </JobSection>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: 16,
-    borderRadius: 12,
-    elevation: 2,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  title: {
-    marginLeft: 8,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  divider: {
-    marginBottom: 12,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  label: {
-    fontSize: 14,
-    color: '#666',
-  },
-  value: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#333',
-  },
-  notesContainer: {
-    marginTop: 8,
-    padding: 8,
-    backgroundColor: '#fff8e1',
-    borderRadius: 8,
-  },
-  notesText: {
-    fontSize: 14,
-    color: '#333',
-    marginTop: 4,
-  },
-  distanceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-  },
-  distanceText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#666',
-  },
-});

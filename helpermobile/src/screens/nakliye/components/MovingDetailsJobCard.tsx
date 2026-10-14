@@ -7,8 +7,9 @@
 //                 preferred_date, preferred_time_slot, additional_notes
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Card, Text, Chip } from 'react-native-paper';
-import { useAppTheme } from '../../../hooks/useAppTheme';
+import { InfoRow, JobSection } from '../../../components/job';
+import { FkInfoBanner, FkPill } from '../../../components/fk';
+import { spacing } from '../../../theme/design';
 
 // Ev tipi çevirisi
 const HOME_TYPE_LABELS: Record<string, string> = {
@@ -73,187 +74,79 @@ export default function MovingDetailsJobCard({
   additionalNotes,
   visible,
 }: MovingDetailsJobCardProps) {
-  const { isDarkMode, appColors } = useAppTheme();
-
   if (!visible) return null;
 
   const homeTypeLabel = homeType ? (HOME_TYPE_LABELS[homeType] || homeType) : null;
+  const rows: { icon: string; label: string; value: string }[] = [];
 
-  const containerBg = isDarkMode ? '#2a1f0e' : '#FFF3E0';
-  const noteBoxBg = isDarkMode ? '#0d2137' : '#e3f2fd';
-  const noteBoxColor = isDarkMode ? '#90CAF9' : '#1976d2';
-  const notesContainerBg = isDarkMode ? '#2a2200' : '#fff8e1';
-  const chipBg = isDarkMode ? '#1a2e1a' : '#e8f5e9';
-  const chipWarningBg = isDarkMode ? '#2a0a0a' : '#ffebee';
+  if (isHomeMoving) {
+    if (homeTypeLabel) rows.push({ icon: 'home-outline', label: 'Ev Tipi', value: homeTypeLabel });
+    if (floorFrom !== undefined && floorFrom !== null) {
+      rows.push({
+        icon: 'stairs-up',
+        label: 'Alış Katı',
+        value: `${floorFrom}. kat ${hasElevatorFrom ? '(Asansör var)' : '(Asansör yok)'}`,
+      });
+    }
+    if (floorTo !== undefined && floorTo !== null) {
+      rows.push({
+        icon: 'stairs-down',
+        label: 'Teslim Katı',
+        value: `${floorTo}. kat ${hasElevatorTo ? '(Asansör var)' : '(Asansör yok)'}`,
+      });
+    }
+  } else {
+    if (loadType) rows.push({ icon: 'package-variant-closed', label: 'Yük Türü', value: loadType });
+    if (loadWeight) rows.push({ icon: 'weight-kilogram', label: 'Yük Ağırlığı', value: `${loadWeight} kg` });
+    if (width || length || height) {
+      rows.push({ icon: 'ruler-square', label: 'Boyutlar', value: `${width || '-'} x ${length || '-'} x ${height || '-'} cm` });
+    }
+  }
+  if (preferredDate) rows.push({ icon: 'calendar-outline', label: 'Tercih Edilen Tarih', value: preferredDate });
+  if (preferredTimeSlot) rows.push({ icon: 'clock-outline', label: 'Tercih Edilen Saat', value: preferredTimeSlot });
+
+  const pills = isHomeMoving
+    ? [
+        hasLargeItems && { icon: 'sofa-outline', label: 'Büyük Eşya', color: 'info' as const },
+        hasFragileItems && { icon: 'glass-fragile', label: 'Kırılacak Eşya', color: 'danger' as const },
+        needsPacking && { icon: 'package-variant-closed', label: 'Paketleme', color: 'warning' as const },
+        needsDisassembly && { icon: 'wrench-outline', label: 'Demontaj', color: 'warning' as const },
+      ].filter(Boolean) as { icon: string; label: string; color: 'info' | 'danger' | 'warning' }[]
+    : [];
 
   return (
-    <Card style={styles.card}>
-      <Card.Title title="Nakliye Detayları" titleStyle={styles.title} />
-      <Card.Content>
-        <View style={[styles.container, { backgroundColor: containerBg }]}>
-          {isHomeMoving ? (
-            <>
-              {/* Ev Tipi */}
-              {homeTypeLabel && (
-                <View style={styles.row}>
-                  <Text style={[styles.label, { color: appColors.text.secondary }]}>Ev Tipi:</Text>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>{homeTypeLabel}</Text>
-                </View>
-              )}
-              {/* Kat Bilgileri */}
-              {floorFrom !== undefined && floorFrom !== null && (
-                <View style={styles.row}>
-                  <Text style={[styles.label, { color: appColors.text.secondary }]}>Alış Katı:</Text>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>
-                    {floorFrom}. kat {hasElevatorFrom ? '(Asansör var)' : '(Asansör yok)'}
-                  </Text>
-                </View>
-              )}
-              {floorTo !== undefined && floorTo !== null && (
-                <View style={styles.row}>
-                  <Text style={[styles.label, { color: appColors.text.secondary }]}>Teslim Katı:</Text>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>
-                    {floorTo}. kat {hasElevatorTo ? '(Asansör var)' : '(Asansör yok)'}
-                  </Text>
-                </View>
-              )}
-              {/* Özel Durumlar */}
-              <View style={styles.chipsContainer}>
-                {hasLargeItems && (
-                  <Chip icon="sofa" style={[styles.chip, { backgroundColor: chipBg }]} textStyle={styles.chipText}>
-                    Büyük Eşya
-                  </Chip>
-                )}
-                {hasFragileItems && (
-                  <Chip icon="glass-fragile" style={[styles.chipWarning, { backgroundColor: chipWarningBg }]} textStyle={styles.chipText}>
-                    Kırılacak Eşya
-                  </Chip>
-                )}
-                {needsPacking && (
-                  <Chip icon="package-variant-closed" style={[styles.chip, { backgroundColor: chipBg }]} textStyle={styles.chipText}>
-                    Paketleme
-                  </Chip>
-                )}
-                {needsDisassembly && (
-                  <Chip icon="wrench" style={[styles.chip, { backgroundColor: chipBg }]} textStyle={styles.chipText}>
-                    Demontaj
-                  </Chip>
-                )}
-              </View>
-              {/* Büyük eşya notu */}
-              {hasLargeItems && largeItemsNote && (
-                <View style={[styles.noteBox, { backgroundColor: noteBoxBg }]}>
-                  <Text style={[styles.noteLabel, { color: noteBoxColor }]}>Büyük Eşya Detayı:</Text>
-                  <Text style={[styles.noteText, { color: appColors.text.primary }]}>{largeItemsNote}</Text>
-                </View>
-              )}
-            </>
-          ) : (
-            <>
-              {/* Şehirler Arası - Yük Bilgileri */}
-              {loadType && (
-                <View style={styles.row}>
-                  <Text style={[styles.label, { color: appColors.text.secondary }]}>Yük Türü:</Text>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>{loadType}</Text>
-                </View>
-              )}
-              {loadWeight && (
-                <View style={styles.row}>
-                  <Text style={[styles.label, { color: appColors.text.secondary }]}>Yük Ağırlığı:</Text>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>{loadWeight} kg</Text>
-                </View>
-              )}
-              {/* Boyutlar */}
-              {(width || length || height) && (
-                <View style={styles.row}>
-                  <Text style={[styles.label, { color: appColors.text.secondary }]}>Boyutlar:</Text>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>
-                    {width || '-'} x {length || '-'} x {height || '-'} cm
-                  </Text>
-                </View>
-              )}
-            </>
-          )}
+    <JobSection title="Nakliye Detayları" icon="truck-delivery-outline">
+      {rows.map((r, i) => (
+        <InfoRow key={r.label} icon={r.icon} label={r.label} value={r.value} divider={i < rows.length - 1} />
+      ))}
 
-          {/* Ortak Alanlar */}
-          {preferredDate && (
-            <View style={styles.row}>
-              <Text style={[styles.label, { color: appColors.text.secondary }]}>Tercih Edilen Tarih:</Text>
-              <Text style={[styles.value, { color: appColors.text.primary }]}>{preferredDate}</Text>
-            </View>
-          )}
-          {preferredTimeSlot && (
-            <View style={styles.row}>
-              <Text style={[styles.label, { color: appColors.text.secondary }]}>Tercih Edilen Saat:</Text>
-              <Text style={[styles.value, { color: appColors.text.primary }]}>{preferredTimeSlot}</Text>
-            </View>
-          )}
-          {additionalNotes && (
-            <View style={[styles.notesContainer, { backgroundColor: notesContainerBg }]}>
-              <Text style={[styles.noteLabel, { color: appColors.text.secondary }]}>Müşteri Notu:</Text>
-              <Text style={[styles.noteText, { color: appColors.text.primary }]}>{additionalNotes}</Text>
-            </View>
-          )}
+      {pills.length > 0 && (
+        <View style={styles.pills}>
+          {pills.map((p) => (
+            <FkPill key={p.label} icon={p.icon} label={p.label} color={p.color} />
+          ))}
         </View>
-      </Card.Content>
-    </Card>
+      )}
+
+      {isHomeMoving && hasLargeItems && largeItemsNote ? (
+        <FkInfoBanner type="info" icon="sofa-outline" title="Büyük Eşya Detayı" message={largeItemsNote} style={styles.block} />
+      ) : null}
+
+      {additionalNotes ? (
+        <FkInfoBanner type="neutral" icon="note-text-outline" title="Müşteri Notu" message={additionalNotes} style={styles.block} />
+      ) : null}
+    </JobSection>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  container: {
-    padding: 16,
-    borderRadius: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 6,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  value: {
-    fontSize: 14,
-    fontWeight: '600',
-    flex: 1,
-    textAlign: 'right',
-  },
-  chipsContainer: {
+  pills: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 8,
-    gap: 8,
+    gap: spacing.sm,
+    marginTop: spacing.sm,
   },
-  chip: {},
-  chipWarning: {},
-  chipText: {
-    fontSize: 12,
-  },
-  noteBox: {
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 8,
-  },
-  noteLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  noteText: {
-    fontSize: 14,
-    marginTop: 4,
-  },
-  notesContainer: {
-    marginTop: 12,
-    padding: 10,
-    borderRadius: 8,
+  block: {
+    marginTop: spacing.sm + 4,
   },
 });

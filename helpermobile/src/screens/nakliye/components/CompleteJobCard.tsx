@@ -1,7 +1,7 @@
 // İşi tamamla kartı - Nakliye iş detayı
 import React from 'react';
-import { StyleSheet, Alert } from 'react-native';
-import { Card, Button } from 'react-native-paper';
+import { Alert } from 'react-native';
+import { JobCompleteCard } from '../../../components/job';
 
 interface CompleteJobCardProps {
   visible: boolean;
@@ -18,28 +18,5 @@ export default function CompleteJobCard({ visible }: CompleteJobCardProps) {
     );
   };
 
-  return (
-    <Card style={styles.card}>
-      <Card.Content>
-        <Button
-          icon="check-circle"
-          mode="contained"
-          buttonColor="#FF9800"
-          contentStyle={styles.buttonContent}
-          onPress={handleComplete}
-        >
-          İşi Tamamla
-        </Button>
-      </Card.Content>
-    </Card>
-  );
+  return <JobCompleteCard onComplete={handleComplete} />;
 }
-
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: 16,
-  },
-  buttonContent: {
-    paddingVertical: 8,
-  },
-});

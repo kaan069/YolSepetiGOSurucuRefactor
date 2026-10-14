@@ -7,6 +7,7 @@ import { TowTruckRequestDetail } from '../../../api';
 import { MarkerIcon } from '../../../components/map/CustomMarker';
 import { LocationCoords } from '../types';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { colors, radius, shadows, spacing } from '../../../theme/design';
 
 interface JobMapSectionProps {
   towTruckRequest: TowTruckRequestDetail;
@@ -31,7 +32,7 @@ export default function JobMapSection({
   const dropoffLng = parseFloat(towTruckRequest.dropoff_longitude);
 
   const chipBg = isDarkMode ? 'rgba(30, 30, 30, 0.95)' : 'rgba(255, 255, 255, 0.95)';
-  const chipText = isDarkMode ? '#e0e0e0' : '#333';
+  const chipText = isDarkMode ? '#e0e0e0' : colors.neutral[800];
 
   return (
     <View style={styles.mapSection}>
@@ -79,13 +80,13 @@ export default function JobMapSection({
       {/* Mesafe Bilgileri Overlay */}
       <View style={styles.mapOverlay}>
         <View style={[styles.metricChip, { backgroundColor: chipBg }]}>
-          <MaterialCommunityIcons name="map-marker-distance" size={16} color="#26a69a" />
+          <MaterialCommunityIcons name="map-marker-distance" size={16} color={colors.primary[500]} />
           <Text style={[styles.metricChipText, { color: chipText }]}>
             {distanceToPickup ? `${distanceToPickup.toFixed(1)} km` : '...'} → Alış
           </Text>
         </View>
         <View style={[styles.metricChip, { backgroundColor: chipBg }]}>
-          <MaterialCommunityIcons name="clock-outline" size={16} color="#26a69a" />
+          <MaterialCommunityIcons name="clock-outline" size={16} color={colors.primary[500]} />
           <Text style={[styles.metricChipText, { color: chipText }]}>
             {towTruckRequest.route_duration || 'Hesaplanıyor'}
           </Text>
@@ -96,12 +97,16 @@ export default function JobMapSection({
 }
 
 const styles = StyleSheet.create({
+  // Müşteri TrackingMap: köşeli kart, yumuşak gölge, üstte yüzen beyaz çipler
   mapSection: {
     position: 'relative',
-    marginBottom: 12,
+    marginBottom: spacing.md,
+    borderRadius: radius.xl,
+    overflow: 'hidden',
+    ...shadows.md,
   },
   heroMap: {
-    height: 300,
+    height: 260,
   },
   mapOverlay: {
     position: 'absolute',
@@ -109,6 +114,7 @@ const styles = StyleSheet.create({
     left: 12,
     right: 12,
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
   },
   metricChip: {
@@ -116,12 +122,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: radius.full,
+    ...shadows.md,
     gap: 6,
   },
   metricChipText: {

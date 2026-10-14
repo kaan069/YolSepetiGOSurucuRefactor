@@ -32,8 +32,8 @@ import DriverPhotoUpload from '../../components/DriverPhotoUpload';
 import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModal';
 import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import { logger } from '../../utils/logger';
-import { FkButton, FkEmptyState } from '../../components/fk';
-import { JobCompleteCard, JobSection } from '../../components/job';
+import { FkEmptyState } from '../../components/fk';
+import { JobActions, JobCompleteCard } from '../../components/job';
 import { spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneJobDetail'>;
@@ -388,51 +388,32 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
         {/* İşi Tamamla Butonu */}
         {isInProgress && <JobCompleteCard onComplete={handleCompleteJob} />}
 
-        {/* Teklifi Geri Çek Butonu */}
-        {isAwaitingApproval && craneRequest.trackingToken && (
-          <JobSection>
-              <FkButton
-                variant="secondary"
-                tone="warning"
-                icon="undo"
-                fullWidth
-                loading={withdrawLoading}
-                disabled={withdrawLoading}
-                onPress={() => {
-                  Alert.alert('Teklifi Geri Çek', 'Teklifinizi geri çekmek istediğinize emin misiniz?', [
-                    { text: 'Vazgeç', style: 'cancel' },
-                    { text: 'Geri Çek', style: 'destructive', onPress: async () => {
-                      setWithdrawLoading(true);
-                      try {
-                        await requestsAPI.withdrawCraneOffer(craneRequest.trackingToken!);
-                        Alert.alert('Başarılı', 'Teklifiniz geri çekildi.');
-                        navigation.navigate('Tabs', { screen: 'OrdersTab' });
-                      } catch (err: any) {
-                        Alert.alert('Hata', err?.response?.data?.error || 'Teklif geri çekilemedi.');
-                      } finally { setWithdrawLoading(false); }
-                    }}
-                  ]);
-                }}
-              >
-                Teklifi Geri Çek
-              </FkButton>
-          </JobSection>
-        )}
-
-        {/* İşi İptal Et Butonu */}
-        {(isInProgress || isAwaitingApproval) && craneRequest.trackingToken && (
-          <JobSection>
-            <FkButton
-              variant="secondary"
-              tone="danger"
-              icon="cancel"
-              fullWidth
-              onPress={() => setShowCancelModal(true)}
-            >
-              İşi İptal Et
-            </FkButton>
-          </JobSection>
-        )}
+        {/* Teklifi Geri Çek / İşi İptal Et */}
+        <JobActions
+          withdraw={
+            isAwaitingApproval && craneRequest.trackingToken
+              ? {
+                  loading: withdrawLoading,
+                  onPress: () => {
+                    Alert.alert('Teklifi Geri Çek', 'Teklifinizi geri çekmek istediğinize emin misiniz?', [
+                      { text: 'Vazgeç', style: 'cancel' },
+                      { text: 'Geri Çek', style: 'destructive', onPress: async () => {
+                        setWithdrawLoading(true);
+                        try {
+                          await requestsAPI.withdrawCraneOffer(craneRequest.trackingToken!);
+                          Alert.alert('Başarılı', 'Teklifiniz geri çekildi.');
+                          navigation.navigate('Tabs', { screen: 'OrdersTab' });
+                        } catch (err: any) {
+                          Alert.alert('Hata', err?.response?.data?.error || 'Teklif geri çekilemedi.');
+                        } finally { setWithdrawLoading(false); }
+                      }}
+                    ]);
+                  },
+                }
+              : null
+          }
+          cancel={(isInProgress || isAwaitingApproval) && craneRequest.trackingToken ? { onPress: () => setShowCancelModal(true) } : null}
+        />
       </ScrollView>
 
       {/* Ödeme Modal — başarı sonrası asla geri açılmaz */}

@@ -68,7 +68,9 @@ import {
 // Utils
 import { calculateDistance, parseRouteDistance, getRequestId } from './utils';
 import { logger } from '../../utils/logger';
-import { formatThousands, digitsOnly } from '../../utils/priceFormat';
+import PriceOfferSection from '../../components/offer/PriceOfferSection';
+import { FkEmptyState, FkInfoBanner } from '../../components/fk';
+import { spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TowTruckOffer'>;
 
@@ -354,9 +356,9 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
   // Talep bulunamadı
   if (!towTruckRequest) {
     return (
-      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: screenBg }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={['bottom']}>
         <AppBar title="Çekici Talebi" />
-        <Text>Talep bulunamadı.</Text>
+        <FkEmptyState icon="file-search-outline" title="Talep bulunamadı" style={styles.container} />
       </SafeAreaView>
     );
   }
@@ -424,46 +426,30 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         />
 
         {/* Fiyat Teklifi */}
-        <View style={[styles.priceCard, { backgroundColor: cardBg }]}>
-          <View style={styles.priceCardHeader}>
-            <MaterialCommunityIcons name="currency-try" size={20} color="#26a69a" />
-            <Text style={[styles.priceCardTitle, { color: appColors.text.primary }]}>Fiyat Teklifiniz</Text>
-          </View>
-          {pricing && (
-            <View style={[styles.suggestedRow, { backgroundColor: isDarkMode ? '#2a1f0e' : '#FFF3E0' }]}>
-              <MaterialCommunityIcons name="lightbulb-outline" size={16} color="#E65100" />
-              <Text style={styles.suggestedText}>
-                Tavsiye Fiyat:{' '}
-                <Text style={styles.suggestedValue}>₺{Math.round(pricing.driverEarnings).toLocaleString('tr-TR')}</Text>
-              </Text>
-            </View>
-          )}
-          <Text style={[styles.priceInputLabel, { color: appColors.text.secondary }]}>Fiyatınız (₺)</Text>
-          <TextInput
-            style={[
-              styles.priceInput,
-              {
-                backgroundColor: isDarkMode ? '#2a2a2a' : '#F9F9F9',
-                borderColor: isDarkMode ? '#444' : '#e0e0e0',
-                color: appColors.text.primary,
-              },
-            ]}
-            value={formatThousands(proposedPrice)}
-            onChangeText={(t) => setProposedPrice(digitsOnly(t))}
-            keyboardType="numeric"
-            placeholder="Fiyat giriniz"
-            placeholderTextColor={appColors.text.disabled}
-          />
-        </View>
-
-        {/* Teklif Gönder Butonu */}
-        <AcceptButton
-          onPress={handleAccept}
-          loading={submitting}
-          towTruckCount={towTrucks.length}
-          hasPricing={!!pricing}
-        />
+        <PriceOfferSection
+          value={proposedPrice}
+          onChange={setProposedPrice}
+          showCommissionNote={false}
+          placeholder="Fiyat giriniz"
+        >
+          {pricing ? (
+            <FkInfoBanner
+              type="info"
+              icon="lightbulb-outline"
+              message={`Tavsiye fiyat: ₺${Math.round(pricing.driverEarnings).toLocaleString('tr-TR')}`}
+              style={styles.suggested}
+            />
+          ) : null}
+        </PriceOfferSection>
       </ScrollView>
+
+      {/* Teklif Gönder Butonu (alt sabit alan) */}
+      <AcceptButton
+        onPress={handleAccept}
+        loading={submitting}
+        towTruckCount={towTrucks.length}
+        hasPricing={!!pricing}
+      />
       </KeyboardAvoidingView>
 
       {/* Loading Overlay */}
@@ -475,11 +461,10 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   scrollContent: {
-    paddingTop: 4,
-    paddingBottom: 20,
+    padding: spacing.md,
+    paddingBottom: spacing.lg,
   },
   loadingContainer: {
     flex: 1,
@@ -487,54 +472,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: spacing.md,
     fontSize: 16,
-    color: '#666',
   },
-  priceCard: {
-    marginHorizontal: 12,
-    marginVertical: 6,
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
-  },
-  priceCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  priceCardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  suggestedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    borderRadius: 8,
-    padding: 12,
-  },
-  suggestedText: {
-    fontSize: 14,
-    color: '#E65100',
-  },
-  suggestedValue: {
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  priceInputLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  priceInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 18,
-    fontWeight: '600',
+  suggested: {
+    marginTop: spacing.sm + 4,
   },
 });

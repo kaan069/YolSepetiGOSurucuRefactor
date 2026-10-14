@@ -5,9 +5,10 @@
  * Talep ID'sini 4 haneli formatta gösterir (örn: #0231)
  */
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { StyleSheet, Text, View } from 'react-native';
+import { FkCard, FkIconChip, FkStatusBadge } from '../../../components/fk';
+import { useAppTheme } from '../../../hooks/useAppTheme';
+import { spacing, text } from '../../../theme/design';
 
 interface RequestHeaderProps {
   /** Talep ID numarası */
@@ -15,36 +16,41 @@ interface RequestHeaderProps {
 }
 
 export default function RequestHeader({ requestId }: RequestHeaderProps) {
+  const { appColors } = useAppTheme();
   // ID'yi 4 haneli formata çevir (örn: 231 -> 0231)
   const formattedId = requestId.toString().padStart(4, '0');
 
   return (
-    <View style={styles.container}>
+    <FkCard style={styles.card}>
       <View style={styles.row}>
-        <MaterialCommunityIcons name="clipboard-text" size={24} color="#26a69a" />
-        <Text style={styles.text}>Talep #{formattedId}</Text>
+        <FkIconChip icon="tow-truck" size={44} />
+        <View style={styles.texts}>
+          <Text style={[styles.title, { color: appColors.text.primary }]}>Çekici Talebi</Text>
+          <Text style={[styles.caption, { color: appColors.text.secondary }]}>Talep #{formattedId}</Text>
+        </View>
+        <FkStatusBadge status="pending" label="Gelen İş" size="sm" />
       </View>
-    </View>
+    </FkCard>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    marginHorizontal: 12,
-    marginTop: 12,
-    marginBottom: 8,
-    borderRadius: 12,
-    padding: 16,
+  card: {
+    marginBottom: spacing.md,
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: spacing.sm + 4,
   },
-  text: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#333',
+  texts: {
+    flex: 1,
+  },
+  title: {
+    ...text.cardTitle,
+  },
+  caption: {
+    ...text.caption,
+    marginTop: 2,
   },
 });

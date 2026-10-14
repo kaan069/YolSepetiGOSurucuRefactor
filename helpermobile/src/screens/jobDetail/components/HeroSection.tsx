@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Text } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { StyleSheet, View } from 'react-native';
 import { TowTruckRequestDetail } from '../../../api';
 import LoadingSpinner from '../../../components/LoadingSpinner';
-import { useAppTheme } from '../../../hooks/useAppTheme';
+import { JobEarningsCard } from '../../../components/job';
+import { FkCard } from '../../../components/fk';
+import { spacing } from '../../../theme/design';
 
 interface HeroSectionProps {
   towTruckRequest: TowTruckRequestDetail;
@@ -15,6 +15,7 @@ interface HeroSectionProps {
   pricing: any;
 }
 
+/** Kazanç / teklif tutarı özeti (ortak JobEarningsCard). */
 export default function HeroSection({
   towTruckRequest,
   isAwaitingApproval,
@@ -23,100 +24,43 @@ export default function HeroSection({
   pricingLoading,
   pricing,
 }: HeroSectionProps) {
-  const { isDarkMode, appColors, cardBg } = useAppTheme();
+  if (!isAwaitingApproval && !isInProgress && !isCompleted) return null;
 
-  if (!isAwaitingApproval && !isInProgress && !isCompleted) {
-    return null;
+  if (pricingLoading) {
+    return (
+      <FkCard style={styles.loading}>
+        <View style={styles.center}>
+          <LoadingSpinner size={40} />
+        </View>
+      </FkCard>
+    );
   }
 
-  const getEarningsDisplay = () => {
-    if (isCompleted && towTruckRequest?.final_price) {
-      return `${towTruckRequest.final_price} ₺`;
-    }
-    if ((isAwaitingApproval || isInProgress) && towTruckRequest?.my_offer?.driver_earnings) {
-      return `${towTruckRequest.my_offer.driver_earnings} ₺`;
-    }
-    if ((isAwaitingApproval || isInProgress) && pricing?.driverEarnings) {
-      return `${pricing.driverEarnings} ₺`;
-    }
-    if (isInProgress && pricing?.driverEarnings) {
-      return `${pricing.driverEarnings} ₺`;
-    }
-    return '-';
-  };
+  const amount =
+    isCompleted && towTruckRequest?.final_price
+      ? towTruckRequest.final_price
+      : (isAwaitingApproval || isInProgress) && towTruckRequest?.my_offer?.driver_earnings
+      ? towTruckRequest.my_offer.driver_earnings
+      : (isAwaitingApproval || isInProgress) && pricing?.driverEarnings
+      ? pricing.driverEarnings
+      : null;
 
-  const heroBg = isDarkMode ? '#1a2e1a' : '#E8F5E9';
-  const statusBg = isDarkMode ? '#0d2137' : '#E3F2FD';
-  const statusTextColor = isDarkMode ? '#90CAF9' : '#1976D2';
+  if (amount === null || amount === undefined) return null;
 
   return (
-    <View style={[styles.heroSection, { backgroundColor: cardBg }]}>
-      <View style={styles.heroRow}>
-        <View style={[styles.heroCard, { backgroundColor: heroBg }]}>
-          {pricingLoading ? (
-            <LoadingSpinner size={40} />
-          ) : (
-            <>
-              <Text style={[styles.heroLabel, { color: appColors.text.secondary }]}>
-                {isAwaitingApproval ? 'Teklif Tutarı' : 'Kazanç'}
-              </Text>
-              <Text style={styles.heroValue}>{getEarningsDisplay()}</Text>
-            </>
-          )}
-        </View>
-        <View style={[styles.heroCard, styles.statusCard, { backgroundColor: statusBg }]}>
-          <MaterialCommunityIcons
-            name={isCompleted ? "check-circle" : isAwaitingApproval ? "clock-alert-outline" : "truck-fast"}
-            size={32}
-            color={isCompleted ? "#4CAF50" : isAwaitingApproval ? "#F57C00" : "#26a69a"}
-          />
-          {!isCompleted && (
-            <Text style={[styles.statusText, { color: statusTextColor }]}>
-              {isAwaitingApproval ? 'Onay Bekleniyor' : 'Devam Ediyor'}
-            </Text>
-          )}
-        </View>
-      </View>
-    </View>
+    <JobEarningsCard
+      amount={amount}
+      status={isCompleted ? 'completed' : isAwaitingApproval ? 'awaiting_approval' : 'in_progress'}
+      label={isAwaitingApproval ? 'Teklif Tutarı' : 'Kazanç'}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  heroSection: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 12,
-    marginBottom: 8,
+  loading: {
+    marginBottom: spacing.md,
   },
-  heroRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  heroCard: {
-    flex: 1,
-    padding: 16,
-    borderRadius: 12,
+  center: {
     alignItems: 'center',
-    minWidth: 0,
-  },
-  statusCard: {
-    flexShrink: 0,
-    minWidth: 80,
-  },
-  heroLabel: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  heroValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginTop: 4,
-    textAlign: 'center',
-    flexWrap: 'wrap',
   },
 });

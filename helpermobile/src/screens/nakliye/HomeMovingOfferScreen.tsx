@@ -2,11 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { ensureForegroundPermission } from '../../utils/locationPermission';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { RootStackParamList } from '../../navigation';
 import { requestsAPI } from '../../api';
 import { useNotificationStore } from '../../store/useNotificationStore';
@@ -27,12 +26,16 @@ import { useNakliyeVehicles } from './hooks';
 import { calculateDistance, formatNumber } from './constants';
 import PhotosSection from '../../components/PhotosSection';
 import { logger } from '../../utils/logger';
+import { FkButton, FkEmptyState, FkStickyFooter } from '../../components/fk';
+import { useAppTheme } from '../../hooks/useAppTheme';
+import { colors, spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HomeMovingOffer'>;
 
 export default function HomeMovingOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
   const { showNotification } = useNotificationStore();
+  const { screenBg } = useAppTheme();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
 
   // Araç seçimi hook
@@ -209,17 +212,18 @@ export default function HomeMovingOfferScreen({ route, navigation }: Props) {
 
 
   if (loading || vehiclesLoading) {
-    return <LoadingSpinner />;
+    return (
+      <View style={[styles.container, styles.centered, { backgroundColor: screenBg }]}>
+        <LoadingSpinner size={80} />
+      </View>
+    );
   }
 
   if (!request) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={['bottom']}>
         <AppBar title="Talep Bulunamadı" showBackButton onBackPress={() => navigation.goBack()} />
-        <View style={styles.emptyState}>
-          <MaterialCommunityIcons name="alert-circle-outline" size={64} color="#ccc" />
-          <Text style={styles.emptyText}>Talep detayları yüklenemedi</Text>
-        </View>
+        <FkEmptyState icon="alert-circle-outline" title="Talep detayları yüklenemedi" style={styles.container} />
       </SafeAreaView>
     );
   }
@@ -232,7 +236,7 @@ export default function HomeMovingOfferScreen({ route, navigation }: Props) {
   const toLng = parseFloat(request.to_longitude || request.dropoff_longitude || '0');
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={['bottom']}>
       <AppBar title="Evden Eve Nakliye" showBackButton onBackPress={() => navigation.goBack()} />
 
       <KeyboardAvoidingView
@@ -300,22 +304,23 @@ export default function HomeMovingOfferScreen({ route, navigation }: Props) {
             hint="Evden eve nakliye için teklif edeceğiniz fiyatı girin."
           />
 
-          <Button
-            mode="contained"
-            onPress={handleSubmitOffer}
-            loading={submitting}
-            disabled={submitting || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
-            style={styles.submitButton}
-            contentStyle={styles.submitButtonContent}
-            icon="send"
-          >
-            {submitting ? 'Gönderiliyor...' : 'Teklif Gönder'}
-          </Button>
-
           <Text style={styles.disclaimer}>
             Teklif gönderdiğinizde, müşteri teklifinizi değerlendirecek ve kabul ederse sizinle iletişime geçilecektir.
           </Text>
         </ScrollView>
+
+        <FkStickyFooter safeArea={false}>
+          <FkButton
+            onPress={handleSubmitOffer}
+            loading={submitting}
+            disabled={submitting || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
+            icon="send-check-outline"
+            size="lg"
+            fullWidth
+          >
+            Teklif Gönder
+          </FkButton>
+        </FkStickyFooter>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -324,7 +329,10 @@ export default function HomeMovingOfferScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   keyboardAvoid: {
     flex: 1,
@@ -333,35 +341,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  submitButton: {
-    marginTop: 8,
-    marginBottom: 8,
-    borderRadius: 12,
-    backgroundColor: '#26a69a',
-  },
-  submitButtonContent: {
-    paddingVertical: 8,
+    padding: spacing.md,
+    paddingBottom: spacing.lg,
   },
   disclaimer: {
     fontSize: 12,
-    color: '#999',
+    color: colors.neutral[400],
     textAlign: 'center',
-    marginTop: 8,
-    lineHeight: 16,
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-  },
-  emptyText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#999',
-    textAlign: 'center',
+    lineHeight: 17,
+    paddingHorizontal: spacing.md,
   },
 });

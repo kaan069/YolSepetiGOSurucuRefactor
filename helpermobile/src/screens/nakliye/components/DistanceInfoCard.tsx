@@ -1,8 +1,6 @@
 // Mesafe bilgisi kartı - Nakliye iş detayı
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Card, Text } from 'react-native-paper';
-import { useAppTheme } from '../../../hooks/useAppTheme';
+import { InfoRow, JobSection } from '../../../components/job';
 
 interface DistanceInfoCardProps {
   distanceToPickup: number | null;
@@ -11,58 +9,20 @@ interface DistanceInfoCardProps {
 }
 
 export default function DistanceInfoCard({ distanceToPickup, totalDistance, visible }: DistanceInfoCardProps) {
-  const { isDarkMode, appColors } = useAppTheme();
-
-  if (!visible) return null;
-
-  const containerBg = isDarkMode ? '#0d2137' : '#E3F2FD';
-  const valueColor = isDarkMode ? '#90CAF9' : '#1976D2';
-
+  if (!visible || (distanceToPickup === null && totalDistance === null)) return null;
   return (
-    <Card style={styles.card}>
-      <Card.Title title="Mesafe Bilgisi" titleStyle={styles.title} />
-      <Card.Content>
-        <View style={[styles.container, { backgroundColor: containerBg }]}>
-          {distanceToPickup !== null && (
-            <View style={styles.row}>
-              <Text style={[styles.label, { color: appColors.text.secondary }]}>Alış noktasına:</Text>
-              <Text style={[styles.value, { color: valueColor }]}>{distanceToPickup.toFixed(1)} km</Text>
-            </View>
-          )}
-          {totalDistance !== null && (
-            <View style={styles.row}>
-              <Text style={[styles.label, { color: appColors.text.secondary }]}>Alış → Teslim:</Text>
-              <Text style={[styles.value, { color: valueColor }]}>{totalDistance.toFixed(1)} km</Text>
-            </View>
-          )}
-        </View>
-      </Card.Content>
-    </Card>
+    <JobSection title="Mesafe Bilgisi" icon="map-marker-distance">
+      {distanceToPickup !== null && (
+        <InfoRow
+          icon="crosshairs-gps"
+          label="Alış noktasına"
+          value={`${distanceToPickup.toFixed(1)} km`}
+          divider={totalDistance !== null}
+        />
+      )}
+      {totalDistance !== null && (
+        <InfoRow icon="map-marker-path" label="Alış → Teslim" value={`${totalDistance.toFixed(1)} km`} />
+      )}
+    </JobSection>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  container: {
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  label: {
-    fontSize: 14,
-  },
-  value: {
-    fontSize: 14,
-    fontWeight: '600',
-  },
-});
