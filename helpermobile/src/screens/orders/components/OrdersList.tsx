@@ -7,6 +7,8 @@ import EmptyOrdersState from './EmptyOrdersState';
 import { OrderStatus } from '../../../lib/types';
 import { useAppTheme } from '../../../hooks/useAppTheme';
 import { OrdersJob } from '../types';
+import { FkInfoBanner } from '../../../components/fk';
+import { colors, spacing } from '../../../theme/design';
 
 interface OrdersListProps {
   jobs: OrdersJob[];
@@ -25,7 +27,7 @@ export default function OrdersList({
   onRefresh,
   onJobPress,
 }: OrdersListProps) {
-  const { isDarkMode, appColors } = useAppTheme();
+  const { appColors } = useAppTheme();
 
   if (loading && !refreshing) {
     return (
@@ -54,20 +56,17 @@ export default function OrdersList({
         <RefreshControl
           refreshing={refreshing}
           onRefresh={onRefresh}
-          colors={['#26a69a']}
-          tintColor="#26a69a"
+          colors={[colors.primary[500]]}
+          tintColor={colors.primary[500]}
         />
       }
       ListHeaderComponent={
         filter === 'in_progress' && jobs.length > 0 ? (
-          <View style={[styles.infoBanner, {
-            backgroundColor: isDarkMode ? '#3e2e00' : '#FFF3E0',
-            borderColor: '#FFB74D',
-          }]}>
-            <Text style={[styles.infoBannerText, { color: isDarkMode ? '#FFB74D' : '#E65100' }]}>
-              ℹ️ Uygulamayı arka planda veya açık şekilde kullanın, aksi takdirde müşteriye konumunuz gitmez. İptal durumlarında ücret iadesi sözleşmedeki şartlara göre yapılır.
-            </Text>
-          </View>
+          <FkInfoBanner
+            type="warning"
+            style={styles.infoBanner}
+            message="Uygulamayı arka planda veya açık şekilde kullanın, aksi takdirde müşteriye konumunuz gitmez. İptal durumlarında ücret iadesi sözleşmedeki şartlara göre yapılır."
+          />
         ) : null
       }
       ListEmptyComponent={<EmptyOrdersState filter={filter} />}
@@ -83,20 +82,15 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   loadingText: {
-    marginTop: 8,
-    fontSize: 16,
+    marginTop: spacing.sm + 4,
+    fontSize: 15,
   },
   listContent: {
-    paddingBottom: 8,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.md,
+    flexGrow: 1,
   },
   infoBanner: {
-    borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-  infoBannerText: {
-    fontSize: 13,
-    lineHeight: 18,
+    marginBottom: spacing.xs,
   },
 });

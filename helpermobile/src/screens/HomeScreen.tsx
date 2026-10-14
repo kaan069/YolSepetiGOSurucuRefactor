@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Switch, Text, Card, useTheme, Button, IconButton } from 'react-native-paper';
+import { Switch, Text } from 'react-native-paper';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import MapView, { Region } from 'react-native-maps';
 import messaging from '@react-native-firebase/messaging';
 import * as Location from 'expo-location';
@@ -17,6 +18,8 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { RootStackParamList } from '../navigation';
 import authAPI from '../api/auth';
 import { logger } from '../utils/logger';
+import { FkButton, FkInfoBanner } from '../components/fk';
+import { colors, radius, shadows, spacing as ds, text } from '../theme/design';
 
 
 export default function HomeScreen() {
@@ -25,7 +28,7 @@ export default function HomeScreen() {
   const { isAvailable, currentLocation, updateOnlineStatus, loadOnlineStatus, isLoadingStatus } = useDriverStore();
   const { currentUser, setCurrentUser } = useAuthStore();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const theme = useTheme();
+  const { cardBg, textPrimary, textSecondary } = useAppTheme();
   const { spacing, tabBar, safeArea, moderateScale } = useResponsive();
 
   // MapView referansı
@@ -127,46 +130,14 @@ export default function HomeScreen() {
       bottom: 0, // Harita tam ekranı kaplasın, tab bar üstte görünsün
     },
     locationButton: {
-      position: 'absolute' as const,
       bottom: tabBar.height + spacing.sm, // Tab bar'ın hemen üstünde, sağ alt köşede
-      right: spacing.sm,
-      width: moderateScale(56),
-      height: moderateScale(56),
-      borderRadius: moderateScale(28),
-      backgroundColor: '#26a69a',
-      justifyContent: 'center' as const,
-      alignItems: 'center' as const,
-      elevation: 8,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
+      right: spacing.md,
+      width: moderateScale(52),
+      height: moderateScale(52),
+      borderRadius: moderateScale(26),
     },
     overlayContainer: {
-      position: 'absolute' as const,
-      top: 0,
-      left: 0,
-      right: 0,
-      paddingTop: safeArea.top, // Status bar için
-    },
-    headerCard: {
-      margin: spacing.md,
-      marginTop: spacing.sm, // SafeArea zaten paddingTop ile hallettik
-      backgroundColor: 'transparent',
-      elevation: 0,
-    },
-    headerContent: {
-      flexDirection: 'row' as const,
-      justifyContent: 'flex-end' as const,
-      alignItems: 'center' as const,
-      backgroundColor: 'rgba(38, 166, 154, 0.25)',
-      borderRadius: moderateScale(12),
-      padding: spacing.sm,
-    },
-    debugCard: {
-      backgroundColor: 'rgba(255, 152, 0, 0.9)',
-      borderRadius: moderateScale(12),
-      padding: spacing.sm,
+      paddingTop: safeArea.top + ds.sm, // Status bar için
     },
   };
 
@@ -180,64 +151,68 @@ export default function HomeScreen() {
         loadingEnabled
       />
 
-      {/* Konumu Bul Butonu */}
+      {/* Konumu Bul Butonu — müşteri uygulamasındaki beyaz yuvarlak harita kontrolü */}
       <TouchableOpacity
-        style={dynamicStyles.locationButton}
+        style={[styles.locationButton, dynamicStyles.locationButton, { backgroundColor: cardBg }]}
         onPress={handleFindMyLocation}
-        activeOpacity={0.7}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="Konumumu bul"
       >
-        <IconButton
-          icon="crosshairs-gps"
-          iconColor="#fff"
-          size={moderateScale(24)}
-          style={{ margin: 0 }}
-        />
+        <MaterialCommunityIcons name="crosshairs-gps" size={moderateScale(24)} color={colors.primary[500]} />
       </TouchableOpacity>
 
-      {/* Overlay UI for driver status and stats. */}
-      {/* Sürücü durumu ve istatistikleri için arayüz. */}
-      <View style={dynamicStyles.overlayContainer}>
-        <Card style={dynamicStyles.headerCard}>
-          <Card.Content style={dynamicStyles.headerContent}>
-            <View style={styles.availabilityContainer}>
-              <Text variant="titleMedium" style={styles.headerText}>
-                {isAvailable ? 'Çevrimiçi' : 'Çevrimdışı'}
-              </Text>
-              <Switch
-                value={isAvailable}
-                onValueChange={handleAvailabilityChange}
-                disabled={isLoadingStatus}
-              />
-            </View>
-          </Card.Content>
-        </Card>
+      {/* Sürücü durumu kartı ve uyarılar */}
+      <View style={[styles.overlayContainer, dynamicStyles.overlayContainer]}>
+        <View style={[styles.statusCard, { backgroundColor: cardBg }]}>
+          <View
+            style={[
+              styles.statusIcon,
+              { backgroundColor: isAvailable ? colors.success[50] : colors.neutral[100] },
+            ]}
+          >
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: isAvailable ? colors.success[500] : colors.neutral[400] },
+              ]}
+            />
+          </View>
+          <View style={styles.statusTexts}>
+            <Text style={[styles.statusTitle, { color: textPrimary }]}>
+              {isAvailable ? 'Çevrimiçi' : 'Çevrimdışı'}
+            </Text>
+            <Text style={[styles.statusSubtitle, { color: textSecondary }]}>
+              {isAvailable ? 'Yeni iş talepleri size ulaşıyor' : 'Yeni iş talebi almıyorsunuz'}
+            </Text>
+          </View>
+          <Switch
+            value={isAvailable}
+            onValueChange={handleAvailabilityChange}
+            disabled={isLoadingStatus}
+          />
+        </View>
 
-        {/* Hizmet şehri seçilmediyse uyarı banner'ı —
+        {/* Hizmet şehri seçilmediyse uyarı —
             backend bu durumda hiçbir talep döndürmez ve FCM göndermez */}
         {needsServiceCity && (
-          <Card style={[styles.serviceCityBanner, { margin: spacing.md, marginTop: 0 }]}>
-            <Card.Content style={styles.serviceCityBannerContent}>
-              <Text variant="titleSmall" style={styles.serviceCityBannerTitle}>
-                📍 Hizmet şehri seçilmedi
-              </Text>
-              <Text variant="bodySmall" style={styles.serviceCityBannerBody}>
-                Yeni iş bildirimleri için hizmet şehirlerinizi seçin. Aksi takdirde talepler size ulaşmaz.
-              </Text>
-              <Button
-                mode="contained"
-                compact
-                onPress={() => navigation.navigate('ServiceCity')}
-                style={styles.serviceCityBannerButton}
-                buttonColor="#f57c00"
-              >
-                Şehir Seç
-              </Button>
-            </Card.Content>
-          </Card>
+          <FkInfoBanner
+            type="warning"
+            icon="map-marker-alert-outline"
+            title="Hizmet şehri seçilmedi"
+            message="Yeni iş bildirimleri için hizmet şehirlerinizi seçin. Aksi takdirde talepler size ulaşmaz."
+            style={styles.serviceCityBanner}
+          >
+            <FkButton
+              size="sm"
+              onPress={() => navigation.navigate('ServiceCity')}
+              style={styles.serviceCityButton}
+              icon="map-marker-plus-outline"
+            >
+              Şehir Seç
+            </FkButton>
+          </FkInfoBanner>
         )}
-
-        {/* Firebase Test Button - for debugging */}
-
       </View>
 
       {/* Notification banner for new jobs. */}
@@ -252,37 +227,55 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  headerText: {
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+  locationButton: {
+    position: 'absolute',
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadows.lg,
   },
-  availabilityContainer: {
+  overlayContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: ds.md,
+    gap: ds.sm + 4,
+  },
+  statusCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    borderRadius: radius.lg,
+    padding: ds.sm + 4,
+    gap: ds.sm + 4,
+    ...shadows.md,
+  },
+  statusIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statusDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+  },
+  statusTexts: {
+    flex: 1,
+  },
+  statusTitle: {
+    ...text.cardTitle,
+  },
+  statusSubtitle: {
+    ...text.meta,
+    marginTop: 1,
   },
   serviceCityBanner: {
-    backgroundColor: '#fff3e0',
-    borderLeftWidth: 4,
-    borderLeftColor: '#f57c00',
-    borderRadius: 8,
-    elevation: 3,
+    ...shadows.sm,
   },
-  serviceCityBannerContent: {
-    paddingVertical: 12,
-  },
-  serviceCityBannerTitle: {
-    fontWeight: 'bold',
-    color: '#e65100',
-    marginBottom: 4,
-  },
-  serviceCityBannerBody: {
-    color: '#5d4037',
-    marginBottom: 10,
-    lineHeight: 18,
-  },
-  serviceCityBannerButton: {
+  serviceCityButton: {
     alignSelf: 'flex-start',
-    borderRadius: 6,
+    marginTop: ds.sm,
   },
 });

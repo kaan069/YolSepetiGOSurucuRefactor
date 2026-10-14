@@ -1,38 +1,40 @@
 import React from 'react';
-import { Text } from 'react-native-paper';
-import { StyleSheet } from 'react-native';
 import { OrderStatus } from '../../../lib/types';
-import { useAppTheme } from '../../../hooks/useAppTheme';
+import { FkEmptyState } from '../../../components/fk';
 
 interface EmptyOrdersStateProps {
   filter: OrderStatus;
 }
 
-export default function EmptyOrdersState({ filter }: EmptyOrdersStateProps) {
-  const { appColors } = useAppTheme();
-
-  const getMessage = () => {
-    switch (filter) {
-      case 'pending':
-        return 'Bekleyen iş bulunmuyor.';
-      case 'awaiting_approval':
-        return 'Onay bekleyen iş bulunmuyor.';
-      case 'in_progress':
-        return 'Devam eden iş bulunmuyor.';
-      case 'completed':
-        return 'Tamamlanmış iş bulunmuyor.';
-      default:
-        return 'İş bulunmuyor.';
-    }
-  };
-
-  return <Text style={[styles.emptyText, { color: appColors.text.secondary }]}>{getMessage()}</Text>;
-}
-
-const styles = StyleSheet.create({
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 40,
-    fontSize: 16,
+const EMPTY: Partial<Record<OrderStatus, { icon: string; title: string; message: string }>> = {
+  pending: {
+    icon: 'inbox-outline',
+    title: 'Bekleyen iş bulunmuyor',
+    message: 'Yeni talepler geldiğinde burada görünecek.',
   },
-});
+  awaiting_approval: {
+    icon: 'account-clock-outline',
+    title: 'Onay bekleyen iş bulunmuyor',
+    message: 'Teklif verdiğiniz ve müşterinin onayını bekleyen işler burada listelenir.',
+  },
+  awaiting_payment: {
+    icon: 'credit-card-clock-outline',
+    title: 'Ödeme bekleyen iş bulunmuyor',
+    message: 'Müşterinin onayladığı ve ödeme bekleyen işler burada listelenir.',
+  },
+  in_progress: {
+    icon: 'truck-fast-outline',
+    title: 'Devam eden iş bulunmuyor',
+    message: 'Başlayan işleriniz burada görünecek.',
+  },
+  completed: {
+    icon: 'check-circle-outline',
+    title: 'Tamamlanmış iş bulunmuyor',
+    message: 'Bitirdiğiniz işler burada listelenir.',
+  },
+};
+
+export default function EmptyOrdersState({ filter }: EmptyOrdersStateProps) {
+  const cfg = EMPTY[filter] || { icon: 'inbox-outline', title: 'İş bulunmuyor', message: '' };
+  return <FkEmptyState icon={cfg.icon} title={cfg.title} message={cfg.message || undefined} />;
+}

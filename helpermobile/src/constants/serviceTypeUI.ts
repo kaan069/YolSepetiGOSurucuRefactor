@@ -53,7 +53,9 @@ export const SERVICE_EMOJI: Record<ServiceGroup, string> = {
 };
 
 /**
- * MaterialCommunityIcons icon adı (react-native-vector-icons).
+ * MaterialCommunityIcons icon adı (react-native-vector-icons) — TEK KAYNAK.
+ * 2026-10 tasarım geçişi: İşler listesi/sekmeleriyle aynı olacak şekilde transfer=bus,
+ * nakliye=truck-delivery'ye eşitlendi (eskiden car-estate / truck-cargo-container).
  * Kaynak: CommissionPaymentCard.tsx (crane, nakliye=truck-cargo-container,
  * roadAssistance=car-wrench, transfer=car-estate) + PaymentConfirmationModal.tsx
  * (towTruck=tow-truck). UI group `nakliye` CommissionPaymentCard ile aynı
@@ -71,8 +73,8 @@ export const SERVICE_ICON: Record<ServiceGroup, string> = {
   roadAssistance: 'car-wrench',
   homeToHomeMoving: 'home-variant',
   cityToCity: 'city',
-  transfer: 'car-estate',
-  nakliye: 'truck-cargo-container',
+  transfer: 'bus',
+  nakliye: 'truck-delivery',
 };
 
 /**

@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, TouchableOpacity, StyleSheet, Animated } from 'react-native';
-import { Text } from 'react-native-paper';
+import { View, TouchableOpacity, StyleSheet, Animated, Text } from 'react-native';
 import { OrderStatus } from '../../../lib/types';
 import { useSyncedBlink } from '../../../hooks/useSyncedBlink';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { colors, radius, spacing } from '../../../theme/design';
 
 interface MyJobsTabsProps {
   filter: OrderStatus;
@@ -15,6 +15,7 @@ interface MyJobsTabsProps {
   serviceFilter: 'tow' | 'crane' | 'roadAssistance' | 'nakliye' | 'transfer';
 }
 
+/** Benim İşlerim alt durum çipleri. İş bekleyen çip nabız atar (onay/devam: kırmızı, ödeme: turuncu). */
 export default function MyJobsTabs({
   filter,
   onFilterChange,
@@ -30,118 +31,53 @@ export default function MyJobsTabs({
 
   if (!visible) return null;
 
-  // Onay Bekleyen için kırmızı overlay
-  const awaitingBgColor = blinkAnim.interpolate({
+  const redPulse = blinkAnim.interpolate({
     inputRange: [0.3, 1],
-    outputRange: ['rgba(239, 68, 68, 0.9)', 'transparent'], // Kırmızı
+    outputRange: ['rgba(239, 68, 68, 0.85)', 'rgba(239, 68, 68, 0)'],
+  });
+  const orangePulse = blinkAnim.interpolate({
+    inputRange: [0.3, 1],
+    outputRange: ['rgba(249, 115, 22, 0.85)', 'rgba(249, 115, 22, 0)'],
   });
 
-  // Ödeme Bekl. için mor overlay
-  const paymentBgColor = blinkAnim.interpolate({
-    inputRange: [0.3, 1],
-    outputRange: ['rgba(156, 39, 176, 0.8)', 'transparent'], // Mor
-  });
+  const idleBg = isDarkMode ? '#1E1E1E' : colors.white;
+  const idleBorder = isDarkMode ? '#444444' : colors.neutral[200];
+  const idleText = isDarkMode ? '#E0E0E0' : colors.neutral[700];
 
-  // Devam Eden için kırmızı overlay
-  const inProgressBgColor = blinkAnim.interpolate({
-    inputRange: [0.3, 1],
-    outputRange: ['rgba(239, 68, 68, 0.9)', 'transparent'], // Kırmızı
-  });
+  const chips: { value: OrderStatus; label: string; blink: boolean; pulse: Animated.AnimatedInterpolation<string> }[] = [
+    { value: 'awaiting_approval', label: 'Onay Bekleyen', blink: hasAwaitingApproval, pulse: redPulse },
+    { value: 'awaiting_payment', label: 'Ödeme Bekl.', blink: hasAwaitingPayment, pulse: orangePulse },
+    { value: 'in_progress', label: 'Devam Eden', blink: hasInProgress, pulse: redPulse },
+  ];
 
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? '#1a2e2c' : '#b2dfdb' }]}>
-      {/* Onay Bekleyen */}
-      <TouchableOpacity
-        style={[
-          styles.button,
-          filter === 'awaiting_approval' && styles.buttonActive,
-        ]}
-        onPress={() => onFilterChange('awaiting_approval')}
-      >
-        {hasAwaitingApproval && (
-          <Animated.View
+    <View style={styles.container}>
+      {chips.map((chip) => {
+        const active = filter === chip.value;
+        return (
+          <TouchableOpacity
+            key={chip.value}
             style={[
-              StyleSheet.absoluteFillObject,
-              {
-                backgroundColor: awaitingBgColor,
-                borderRadius: 6,
-                zIndex: -1,
-              },
+              styles.chip,
+              active
+                ? { backgroundColor: colors.primary[500], borderColor: colors.primary[500] }
+                : { backgroundColor: idleBg, borderColor: idleBorder },
             ]}
-          />
-        )}
-        <Text
-          style={[
-            styles.buttonText,
-            { color: isDarkMode ? '#80cbc4' : '#00695c' },
-            filter === 'awaiting_approval' && styles.buttonTextActive,
-          ]}
-        >
-          Onay Bekleyen
-        </Text>
-      </TouchableOpacity>
-
-      {/* Ödeme Bekl. */}
-      <TouchableOpacity
-        style={[
-          styles.button,
-          filter === 'awaiting_payment' && styles.buttonActivePayment,
-        ]}
-        onPress={() => onFilterChange('awaiting_payment')}
-      >
-        {hasAwaitingPayment && (
-          <Animated.View
-            style={[
-              StyleSheet.absoluteFillObject,
-              {
-                backgroundColor: paymentBgColor,
-                borderRadius: 6,
-                zIndex: -1,
-              },
-            ]}
-          />
-        )}
-        <Text
-          style={[
-            styles.buttonText,
-            { color: isDarkMode ? '#80cbc4' : '#00695c' },
-            filter === 'awaiting_payment' && styles.buttonTextActive,
-          ]}
-        >
-          Ödeme Bekl.
-        </Text>
-      </TouchableOpacity>
-
-      {/* Devam Eden */}
-      <TouchableOpacity
-        style={[
-          styles.button,
-          filter === 'in_progress' && styles.buttonActive,
-        ]}
-        onPress={() => onFilterChange('in_progress')}
-      >
-        {hasInProgress && (
-          <Animated.View
-            style={[
-              StyleSheet.absoluteFillObject,
-              {
-                backgroundColor: inProgressBgColor,
-                borderRadius: 6,
-                zIndex: -1,
-              },
-            ]}
-          />
-        )}
-        <Text
-          style={[
-            styles.buttonText,
-            { color: isDarkMode ? '#80cbc4' : '#00695c' },
-            filter === 'in_progress' && styles.buttonTextActive,
-          ]}
-        >
-          Devam Eden
-        </Text>
-      </TouchableOpacity>
+            onPress={() => onFilterChange(chip.value)}
+            activeOpacity={0.8}
+          >
+            {chip.blink && (
+              <Animated.View
+                pointerEvents="none"
+                style={[StyleSheet.absoluteFillObject, { backgroundColor: chip.pulse }]}
+              />
+            )}
+            <Text style={[styles.chipText, { color: active ? colors.white : idleText }]} numberOfLines={1}>
+              {chip.label}
+            </Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
@@ -149,35 +85,22 @@ export default function MyJobsTabs({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    marginTop: 4,
-    marginBottom: 8,
-    borderRadius: 8,
-    padding: 4,
-    gap: 4,
+    gap: spacing.sm,
+    marginTop: spacing.sm + 4,
+    marginBottom: spacing.xs,
   },
-  button: {
+  chip: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    paddingVertical: 9,
+    paddingHorizontal: 8,
+    borderRadius: radius.full,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
     overflow: 'hidden',
-    position: 'relative',
   },
-  buttonActive: {
-    backgroundColor: '#26a69a', // Ana turkuaz (primary.400)
-  },
-  buttonActivePayment: {
-    backgroundColor: '#9C27B0', // Mor - Ödeme Bekleniyor
-  },
-  buttonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  buttonTextActive: {
-    color: '#FFF',
+  chipText: {
+    fontSize: 13,
     fontWeight: '600',
   },
 });

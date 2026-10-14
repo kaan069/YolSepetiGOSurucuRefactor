@@ -1,8 +1,9 @@
 import React from 'react';
-import { SegmentedButtons } from 'react-native-paper';
-import { StyleSheet, Animated, View } from 'react-native';
+import { StyleSheet, Animated, View, TouchableOpacity, Text } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useSyncedBlink } from '../../../hooks/useSyncedBlink';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { colors, radius, shadows, spacing } from '../../../theme/design';
 
 interface OrdersTabsProps {
   mainTab: 'incoming' | 'my_jobs';
@@ -13,6 +14,7 @@ interface OrdersTabsProps {
   hasActiveJobs?: boolean; // Benim İşlerim için: awaiting_approval + awaiting_payment + in_progress > 0
 }
 
+/** Gelen İşler / Benim İşlerim segment kontrolü. Bekleyen iş varsa ilgili segment kırmızı nabız atar. */
 export default function OrdersTabs({
   mainTab,
   onMainTabChange,
@@ -21,126 +23,103 @@ export default function OrdersTabs({
   incomingCount,
   hasActiveJobs = false,
 }: OrdersTabsProps) {
-  const { isDarkMode, appColors } = useAppTheme();
-
-  const COLORS = {
-    primary: '#26a69a',
-    primaryDark: '#00897b',
-    selectedBg: '#26a69a',
-    unselectedBg: isDarkMode ? '#333333' : '#f5f5f5',
-    selectedText: '#ffffff',
-    unselectedText: isDarkMode ? '#9E9E9E' : '#666666',
-    border: isDarkMode ? '#444444' : '#e0e0e0',
-  };
+  const { isDarkMode } = useAppTheme();
 
   // Global senkronize animasyon
   const blinkAnim = useSyncedBlink(hasActiveJobs || hasIncoming);
 
-  // Gelen İşler için kırmızı overlay (devam eden iş yoksa ve gelen iş varsa)
+  // Gelen İşler için kırmızı nabız (devam eden iş yoksa ve gelen iş varsa)
   const showIncomingBlink = !hasInProgress && hasIncoming;
-
-  // Benim İşlerim için kırmızı overlay
+  // Benim İşlerim için kırmızı nabız
   const showMyJobsBlink = hasActiveJobs;
 
-  const incomingBackgroundColor = blinkAnim.interpolate({
+  const pulseColor = blinkAnim.interpolate({
     inputRange: [0.3, 1],
-    outputRange: ['rgba(244, 67, 54, 0.8)', 'transparent'],
+    outputRange: ['rgba(239, 68, 68, 0.85)', 'rgba(239, 68, 68, 0)'],
   });
 
-  const myJobsBackgroundColor = blinkAnim.interpolate({
-    inputRange: [0.3, 1],
-    outputRange: ['rgba(239, 68, 68, 0.9)', 'transparent'], // Kırmızı (#EF4444)
-  });
+  const trackBg = isDarkMode ? '#2C2C2C' : colors.neutral[100];
+  const activeBg = isDarkMode ? '#1E1E1E' : colors.white;
+
+  const renderTab = (
+    value: 'incoming' | 'my_jobs',
+    label: string,
+    icon: string,
+    blink: boolean,
+    count?: number,
+  ) => {
+    const active = mainTab === value;
+    const fg = active ? (isDarkMode ? '#E0E0E0' : colors.primary[700]) : isDarkMode ? '#9E9E9E' : colors.neutral[500];
+    return (
+      <TouchableOpacity
+        style={[styles.tab, active && [styles.tabActive, { backgroundColor: activeBg }]]}
+        onPress={() => onMainTabChange(value)}
+        activeOpacity={0.8}
+        accessibilityRole="tab"
+        accessibilityState={{ selected: active }}
+      >
+        {blink && (
+          <Animated.View
+            pointerEvents="none"
+            style={[StyleSheet.absoluteFillObject, styles.pulse, { backgroundColor: pulseColor }]}
+          />
+        )}
+        <MaterialCommunityIcons name={icon} size={18} color={fg} />
+        <Text style={[styles.tabText, { color: fg, fontWeight: active ? '700' : '500' }]}>{label}</Text>
+        {count !== undefined && count > 0 ? (
+          <View style={[styles.count, { backgroundColor: active ? colors.primary[500] : colors.neutral[300] }]}>
+            <Text style={styles.countText}>{count}</Text>
+          </View>
+        ) : null}
+      </TouchableOpacity>
+    );
+  };
 
   return (
-    <View style={styles.container}>
-      <SegmentedButtons
-        value={mainTab}
-        onValueChange={(value) => onMainTabChange(value as 'incoming' | 'my_jobs')}
-        buttons={[
-          {
-            value: 'incoming',
-            label: `📥 Gelen İşler${incomingCount > 0 ? ` (${incomingCount})` : ''}`,
-            style: mainTab === 'incoming'
-              ? { backgroundColor: COLORS.selectedBg, borderColor: COLORS.primaryDark, borderWidth: 2 }
-              : { backgroundColor: COLORS.unselectedBg, borderColor: COLORS.border, borderWidth: 1 },
-            labelStyle: mainTab === 'incoming'
-              ? { color: COLORS.selectedText, fontWeight: '700' as const, fontSize: 14 }
-              : { color: COLORS.unselectedText, fontWeight: '500' as const, fontSize: 14 },
-            checkedColor: COLORS.selectedText,
-            uncheckedColor: COLORS.unselectedText,
-          },
-          {
-            value: 'my_jobs',
-            label: '📋 Benim İşlerim',
-            style: mainTab === 'my_jobs'
-              ? { backgroundColor: COLORS.selectedBg, borderColor: COLORS.primaryDark, borderWidth: 2 }
-              : { backgroundColor: COLORS.unselectedBg, borderColor: COLORS.border, borderWidth: 1 },
-            labelStyle: mainTab === 'my_jobs'
-              ? { color: COLORS.selectedText, fontWeight: '700' as const, fontSize: 14 }
-              : { color: COLORS.unselectedText, fontWeight: '500' as const, fontSize: 14 },
-            checkedColor: COLORS.selectedText,
-            uncheckedColor: COLORS.unselectedText,
-          },
-        ]}
-        style={styles.buttons}
-        theme={{
-          colors: {
-            secondaryContainer: COLORS.selectedBg,
-            onSecondaryContainer: COLORS.selectedText,
-          },
-        }}
-      />
-      {/* Gelen İşler overlay */}
-      {showIncomingBlink && (
-        <Animated.View
-          style={[
-            styles.pulseOverlay,
-            styles.leftOverlay,
-            {
-              backgroundColor: incomingBackgroundColor,
-            },
-          ]}
-          pointerEvents="none"
-        />
-      )}
-      {/* Benim İşlerim overlay - kırmızı yanıp sönme */}
-      {showMyJobsBlink && (
-        <Animated.View
-          style={[
-            styles.pulseOverlay,
-            styles.rightOverlay,
-            {
-              backgroundColor: myJobsBackgroundColor,
-            },
-          ]}
-          pointerEvents="none"
-        />
-      )}
+    <View style={[styles.track, { backgroundColor: trackBg }]}>
+      {renderTab('incoming', 'Gelen İşler', 'inbox-arrow-down-outline', showIncomingBlink, incomingCount)}
+      {renderTab('my_jobs', 'Benim İşlerim', 'clipboard-list-outline', showMyJobsBlink)}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    position: 'relative',
+  track: {
+    flexDirection: 'row',
+    borderRadius: radius.md,
+    padding: 4,
+    marginTop: spacing.sm,
   },
-  buttons: {
-    marginTop: 4,
-    marginBottom: 8,
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: radius.sm + 2,
+    overflow: 'hidden',
   },
-  pulseOverlay: {
-    position: 'absolute',
-    top: 4,
-    bottom: 8,
-    borderRadius: 8,
+  tabActive: {
+    ...shadows.sm,
   },
-  leftOverlay: {
-    left: 0,
-    right: '50%',
+  pulse: {
+    borderRadius: radius.sm + 2,
   },
-  rightOverlay: {
-    left: '50%',
-    right: 0,
+  tabText: {
+    fontSize: 14,
+  },
+  count: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countText: {
+    color: colors.white,
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

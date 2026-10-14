@@ -1,9 +1,11 @@
 import React from 'react';
-import { StyleSheet, View, TouchableOpacity, Animated } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity, Animated } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { ServiceFilterType } from '../hooks/useOrdersData';
 import { useSyncedBlink } from '../../../hooks/useSyncedBlink';
 import { useAppTheme } from '../../../hooks/useAppTheme';
+import { SERVICE_ICON } from '../../../constants/serviceTypeUI';
+import { colors, radius, spacing } from '../../../theme/design';
 
 interface ServiceTypeTabsProps {
   serviceTypes: ServiceFilterType[];
@@ -13,20 +15,21 @@ interface ServiceTypeTabsProps {
 }
 
 const SERVICE_INFO: Record<ServiceFilterType, { label: string; icon: string }> = {
-  tow: { label: 'Çekici', icon: 'tow-truck' },
-  crane: { label: 'Vinç', icon: 'crane' },
-  roadAssistance: { label: 'Yol Yardım', icon: 'car-wrench' },
-  nakliye: { label: 'Nakliye', icon: 'truck-delivery' },
-  transfer: { label: 'Transfer', icon: 'bus' },
+  tow: { label: 'Çekici', icon: SERVICE_ICON.towTruck },
+  crane: { label: 'Vinç', icon: SERVICE_ICON.crane },
+  roadAssistance: { label: 'Yol Yardım', icon: SERVICE_ICON.roadAssistance },
+  nakliye: { label: 'Nakliye', icon: SERVICE_ICON.nakliye },
+  transfer: { label: 'Transfer', icon: SERVICE_ICON.transfer },
 };
 
+/** Hizmet türü filtre çipleri (müşteri uygulamasındaki filtre çipleri). */
 export default function ServiceTypeTabs({
   serviceTypes,
   selectedType,
   onTypeChange,
   hasActiveJobs = false,
 }: ServiceTypeTabsProps) {
-  const { isDarkMode, appColors } = useAppTheme();
+  const { isDarkMode } = useAppTheme();
   // Global senkronize animasyon
   const blinkAnim = useSyncedBlink(hasActiveJobs);
 
@@ -34,90 +37,65 @@ export default function ServiceTypeTabs({
     return null;
   }
 
-  // Seçili buton için arka plan rengi interpolasyonu
-  // Normal: transparent -> Seçili: #26a69a (yeşil)
-  // Pulse modunda: açık yeşil <-> koyu yeşil arası gidip gelir
+  // Seçili çip, aktif iş varken açık ↔ koyu ana renk arasında nabız atar
   const selectedBgColor = blinkAnim.interpolate({
     inputRange: [0.3, 1],
-    outputRange: ['rgba(38, 166, 154, 0.5)', '#26a69a'],
+    outputRange: [colors.primary[300], colors.primary[500]],
   });
 
+  const idleBg = isDarkMode ? '#2C2C2C' : colors.neutral[100];
+  const idleText = isDarkMode ? '#E0E0E0' : colors.neutral[700];
+
   return (
-    <View style={[styles.container, { backgroundColor: isDarkMode ? '#1a2e2c' : '#e0f2f1' }]}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.container}
+    >
       {serviceTypes.map((type) => {
         const info = SERVICE_INFO[type] || { label: type, icon: 'help-circle' };
         const isSelected = selectedType === type;
 
         return (
-          <TouchableOpacity
-            key={type}
-            style={styles.tab}
-            onPress={() => onTypeChange(type)}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity key={type} onPress={() => onTypeChange(type)} activeOpacity={0.7}>
             <Animated.View
               style={[
-                styles.tabInner,
-                isSelected && hasActiveJobs && { backgroundColor: selectedBgColor },
-                isSelected && !hasActiveJobs && styles.tabSelected,
+                styles.chip,
+                { backgroundColor: idleBg },
+                isSelected && { backgroundColor: hasActiveJobs ? selectedBgColor : colors.primary[500] },
               ]}
             >
               <MaterialCommunityIcons
                 name={info.icon}
-                size={20}
-                color={isSelected ? '#fff' : isDarkMode ? '#80cbc4' : '#26a69a'}
+                size={18}
+                color={isSelected ? colors.white : colors.primary[500]}
               />
-              <Animated.Text
-                style={[
-                  styles.tabText,
-                  { color: isDarkMode ? '#80cbc4' : '#26a69a' },
-                  isSelected && styles.tabTextSelected,
-                ]}
-              >
+              <Animated.Text style={[styles.chipText, { color: isSelected ? colors.white : idleText }]}>
                 {info.label}
               </Animated.Text>
             </Animated.View>
           </TouchableOpacity>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flexDirection: 'row',
-    marginTop: 8,
-    marginBottom: 8,
-    borderRadius: 12,
-    padding: 4,
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
   },
-  tab: {
-    flex: 1,
-  },
-  tabInner: {
+  chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 8,
-    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: radius.full,
     gap: 6,
   },
-  tabSelected: {
-    backgroundColor: '#26a69a',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  tabText: {
+  chipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#26a69a',
-  },
-  tabTextSelected: {
-    color: '#fff',
   },
 });

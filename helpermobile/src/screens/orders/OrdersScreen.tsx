@@ -1,11 +1,10 @@
 import React, { useEffect, useCallback, useRef } from 'react';
-import { StyleSheet, View, Vibration } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View, Vibration, Text } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRoute } from '@react-navigation/native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import { OrderStatus } from '../../lib/types';
-import { useResponsive } from '../../hooks/useResponsive';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useJobsWebSocket } from '../../hooks/useJobsWebSocket';
 import { ServiceType } from '../../constants/serviceTypes';
@@ -13,6 +12,7 @@ import { useCancellationEventStore } from '../../store/useCancellationEventStore
 import { useJobUpdateEventStore } from '../../store/useJobUpdateEventStore';
 import { useJobCountsStore } from '../../store/useJobCountsStore';
 import { useAuthStore } from '../../store/authStore';
+import { colors, spacing as designSpacing, text } from '../../theme/design';
 
 // Components
 import ServiceTypeTabs from './components/ServiceTypeTabs';
@@ -64,8 +64,9 @@ type RouteType = NativeStackScreenProps<RootStackParamList, 'Orders'>['route'];
 
 export default function OrdersScreen() {
   const route = useRoute<RouteType>();
-  const { spacing } = useResponsive();
-  const { screenBg } = useAppTheme();
+  const { screenBg, cardBg, isDarkMode, textPrimary } = useAppTheme();
+  const insets = useSafeAreaInsets();
+  const headerBorder = isDarkMode ? '#333333' : colors.neutral[200];
 
   // Filter state management (useReducer - atomik state geçişi)
   const {
@@ -263,35 +264,39 @@ export default function OrdersScreen() {
     [navigateToJob]
   );
 
-  const dynamicStyles = {
-    container: {
-      flex: 1,
-      paddingHorizontal: spacing.sm,
-    },
-  };
-
   return (
     <View style={[styles.flexContainer, { backgroundColor: screenBg }]}>
-      <SafeAreaView style={dynamicStyles.container} edges={['top', 'left', 'right']}>
-        {/* Hizmet Türü Butonları */}
-        <ServiceTypeTabs
-          serviceTypes={userServiceTypes}
-          selectedType={serviceFilter}
-          onTypeChange={handleServiceFilterChange}
-          hasActiveJobs={jobCounts.awaiting_approval + jobCounts.awaiting_payment + jobCounts.in_progress > 0}
-        />
+      <SafeAreaView style={styles.flexContainer} edges={['left', 'right']}>
+        {/* Üst alan: büyük başlık + hizmet çipleri + Gelen İşler / Benim İşlerim */}
+        <View
+          style={[
+            styles.header,
+            { paddingTop: insets.top + designSpacing.sm, backgroundColor: cardBg, borderBottomColor: headerBorder },
+          ]}
+        >
+          <Text style={[styles.title, { color: textPrimary }]}>İşler</Text>
 
-        {/* Ana Tab Butonları (Gelen İşler / Benim İşlerim) */}
-        <OrdersTabs
-          mainTab={mainTab}
-          onMainTabChange={handleMainTabChange}
-          hasIncoming={jobCounts.pending > 0}
-          hasInProgress={jobCounts.in_progress > 0}
-          incomingCount={jobCounts.pending}
-          hasActiveJobs={jobCounts.awaiting_approval + jobCounts.awaiting_payment + jobCounts.in_progress > 0}
-        />
+          {/* Hizmet Türü Çipleri */}
+          <ServiceTypeTabs
+            serviceTypes={userServiceTypes}
+            selectedType={serviceFilter}
+            onTypeChange={handleServiceFilterChange}
+            hasActiveJobs={jobCounts.awaiting_approval + jobCounts.awaiting_payment + jobCounts.in_progress > 0}
+          />
 
-        {/* Alt Tab Butonları (Benim İşlerim sekmesinde görünür) */}
+          {/* Ana Sekmeler (Gelen İşler / Benim İşlerim) */}
+          <OrdersTabs
+            mainTab={mainTab}
+            onMainTabChange={handleMainTabChange}
+            hasIncoming={jobCounts.pending > 0}
+            hasInProgress={jobCounts.in_progress > 0}
+            incomingCount={jobCounts.pending}
+            hasActiveJobs={jobCounts.awaiting_approval + jobCounts.awaiting_payment + jobCounts.in_progress > 0}
+          />
+        </View>
+
+        <View style={styles.body}>
+        {/* Alt Durum Çipleri (Benim İşlerim sekmesinde görünür) */}
         <MyJobsTabs
           filter={filter}
           onFilterChange={handleFilterChange}
@@ -311,6 +316,7 @@ export default function OrdersScreen() {
           onRefresh={onRefresh}
           onJobPress={handleCardPress}
         />
+        </View>
       </SafeAreaView>
     </View>
   );
@@ -319,5 +325,18 @@ export default function OrdersScreen() {
 const styles = StyleSheet.create({
   flexContainer: {
     flex: 1,
+  },
+  header: {
+    paddingHorizontal: designSpacing.md,
+    paddingBottom: designSpacing.sm + 4,
+    borderBottomWidth: 1,
+  },
+  title: {
+    ...text.largeTitle,
+    marginBottom: designSpacing.sm,
+  },
+  body: {
+    flex: 1,
+    paddingHorizontal: designSpacing.md - 4,
   },
 });

@@ -1,16 +1,24 @@
 import React from 'react';
-import { Card, Text, Button } from 'react-native-paper';
 import { OrdersJob } from '../screens/orders/types';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAppTheme } from '../hooks/useAppTheme';
 import { maskAddressToArea } from '../utils/addressMask';
 import { useDriverStore } from '../store/driverStore';
 import { calculateDistance } from '../screens/jobDetail/utils';
-import type { ServiceGroup } from '../constants/serviceTypes';
 import type { OrderStatus } from '../lib/types';
+import { SERVICE_ICON, SERVICE_LABEL } from '../constants/serviceTypeUI';
+import { FkButton, FkCard, FkIconChip, FkStatusBadge } from './fk';
+import { colors, radius, spacing, text } from '../theme/design';
 
-const PRIMARY_TEAL = '#26a69a';
+// Kart üzerindeki durum etiketi — "Beklemede" yerine sürücü diliyle "Gelen İş".
+const STATUS_TEXT: Partial<Record<OrderStatus, string>> = {
+  pending: 'Gelen İş',
+  awaiting_approval: 'Onay Bekliyor',
+  awaiting_payment: 'Ödeme Bekleniyor',
+  in_progress: 'Devam Ediyor',
+  completed: 'Tamamlandı',
+};
 
 interface Props {
   item: OrdersJob;
@@ -40,25 +48,6 @@ function splitMaskedAddress(masked: string): { city: string; district: string } 
   return { city: masked, district: '' };
 }
 
-function getServiceIcon(serviceType: ServiceGroup): string {
-  switch (serviceType) {
-    case 'towTruck':
-      return 'tow-truck';
-    case 'crane':
-      return 'crane';
-    case 'roadAssistance':
-      return 'car-wrench';
-    case 'nakliye':
-    case 'homeToHomeMoving':
-    case 'cityToCity':
-      return 'truck-delivery';
-    case 'transfer':
-      return 'bus';
-    default:
-      return 'car';
-  }
-}
-
 // Tarih: preferredDate varsa onu (gün farkıyla), yoksa createdAt'i kısa Türkçe.
 function formatJobDate(
   preferredDate: string | undefined,
@@ -73,19 +62,19 @@ function formatJobDate(
       const diffDays = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
       const label = target.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
       let sub = '';
-      let color = '#666';
+      let color: string = colors.neutral[500];
       if (diffDays < 0) {
         sub = `${Math.abs(diffDays)} gün önce`;
-        color = '#f44336';
+        color = colors.danger[600];
       } else if (diffDays === 0) {
         sub = 'Bugün';
-        color = '#4CAF50';
+        color = colors.success[600];
       } else if (diffDays === 1) {
         sub = 'Yarın';
-        color = '#FF9800';
+        color = colors.warning[600];
       } else if (diffDays <= 7) {
         sub = `${diffDays} gün sonra`;
-        color = '#2196F3';
+        color = colors.info[600];
       } else {
         sub = `${diffDays} gün sonra`;
       }
@@ -97,62 +86,15 @@ function formatJobDate(
     if (!isNaN(d.getTime())) {
       return {
         label: d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' }),
-        color: '#666',
+        color: colors.neutral[500],
       };
     }
   }
   return null;
 }
 
-function getStatusInfo(status: OrderStatus, isDarkMode: boolean) {
-  switch (status) {
-    case 'pending':
-      return {
-        color: '#FF9800',
-        bgColor: isDarkMode ? '#3e2e00' : '#FFF3E0',
-        icon: 'clock-outline',
-        text: 'Gelen İş',
-      };
-    case 'awaiting_approval':
-      return {
-        color: '#2196F3',
-        bgColor: isDarkMode ? '#0d2137' : '#E3F2FD',
-        icon: 'account-clock-outline',
-        text: 'Onay Bekliyor',
-      };
-    case 'awaiting_payment':
-      return {
-        color: '#9C27B0',
-        bgColor: isDarkMode ? '#2d1033' : '#F3E5F5',
-        icon: 'credit-card-clock-outline',
-        text: 'Ödeme Bekleniyor',
-      };
-    case 'in_progress':
-      return {
-        color: '#4CAF50',
-        bgColor: isDarkMode ? '#1b3a1b' : '#E8F5E9',
-        icon: 'truck-fast-outline',
-        text: 'Devam Ediyor',
-      };
-    case 'completed':
-      return {
-        color: '#4CAF50',
-        bgColor: isDarkMode ? '#1b3a1b' : '#E8F5E9',
-        icon: 'check-circle-outline',
-        text: 'Tamamlandı',
-      };
-    default:
-      return {
-        color: '#757575',
-        bgColor: isDarkMode ? '#333' : '#F5F5F5',
-        icon: 'information-outline',
-        text: status,
-      };
-  }
-}
-
 export default function OrderCard({ item, onPress }: Props) {
-  const { isDarkMode, appColors, cardBg } = useAppTheme();
+  const { isDarkMode, appColors } = useAppTheme();
   const currentLocation = useDriverStore((s) => s.currentLocation);
 
   const shouldShowFullAddress = item.status === 'in_progress' || item.status === 'completed';
@@ -174,11 +116,11 @@ export default function OrderCard({ item, onPress }: Props) {
   const fromSplit = splitMaskedAddress(fromMasked);
   const toSplit = splitMaskedAddress(toMasked);
 
-  const statusInfo = getStatusInfo(item.status, isDarkMode);
   const dateInfo = formatJobDate(item.preferredDate, item.createdAt);
   const showDistance = typeof item.distance === 'number' && item.distance > 0;
   const showPrice = typeof item.estimatedPrice === 'number' && item.estimatedPrice > 0;
-  const serviceIcon = getServiceIcon(item.serviceType);
+  const serviceIcon = SERVICE_ICON[item.serviceType] || 'car';
+  const serviceLabel = SERVICE_LABEL[item.serviceType] || 'Hizmet';
 
   // Sürücünün anlık konumundan müşterinin pickup noktasına haversine mesafesi.
   // currentLocation null veya from koordinatları yoksa null döner; null'da satır gizlenir.
@@ -200,366 +142,230 @@ export default function OrderCard({ item, onPress }: Props) {
       item.status === 'awaiting_approval' ||
       item.status === 'awaiting_payment');
 
-  const subtleBg = isDarkMode ? '#1f2a29' : '#F5F8F8';
-  const dividerColor = isDarkMode ? '#2a3a38' : '#E5EEED';
   const labelColor = appColors.text.secondary;
   const valueColor = appColors.text.primary;
+  const subtleBg = isDarkMode ? '#1f2a29' : colors.neutral[50];
+  const dividerColor = isDarkMode ? '#2a3a38' : colors.neutral[100];
+
+  const renderPlace = (place: { city: string; district: string }, dotColor: string, fullText?: string) => (
+    <View style={styles.placeRow}>
+      <View style={[styles.dot, { backgroundColor: dotColor }]} />
+      <View style={styles.placeText}>
+        {fullText !== undefined ? (
+          <Text style={[styles.fullAddress, { color: valueColor }]} numberOfLines={2}>
+            {fullText}
+          </Text>
+        ) : (
+          <>
+            <Text style={[styles.city, { color: valueColor }]} numberOfLines={1}>
+              {place.city}
+            </Text>
+            {!!place.district && (
+              <Text style={[styles.district, { color: labelColor }]} numberOfLines={1}>
+                {place.district}
+              </Text>
+            )}
+          </>
+        )}
+      </View>
+    </View>
+  );
 
   return (
-    <Card style={[styles.card, { backgroundColor: cardBg }]} elevation={2}>
-      <Card.Content style={styles.content}>
-        {/* Status pill - sağ üst */}
-        <View style={[styles.statusBadge, { backgroundColor: statusInfo.bgColor }]}>
-          <MaterialCommunityIcons name={statusInfo.icon as any} size={14} color={statusInfo.color} />
-          <Text style={[styles.statusText, { color: statusInfo.color }]}>{statusInfo.text}</Text>
+    <FkCard rounded="xl" elevation="md" style={styles.card} onPress={onPress}>
+      {/* Başlık: servis ikonu + adı, talep no, durum */}
+      <View style={styles.header}>
+        <FkIconChip icon={serviceIcon} size={44} />
+        <View style={styles.headerText}>
+          <Text style={[styles.serviceTitle, { color: valueColor }]} numberOfLines={1}>
+            {serviceLabel}
+          </Text>
+          <Text style={[styles.caption, { color: labelColor }]}>
+            #{item.id.toString().slice(-2).padStart(2, '0')}
+          </Text>
         </View>
+        <FkStatusBadge status={item.status} label={STATUS_TEXT[item.status]} size="sm" />
+      </View>
 
-        {/* Talep ID küçük caption */}
-        <Text style={[styles.jobIdCaption, { color: labelColor }]}>
-          #{item.id.toString().slice(-2).padStart(2, '0')}
-        </Text>
+      {/* Konum: alış (yeşil) → bırakış (kırmızı) zaman çizelgesi */}
+      <View style={styles.route}>
+        {shouldShowFullAddress ? (
+          <>
+            {renderPlace(fromSplit, colors.success[500], fromMasked)}
+            {!sameLocation && (
+              <>
+                <View style={[styles.connector, { backgroundColor: dividerColor }]} />
+                {renderPlace(toSplit, colors.danger[500], toMasked)}
+              </>
+            )}
+          </>
+        ) : sameLocation ? (
+          renderPlace(fromSplit, colors.primary[500])
+        ) : (
+          <>
+            {renderPlace(fromSplit, colors.success[500])}
+            <View style={[styles.connector, { backgroundColor: dividerColor }]} />
+            {renderPlace(toSplit, colors.danger[500])}
+          </>
+        )}
+      </View>
 
-        {/* Konum bloğu - From → To */}
-        <View style={styles.locationBlock}>
-          {shouldShowFullAddress ? (
-            // in_progress / completed: tam adres tek/iki satır
-            <View style={styles.fullAddressBlock}>
-              <View style={styles.locationRow}>
-                <MaterialCommunityIcons name={serviceIcon as any} size={20} color={PRIMARY_TEAL} />
-                <Text
-                  variant="bodyMedium"
-                  style={[styles.fullAddressText, { color: valueColor }]}
-                  numberOfLines={2}
-                >
-                  {fromMasked}
-                </Text>
-              </View>
-              {!sameLocation && (
-                <View style={styles.locationRow}>
-                  <MaterialCommunityIcons name="map-marker-check" size={20} color="#FF5722" />
-                  <Text
-                    variant="bodyMedium"
-                    style={[styles.fullAddressText, { color: valueColor }]}
-                    numberOfLines={2}
-                  >
-                    {toMasked}
-                  </Text>
-                </View>
-              )}
-            </View>
-          ) : sameLocation ? (
-            // Tek lokasyon (vinç, yol yardımı): merkez
-            <View style={styles.singleLocation}>
-              <MaterialCommunityIcons name={serviceIcon as any} size={22} color={PRIMARY_TEAL} />
-              <View style={styles.singleLocationText}>
-                <Text style={[styles.cityText, { color: valueColor }]} numberOfLines={1}>
-                  {fromSplit.city}
-                </Text>
-                {!!fromSplit.district && (
-                  <Text style={[styles.districtText, { color: labelColor }]} numberOfLines={1}>
-                    {fromSplit.district}
-                  </Text>
-                )}
-              </View>
-            </View>
-          ) : (
-            // From → To: city/district split, ortada ok
-            <View style={styles.fromToRow}>
-              <View style={styles.locationSide}>
-                <MaterialCommunityIcons name={serviceIcon as any} size={20} color={PRIMARY_TEAL} />
-                <View style={styles.locationSideText}>
-                  <Text style={[styles.cityText, { color: valueColor }]} numberOfLines={1}>
-                    {fromSplit.city}
-                  </Text>
-                  {!!fromSplit.district && (
-                    <Text style={[styles.districtText, { color: labelColor }]} numberOfLines={1}>
-                      {fromSplit.district}
-                    </Text>
-                  )}
-                </View>
-              </View>
-              <MaterialCommunityIcons
-                name="arrow-right"
-                size={18}
-                color={labelColor}
-                style={styles.arrow}
-              />
-              <View style={[styles.locationSide, styles.locationSideRight]}>
-                <View style={[styles.locationSideText, styles.locationSideTextRight]}>
-                  <Text
-                    style={[styles.cityText, { color: valueColor, textAlign: 'right' }]}
-                    numberOfLines={1}
-                  >
-                    {toSplit.city}
-                  </Text>
-                  {!!toSplit.district && (
-                    <Text
-                      style={[styles.districtText, { color: labelColor, textAlign: 'right' }]}
-                      numberOfLines={1}
-                    >
-                      {toSplit.district}
-                    </Text>
-                  )}
-                </View>
-              </View>
-            </View>
-          )}
+      {/* Ek bilgiler: araç tipi · mesafe · tarih */}
+      <View style={styles.metaRow}>
+        <View style={[styles.meta, { backgroundColor: subtleBg }]}>
+          <MaterialCommunityIcons name="car-cog" size={14} color={labelColor} />
+          <Text style={[styles.metaText, { color: valueColor }]} numberOfLines={1}>
+            {item.vehicleType || 'Belirtilmemiş'}
+          </Text>
         </View>
-
-        {/* Info grid: Hizmet · Mesafe · Tarih */}
-        <View style={[styles.infoGrid, { borderTopColor: dividerColor, borderBottomColor: dividerColor }]}>
-          <View style={styles.infoCell}>
-            <View style={styles.infoCellHeader}>
-              <MaterialCommunityIcons name="car-cog" size={14} color={labelColor} />
-              <Text style={[styles.infoLabel, { color: labelColor }]}>Hizmet</Text>
-            </View>
-            <Text style={[styles.infoValue, { color: valueColor }]} numberOfLines={1}>
-              {item.vehicleType || 'Belirtilmemiş'}
+        {showDistance && (
+          <View style={[styles.meta, { backgroundColor: subtleBg }]}>
+            <MaterialCommunityIcons name="map-marker-distance" size={14} color={labelColor} />
+            <Text style={[styles.metaText, { color: valueColor }]}>{item.distance} km</Text>
+          </View>
+        )}
+        {dateInfo && (
+          <View style={[styles.meta, { backgroundColor: subtleBg }]}>
+            <MaterialCommunityIcons name="calendar-outline" size={14} color={labelColor} />
+            <Text style={[styles.metaText, { color: valueColor }]} numberOfLines={1}>
+              {dateInfo.label}
+              {!!dateInfo.sub && <Text style={{ color: dateInfo.color }}>{` · ${dateInfo.sub}`}</Text>}
             </Text>
           </View>
+        )}
+      </View>
 
-          {showDistance && (
-            <>
-              <View style={[styles.infoDivider, { backgroundColor: dividerColor }]} />
-              <View style={styles.infoCell}>
-                <View style={styles.infoCellHeader}>
-                  <MaterialCommunityIcons name="map-marker-distance" size={14} color={labelColor} />
-                  <Text style={[styles.infoLabel, { color: labelColor }]}>Mesafe</Text>
-                </View>
-                <Text style={[styles.infoValue, { color: valueColor }]}>{item.distance} km</Text>
-              </View>
-            </>
-          )}
-
-          {dateInfo && (
-            <>
-              <View style={[styles.infoDivider, { backgroundColor: dividerColor }]} />
-              <View style={styles.infoCell}>
-                <View style={styles.infoCellHeader}>
-                  <MaterialCommunityIcons name="calendar" size={14} color={labelColor} />
-                  <Text style={[styles.infoLabel, { color: labelColor }]}>Tarih</Text>
-                </View>
-                <Text style={[styles.infoValue, { color: valueColor }]} numberOfLines={1}>
-                  {dateInfo.label}
-                </Text>
-                {!!dateInfo.sub && (
-                  <Text style={[styles.infoSub, { color: dateInfo.color }]} numberOfLines={1}>
-                    {dateInfo.sub}
-                  </Text>
-                )}
-              </View>
-            </>
-          )}
+      {/* Müşteriye uzaklık (sürücünün konumu → pickup noktası) */}
+      {showDistanceToCustomer && (
+        <View
+          style={[
+            styles.distanceBanner,
+            {
+              backgroundColor: isDarkMode ? '#0d2624' : colors.primary[50],
+              borderColor: isDarkMode ? colors.primary[700] : colors.primary[200],
+            },
+          ]}
+        >
+          <MaterialCommunityIcons name="map-marker-radius" size={16} color={colors.primary[500]} />
+          <Text style={[styles.distanceText, { color: isDarkMode ? valueColor : colors.primary[700] }]}>
+            Müşteriye <Text style={styles.distanceValue}>{distanceToCustomer} km</Text> uzaktasınız
+          </Text>
         </View>
+      )}
 
-        {/* Fiyat satırı */}
-        {showPrice && (
-          <View style={[styles.priceRow, { backgroundColor: subtleBg }]}>
-            <MaterialCommunityIcons name="cash-multiple" size={16} color={PRIMARY_TEAL} />
+      {/* Hizmete özgü detay (description) */}
+      {!!item.description && (
+        <View style={[styles.descriptionBox, { backgroundColor: subtleBg }]}>
+          <MaterialCommunityIcons name="information-outline" size={14} color={labelColor} />
+          <Text style={[styles.descriptionText, { color: labelColor }]} numberOfLines={2}>
+            {item.description}
+          </Text>
+        </View>
+      )}
+
+      {/* Alt satır: tahmini fiyat + CTA */}
+      <View style={[styles.footer, { borderTopColor: dividerColor }]}>
+        {showPrice ? (
+          <View style={styles.priceBlock}>
             <Text style={[styles.priceLabel, { color: labelColor }]}>Tahmini Fiyat</Text>
-            <Text style={[styles.priceValue, { color: valueColor }]}>
+            <Text style={[styles.price, { color: isDarkMode ? colors.primary[300] : colors.primary[600] }]}>
               ₺{Number(item.estimatedPrice).toLocaleString('tr-TR')}
             </Text>
           </View>
+        ) : (
+          <View style={styles.priceBlock} />
         )}
-
-        {/* Müşteriye uzaklık (sürücünün konumu → pickup noktası) */}
-        {showDistanceToCustomer && (
-          <View
-            style={[
-              styles.distanceBanner,
-              {
-                backgroundColor: isDarkMode ? '#0d2624' : '#E0F2F1',
-                borderColor: PRIMARY_TEAL,
-              },
-            ]}
-          >
-            <MaterialCommunityIcons name="map-marker-radius" size={16} color={PRIMARY_TEAL} />
-            <Text style={[styles.distanceText, { color: valueColor }]}>
-              Müşteriye{' '}
-              <Text style={styles.distanceValue}>{distanceToCustomer} km</Text>
-              {' '}uzaktasınız
-            </Text>
-          </View>
-        )}
-
-        {/* Hizmete özgü detay banner (description) */}
-        {!!item.description && (
-          <View style={[styles.descriptionBanner, { backgroundColor: subtleBg }]}>
-            <MaterialCommunityIcons name="information-outline" size={14} color={labelColor} />
-            <Text
-              variant="bodySmall"
-              style={[styles.descriptionText, { color: appColors.text.secondary }]}
-              numberOfLines={2}
-            >
-              {item.description}
-            </Text>
-          </View>
-        )}
-
-        {/* CTA Button - "Talebi Gör" full-width turkuaz */}
-        <Button
-          mode="contained"
-          buttonColor={PRIMARY_TEAL}
-          textColor="#fff"
-          onPress={onPress}
-          style={styles.ctaButton}
-          contentStyle={styles.ctaButtonContent}
-          labelStyle={styles.ctaButtonLabel}
-        >
+        <FkButton onPress={onPress} icon="chevron-right" iconPosition="right" style={styles.cta}>
           Talebi Gör
-        </Button>
-      </Card.Content>
-    </Card>
+        </FkButton>
+      </View>
+    </FkCard>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    marginVertical: 8,
-    marginHorizontal: 4,
-    borderRadius: 14,
+    marginVertical: spacing.sm,
+    marginHorizontal: 2,
   },
-  content: {
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    position: 'relative',
-  },
-  statusBadge: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-    zIndex: 1,
+    gap: spacing.sm + 4,
   },
-  statusText: {
-    fontSize: 11,
+  headerText: {
+    flex: 1,
+  },
+  serviceTitle: {
+    ...text.cardTitle,
+  },
+  caption: {
+    ...text.caption,
+    marginTop: 2,
+  },
+  route: {
+    marginTop: spacing.md,
+  },
+  placeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm + 4,
+  },
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    marginTop: 4,
+  },
+  placeText: {
+    flex: 1,
+  },
+  connector: {
+    width: 2,
+    height: 14,
+    marginLeft: 5,
+    marginVertical: 3,
+  },
+  city: {
+    fontSize: 15,
     fontWeight: '600',
   },
-  jobIdCaption: {
-    fontSize: 11,
-    fontWeight: '500',
-    marginBottom: 12,
-    opacity: 0.7,
+  district: {
+    ...text.meta,
+    marginTop: 1,
   },
-  locationBlock: {
-    marginBottom: 14,
-  },
-  fullAddressBlock: {
-    gap: 8,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  fullAddressText: {
-    flex: 1,
+  fullAddress: {
+    ...text.body,
     lineHeight: 20,
   },
-  singleLocation: {
+  metaRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+    marginTop: spacing.md,
   },
-  singleLocationText: {
-    flex: 1,
-  },
-  fromToRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  locationSide: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  locationSideRight: {
-    justifyContent: 'flex-end',
-  },
-  locationSideText: {
-    flex: 1,
-  },
-  locationSideTextRight: {
-    alignItems: 'flex-end',
-  },
-  cityText: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  districtText: {
-    fontSize: 12,
-    marginTop: 2,
-  },
-  arrow: {
-    marginHorizontal: 8,
-  },
-  infoGrid: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    paddingVertical: 12,
-    marginBottom: 12,
-  },
-  infoCell: {
-    flex: 1,
-    paddingHorizontal: 6,
-  },
-  infoCellHeader: {
+  meta: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+    maxWidth: '100%',
   },
-  infoLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-  },
-  infoValue: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  infoSub: {
-    fontSize: 11,
-    marginTop: 2,
-    fontWeight: '500',
-  },
-  infoDivider: {
-    width: 1,
-    marginVertical: 4,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginBottom: 12,
-    gap: 8,
-  },
-  priceLabel: {
+  metaText: {
     fontSize: 12,
-    flex: 1,
-  },
-  priceValue: {
-    fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '500',
+    flexShrink: 1,
   },
   distanceBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderRadius: 8,
+    borderRadius: radius.md,
     borderWidth: 1,
-    marginBottom: 10,
+    marginTop: spacing.md,
     gap: 8,
   },
   distanceText: {
@@ -568,29 +374,39 @@ const styles = StyleSheet.create({
   },
   distanceValue: {
     fontWeight: '700',
-    color: '#26a69a',
   },
-  descriptionBanner: {
+  descriptionBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     padding: 10,
-    borderRadius: 8,
-    marginBottom: 14,
+    borderRadius: radius.md,
+    marginTop: spacing.sm + 4,
     gap: 6,
   },
   descriptionText: {
     flex: 1,
+    fontSize: 13,
     lineHeight: 18,
   },
-  ctaButton: {
-    borderRadius: 10,
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: spacing.md,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    gap: spacing.md,
   },
-  ctaButtonContent: {
-    paddingVertical: 6,
+  priceBlock: {
+    flex: 1,
   },
-  ctaButtonLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.3,
+  priceLabel: {
+    ...text.caption,
+  },
+  price: {
+    ...text.price,
+    marginTop: 2,
+  },
+  cta: {
+    paddingHorizontal: 18,
   },
 });
