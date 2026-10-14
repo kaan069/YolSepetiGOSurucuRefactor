@@ -6,12 +6,13 @@ import {
   TextInput as RNTextInput,
   View,
 } from 'react-native';
-import { TextInput as PaperTextInput, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import FkFormError from '../fk-ui/FkFormError';
-import FkLabel from '../fk-ui/FkLabel';
 import FkModal from '../fk-ui/FkModal';
+import { colors } from '../../theme/design';
+import { fieldStyles, getFieldBoxStyle, getFieldLabelColor } from './fieldStyles';
 
 export interface FkCountry {
   code: string;
@@ -92,7 +93,7 @@ export default function FkPhoneInput({
   onBlur,
   testID,
 }: Props) {
-  const { tokens } = useFkTokens();
+  const { tokens, isDarkMode } = useFkTokens();
   const [country, setCountry] = useState<FkCountry>(
     FK_COUNTRIES.find((c) => c.code === defaultCountry) ?? FK_COUNTRIES[0],
   );
@@ -136,31 +137,26 @@ export default function FkPhoneInput({
     onBlur?.();
   }, [onBlur]);
 
-  const borderColor = error
-    ? tokens.colors.error
-    : focused
-    ? tokens.colors.primary
-    : tokens.colors.borderStrong;
-
   return (
-    <View style={{ marginBottom: tokens.spacing.md }} testID={testID}>
-      {label ? <FkLabel required={required}>{label}</FkLabel> : null}
+    <View style={fieldStyles.container} testID={testID}>
+      {label ? (
+        <Text style={[fieldStyles.label, { color: getFieldLabelColor(tokens.colors, isDarkMode, disabled) }]}>
+          {label}
+          {required ? <Text style={{ color: colors.danger[500] }}> *</Text> : null}
+        </Text>
+      ) : null}
 
       <View
         style={[
+          fieldStyles.box,
           styles.inputRow,
-          {
-            backgroundColor: tokens.colors.cardBg,
-            borderColor,
-            borderWidth: error || focused ? 2 : 1,
-            borderRadius: tokens.radius.md,
-          },
+          getFieldBoxStyle(tokens.colors, isDarkMode, { focused, error: !!error, disabled }),
         ]}
       >
         <Pressable
           style={[
             styles.countrySelector,
-            { borderRightColor: tokens.colors.border, backgroundColor: tokens.colors.surfaceMuted },
+            { borderRightColor: tokens.colors.border },
           ]}
           onPress={() => !disabled && setModalVisible(true)}
           disabled={disabled}
@@ -171,17 +167,15 @@ export default function FkPhoneInput({
           <MaterialCommunityIcons name="chevron-down" size={18} color={tokens.colors.textSecondary} />
         </Pressable>
 
-        <PaperTextInput
+        <RNTextInput
           value={formatted}
           onChangeText={handleChangeText}
           placeholder={placeholder}
+          placeholderTextColor={colors.neutral[400]}
           keyboardType="phone-pad"
-          mode="flat"
-          style={styles.textInput}
-          underlineColor="transparent"
-          activeUnderlineColor="transparent"
-          disabled={disabled}
-          dense
+          selectionColor={tokens.colors.primary}
+          style={[fieldStyles.input, styles.textInput, { color: tokens.colors.textPrimary }]}
+          editable={!disabled}
           maxLength={13}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -256,20 +250,18 @@ export default function FkPhoneInput({
 
 const styles = StyleSheet.create({
   inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'hidden',
+    paddingHorizontal: 0,
+    alignItems: 'stretch',
   },
   countrySelector: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 14,
-    paddingVertical: 14,
     borderRightWidth: 1,
     gap: 4,
   },
   dialCode: { fontSize: 16, fontWeight: '600' },
-  textInput: { flex: 1, fontSize: 16, height: 50, backgroundColor: 'transparent' },
+  textInput: { paddingHorizontal: 14 },
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,11 +1,14 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
-import { Card, Text } from 'react-native-paper';
-import { useFkTokens } from '../../hooks/useFkTokens';
+import { View, ViewStyle } from 'react-native';
+import FkCard from './FkCard';
+import FkSectionHeader from './FkSectionHeader';
+import { spacing } from '../../theme/design';
 
 interface Props {
   title?: string;
   description?: string;
+  /** MaterialCommunityIcons adı — başlığın solunda */
+  icon?: string;
   titleColor?: string;
   required?: boolean;
   children: React.ReactNode;
@@ -13,59 +16,31 @@ interface Props {
   contentStyle?: ViewStyle;
 }
 
+/** Form bölümü: beyaz kart + müşteri uygulamasındaki ikonlu bölüm başlığı. */
 export default function FkFormSection({
   title,
   description,
+  icon,
   titleColor,
   required,
   children,
   style,
   contentStyle,
 }: Props) {
-  const { tokens } = useFkTokens();
   return (
-    <Card
-      style={[
-        styles.card,
-        { backgroundColor: tokens.colors.cardBg, borderRadius: tokens.radius.xl, marginBottom: tokens.spacing.lg },
-        style,
-      ]}
-    >
-      <Card.Content style={[{ padding: tokens.spacing.xl }, contentStyle]}>
+    <FkCard padding={spacing.md} style={[{ marginBottom: spacing.md }, style]}>
+      <View style={contentStyle}>
         {title ? (
-          <Text
-            variant="titleMedium"
-            style={[
-              styles.title,
-              { color: titleColor || tokens.colors.primary, marginBottom: description ? 4 : tokens.spacing.lg },
-            ]}
-          >
-            {title}
-            {required ? <Text style={{ color: tokens.colors.error }}> *</Text> : null}
-          </Text>
-        ) : null}
-        {description ? (
-          <Text
-            variant="bodySmall"
-            style={[styles.description, { color: tokens.colors.textSecondary, marginBottom: tokens.spacing.lg }]}
-          >
-            {description}
-          </Text>
+          <FkSectionHeader
+            title={title}
+            subtitle={description}
+            icon={icon}
+            iconColor={titleColor}
+            required={required}
+          />
         ) : null}
         <View>{children}</View>
-      </Card.Content>
-    </Card>
+      </View>
+    </FkCard>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    elevation: 2,
-  },
-  title: {
-    fontWeight: 'bold',
-  },
-  description: {
-    lineHeight: 20,
-  },
-});

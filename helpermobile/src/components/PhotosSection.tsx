@@ -13,6 +13,7 @@ import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import CollapsibleCard from './common/CollapsibleCard';
 import { RequestPhoto } from '../api/types';
+import { colors, radius } from '../theme/design';
 
 interface PhotosSectionProps {
   photos?: RequestPhoto[];
@@ -77,8 +78,7 @@ export default function PhotosSection({ photos }: PhotosSectionProps) {
     <>
       <CollapsibleCard
         title={`Fotoğraflar (${photos.length})`}
-        icon="image-multiple"
-        iconColor="#1565c0"
+        icon="image-multiple-outline"
         defaultExpanded={true}
       >
         {hasGroups ? (
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   groupLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 6,
   },
   thumbnailRow: {
@@ -163,13 +163,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   thumbnailWrapper: {
-    borderRadius: 8,
+    borderRadius: radius.sm,
     overflow: 'hidden',
   },
   thumbnail: {
     width: THUMBNAIL_SIZE,
     height: THUMBNAIL_SIZE,
-    borderRadius: 8,
+    borderRadius: radius.sm,
   },
   modalOverlay: {
     flex: 1,

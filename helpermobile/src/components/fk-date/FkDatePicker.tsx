@@ -3,6 +3,8 @@ import { Pressable, ScrollView, StyleSheet, View, ViewStyle } from 'react-native
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFkTokens } from '../../hooks/useFkTokens';
+import { colors } from '../../theme/design';
+import { fieldStyles, getFieldBoxStyle } from '../fk-form/fieldStyles';
 import FkButton from '../fk-ui/FkButton';
 import FkFormError from '../fk-ui/FkFormError';
 import FkLabel from '../fk-ui/FkLabel';
@@ -49,7 +51,7 @@ export default function FkDatePicker({
   containerStyle,
   testID,
 }: Props) {
-  const { tokens } = useFkTokens();
+  const { tokens, isDarkMode } = useFkTokens();
   const [open, setOpen] = useState(false);
 
   const initial = value ?? new Date(maxYear, 0, 1);
@@ -71,27 +73,23 @@ export default function FkDatePicker({
   }, [year, month, day, onChange]);
 
   return (
-    <View style={[{ marginBottom: tokens.spacing.md }, containerStyle]} testID={testID}>
+    <View style={[fieldStyles.container, containerStyle]} testID={testID}>
       {label ? <FkLabel required={required} disabled={disabled}>{label}</FkLabel> : null}
 
       <Pressable
         onPress={() => !disabled && setOpen(true)}
         disabled={disabled}
         style={[
+          fieldStyles.box,
           styles.trigger,
-          {
-            backgroundColor: tokens.colors.cardBg,
-            borderColor: error ? tokens.colors.error : tokens.colors.border,
-            borderRadius: tokens.radius.md,
-            opacity: disabled ? 0.6 : 1,
-          },
+          getFieldBoxStyle(tokens.colors, isDarkMode, { focused: open, error: !!error, disabled }),
         ]}
       >
         <MaterialCommunityIcons name="calendar" size={20} color={tokens.colors.textSecondary} />
         <Text
           style={[
             styles.text,
-            { color: value ? tokens.colors.textPrimary : tokens.colors.textHint },
+            { color: value ? tokens.colors.textPrimary : colors.neutral[400] },
           ]}
         >
           {value ? formatTr(value) : placeholder}
@@ -197,12 +195,7 @@ export default function FkDatePicker({
 
 const styles = StyleSheet.create({
   trigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    minHeight: 52,
+    paddingVertical: 12,
     gap: 10,
   },
   text: { flex: 1, fontSize: 16 },

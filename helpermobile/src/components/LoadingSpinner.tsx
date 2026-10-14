@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { View, StyleSheet, Animated, ViewStyle } from 'react-native';
+import { colors } from '../theme/design';
 
 interface LoadingSpinnerProps {
   size?: number;
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   logoCircle: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
     elevation: 10,
     overflow: 'hidden',
     borderWidth: 2,
-    borderColor: 'rgba(38, 166, 154, 0.3)',
+    borderColor: colors.primary[300],
   },
   logo: {
     // Dinamik boyutlar inline olarak uygulanacak

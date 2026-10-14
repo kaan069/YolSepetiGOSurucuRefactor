@@ -1,7 +1,16 @@
 import React from 'react';
-import { StyleSheet, ViewStyle } from 'react-native';
-import { Button as PaperButton } from 'react-native-paper';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFkTokens } from '../../hooks/useFkTokens';
+import { colors, radius } from '../../theme/design';
 
 export type FkButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
 
@@ -11,15 +20,27 @@ interface Props {
   variant?: FkButtonVariant;
   loading?: boolean;
   disabled?: boolean;
+  /** MaterialCommunityIcons adı */
   icon?: string;
   fullWidth?: boolean;
   size?: 'sm' | 'md' | 'lg';
   style?: ViewStyle;
   contentStyle?: ViewStyle;
+  textStyle?: TextStyle;
   iconPosition?: 'left' | 'right';
   testID?: string;
 }
 
+const SIZES = {
+  sm: { paddingVertical: 8, paddingHorizontal: 12, fontSize: 14, icon: 16 },
+  md: { paddingVertical: 13, paddingHorizontal: 16, fontSize: 16, icon: 18 },
+  lg: { paddingVertical: 16, paddingHorizontal: 24, fontSize: 17, icon: 20 },
+} as const;
+
+/**
+ * Müşteri uygulamasındaki ModernButton görünümü:
+ * primary/danger/success → dolu, secondary → çerçeveli, ghost → sadece metin. Köşe 16.
+ */
 export default function FkButton({
   children,
   onPress,
@@ -31,65 +52,89 @@ export default function FkButton({
   size = 'md',
   style,
   contentStyle,
+  textStyle,
   iconPosition = 'left',
   testID,
 }: Props) {
   const { tokens } = useFkTokens();
+  const sz = SIZES[size];
+  const isDisabled = !!disabled || !!loading;
 
-  const verticalPadding = size === 'sm' ? 2 : size === 'lg' ? 12 : 8;
-
-  const mode: React.ComponentProps<typeof PaperButton>['mode'] =
-    variant === 'primary' || variant === 'danger' || variant === 'success'
-      ? 'contained'
-      : variant === 'secondary'
-      ? 'outlined'
-      : 'text';
-
-  const buttonColor =
-    variant === 'primary'
-      ? tokens.colors.primary
-      : variant === 'danger'
-      ? tokens.colors.error
+  const mainColor =
+    variant === 'danger'
+      ? colors.danger[500]
       : variant === 'success'
-      ? tokens.colors.success
-      : undefined;
+      ? colors.success[600]
+      : tokens.colors.primary;
 
-  const textColor =
-    variant === 'secondary'
-      ? tokens.colors.primary
-      : variant === 'ghost'
-      ? tokens.colors.primary
-      : undefined;
+  const filled = variant === 'primary' || variant === 'danger' || variant === 'success';
+
+  const containerStyle: ViewStyle = filled
+    ? { backgroundColor: disabled ? colors.neutral[300] : mainColor }
+    : variant === 'secondary'
+    ? { borderWidth: 2, borderColor: disabled ? colors.neutral[300] : mainColor }
+    : {};
+
+  const labelColor = filled ? colors.white : disabled ? colors.neutral[400] : mainColor;
+
+  const iconNode = icon ? (
+    <MaterialCommunityIcons name={icon} size={sz.icon} color={labelColor} />
+  ) : null;
 
   return (
-    <PaperButton
-      mode={mode}
+    <TouchableOpacity
       onPress={onPress}
-      loading={loading}
-      disabled={disabled || loading}
-      icon={icon}
-      buttonColor={buttonColor}
-      textColor={textColor}
+      disabled={isDisabled}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled, busy: !!loading }}
+      testID={testID}
       style={[
         styles.button,
-        { borderRadius: tokens.radius.lg },
+        { paddingVertical: sz.paddingVertical, paddingHorizontal: sz.paddingHorizontal },
+        containerStyle,
         fullWidth ? styles.full : null,
         style,
       ]}
-      contentStyle={[
-        { paddingVertical: verticalPadding },
-        iconPosition === 'right' ? styles.iconRight : null,
-        contentStyle,
-      ]}
-      testID={testID}
     >
-      {children}
-    </PaperButton>
+      {loading ? (
+        <ActivityIndicator size="small" color={labelColor} />
+      ) : (
+        <View style={[styles.content, iconPosition === 'right' ? styles.iconRight : null, contentStyle]}>
+          {iconNode}
+          {typeof children === 'string' || typeof children === 'number' ? (
+            <Text
+              style={[styles.text, { color: labelColor, fontSize: sz.fontSize }, textStyle]}
+              numberOfLines={2}
+            >
+              {children}
+            </Text>
+          ) : (
+            children
+          )}
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  button: {},
+  button: {
+    borderRadius: radius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
   full: { width: '100%' },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
   iconRight: { flexDirection: 'row-reverse' },
+  text: {
+    fontWeight: '600',
+    textAlign: 'center',
+  },
 });

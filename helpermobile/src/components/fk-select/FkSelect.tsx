@@ -4,9 +4,10 @@ import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import FkFormError from '../fk-ui/FkFormError';
-import FkLabel from '../fk-ui/FkLabel';
 import FkModal from '../fk-ui/FkModal';
 import SelectList from './internal/SelectList';
+import { colors } from '../../theme/design';
+import { fieldStyles, getFieldBoxStyle, getFieldLabelColor } from '../fk-form/fieldStyles';
 import { FkSelectOption } from './types';
 
 interface Props<T extends string | number = string> {
@@ -44,7 +45,7 @@ export default function FkSelect<T extends string | number = string>({
   containerStyle,
   testID,
 }: Props<T>) {
-  const { tokens } = useFkTokens();
+  const { tokens, isDarkMode } = useFkTokens();
   const [open, setOpen] = useState(false);
 
   const selectedLabel = useMemo(() => {
@@ -63,24 +64,21 @@ export default function FkSelect<T extends string | number = string>({
   );
 
   return (
-    <View style={[{ marginBottom: tokens.spacing.md }, containerStyle]} testID={testID}>
+    <View style={[fieldStyles.container, containerStyle]} testID={testID}>
       {label ? (
-        <FkLabel required={required} disabled={disabled}>
+        <Text style={[fieldStyles.label, { color: getFieldLabelColor(tokens.colors, isDarkMode, disabled) }]}>
           {label}
-        </FkLabel>
+          {required ? <Text style={{ color: colors.danger[500] }}> *</Text> : null}
+        </Text>
       ) : null}
 
       <Pressable
         onPress={() => !disabled && setOpen(true)}
         disabled={disabled}
         style={[
+          fieldStyles.box,
           styles.trigger,
-          {
-            backgroundColor: tokens.colors.cardBg,
-            borderColor: error ? tokens.colors.error : tokens.colors.border,
-            borderRadius: tokens.radius.md,
-            opacity: disabled ? 0.6 : 1,
-          },
+          getFieldBoxStyle(tokens.colors, isDarkMode, { focused: open, error: !!error, disabled }),
         ]}
       >
         <Text
@@ -88,7 +86,7 @@ export default function FkSelect<T extends string | number = string>({
           style={[
             styles.triggerText,
             {
-              color: selectedLabel ? tokens.colors.textPrimary : tokens.colors.textHint,
+              color: selectedLabel ? tokens.colors.textPrimary : colors.neutral[400],
             },
           ]}
         >
@@ -97,7 +95,7 @@ export default function FkSelect<T extends string | number = string>({
         <MaterialCommunityIcons
           name="chevron-down"
           size={22}
-          color={disabled ? tokens.colors.textHint : tokens.colors.textSecondary}
+          color={disabled ? colors.neutral[300] : colors.neutral[500]}
         />
       </Pressable>
 
@@ -126,13 +124,8 @@ export default function FkSelect<T extends string | number = string>({
 
 const styles = StyleSheet.create({
   trigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    minHeight: 52,
+    paddingVertical: 12,
   },
   triggerText: {
     flex: 1,

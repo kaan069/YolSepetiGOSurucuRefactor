@@ -6,3 +6,5 @@ export type { FkCountry } from './FkPhoneInput';
 export { default as FkOTPInput } from './FkOTPInput';
 export { default as FkVehiclePlateInput } from './FkVehiclePlateInput';
 export type { FkTextInputProps } from './FkTextInput';
+export { FkInputIconButton } from './FkTextInput';
+export { FIELD_MIN_HEIGHT, fieldStyles, getFieldBoxStyle, getFieldLabelColor } from './fieldStyles';

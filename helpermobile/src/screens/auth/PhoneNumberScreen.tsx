@@ -11,6 +11,8 @@ import type { FkCountry } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import AlreadyRegisteredModal from './components/AlreadyRegisteredModal';
+import { colors } from '../../theme/design';
+import { FIELD_MIN_HEIGHT } from '../../components/fk-form/fieldStyles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PhoneNumber'>;
 
@@ -333,13 +335,13 @@ export default function PhoneNumberScreen({ navigation }: Props) {
                   <FkTextInput
                     value={referralInput}
                     onChange={handleReferralChange}
-                    label="Referans Kodu"
+                    placeholder="Referans Kodu"
                     autoCapitalize="characters"
                     autoCorrect={false}
                     maxLength={8}
                     error={referralStatus === 'error' ? referralError : undefined}
                     helperText={referralStatus === 'applied' ? '✓ Kod uygulandı' : undefined}
-                    helperColor={referralStatus === 'applied' ? '#26a69a' : undefined}
+                    helperColor={referralStatus === 'applied' ? colors.success[600] : undefined}
                   />
                 </View>
                 <FkButton
@@ -348,7 +350,6 @@ export default function PhoneNumberScreen({ navigation }: Props) {
                   disabled={referralInput.length === 0 || referralStatus === 'applied'}
                   size="md"
                   style={styles.referralButton}
-                  contentStyle={styles.referralButtonContent}
                 >
                   {referralStatus === 'applied' ? 'Uygulandı' : 'Uygula'}
                 </FkButton>
@@ -530,12 +531,10 @@ const styles = StyleSheet.create({
   referralInputWrapper: {
     flex: 1,
   },
+  // Buton input kutusuyla (FIELD_MIN_HEIGHT) aynı yükseklikte; satır flex-start olduğu için üstten hizalanır.
   referralButton: {
     minWidth: 96,
-  },
-  // Butonu input kutusuyla (MD3 flat = 56px) aynı yükseklikte tutar; satır
-  // flex-start olduğu için üstten hizalanır ve label dikeyde ortalanır.
-  referralButtonContent: {
-    height: 56,
+    height: FIELD_MIN_HEIGHT,
+    paddingVertical: 0,
   },
 });

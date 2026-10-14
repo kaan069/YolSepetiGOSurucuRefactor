@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFkTokens } from '../../hooks/useFkTokens';
+import { colors } from '../../theme/design';
+import { fieldStyles, getFieldBoxStyle } from '../fk-form/fieldStyles';
 import FkCheckbox from '../fk-ui/FkCheckbox';
 import FkFormError from '../fk-ui/FkFormError';
 import FkLabel from '../fk-ui/FkLabel';
@@ -40,7 +42,7 @@ export default function FkMultiSelect<T extends string | number = string>({
   containerStyle,
   testID,
 }: Props<T>) {
-  const { tokens } = useFkTokens();
+  const { tokens, isDarkMode } = useFkTokens();
   const [open, setOpen] = useState(false);
 
   const toggle = useCallback(
@@ -79,7 +81,7 @@ export default function FkMultiSelect<T extends string | number = string>({
   );
 
   return (
-    <View style={[{ marginBottom: tokens.spacing.md }, containerStyle]} testID={testID}>
+    <View style={[fieldStyles.container, containerStyle]} testID={testID}>
       {label ? (
         <FkLabel required={required} disabled={disabled}>
           {label}
@@ -93,20 +95,16 @@ export default function FkMultiSelect<T extends string | number = string>({
           onPress={() => !disabled && setOpen(true)}
           disabled={disabled}
           style={[
+            fieldStyles.box,
             styles.trigger,
-            {
-              backgroundColor: tokens.colors.cardBg,
-              borderColor: error ? tokens.colors.error : tokens.colors.border,
-              borderRadius: tokens.radius.md,
-              opacity: disabled ? 0.6 : 1,
-            },
+            getFieldBoxStyle(tokens.colors, isDarkMode, { focused: open, error: !!error, disabled }),
           ]}
         >
           <Text
             numberOfLines={2}
             style={[
               styles.triggerText,
-              { color: selectedLabel ? tokens.colors.textPrimary : tokens.colors.textHint },
+              { color: selectedLabel ? tokens.colors.textPrimary : colors.neutral[400] },
             ]}
           >
             {selectedLabel || placeholder}
@@ -146,13 +144,8 @@ export default function FkMultiSelect<T extends string | number = string>({
 
 const styles = StyleSheet.create({
   trigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    minHeight: 52,
+    paddingVertical: 12,
   },
   triggerText: { flex: 1, fontSize: 16, marginRight: 8 },
 });

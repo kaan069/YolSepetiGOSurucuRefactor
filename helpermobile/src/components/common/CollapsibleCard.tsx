@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { View, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager, Text } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import FkCard from '../fk-ui/FkCard';
+import { useFkTokens } from '../../hooks/useFkTokens';
+import { colors, spacing, text } from '../../theme/design';
 
 // Enable LayoutAnimation for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -16,13 +18,15 @@ interface CollapsibleCardProps {
     defaultExpanded?: boolean;
 }
 
+/** Açılıp kapanan kart — FkCard + ikonlu bölüm başlığı + chevron. */
 export default function CollapsibleCard({
     title,
     icon,
-    iconColor = '#4CAF50',
+    iconColor,
     children,
     defaultExpanded = false
 }: CollapsibleCardProps) {
+    const { tokens } = useFkTokens();
     const [expanded, setExpanded] = useState(defaultExpanded);
 
     const toggleExpanded = () => {
@@ -31,63 +35,50 @@ export default function CollapsibleCard({
     };
 
     return (
-        <Card style={styles.card}>
+        <FkCard padding={0} style={styles.card}>
             <TouchableOpacity onPress={toggleExpanded} activeOpacity={0.7}>
                 <View style={styles.header}>
-                    <View style={styles.headerLeft}>
-                        {icon && (
-                            <MaterialCommunityIcons
-                                name={icon as any}
-                                size={24}
-                                color={iconColor}
-                                style={styles.headerIcon}
-                            />
-                        )}
-                        <Text style={styles.title}>{title}</Text>
-                    </View>
+                    {icon && (
+                        <MaterialCommunityIcons
+                            name={icon as any}
+                            size={20}
+                            color={iconColor || tokens.colors.primary}
+                        />
+                    )}
+                    <Text style={[styles.title, { color: tokens.colors.textPrimary }]}>{title}</Text>
                     <MaterialCommunityIcons
                         name={expanded ? 'chevron-up' : 'chevron-down'}
-                        size={24}
-                        color="#666"
+                        size={22}
+                        color={colors.neutral[400]}
                     />
                 </View>
             </TouchableOpacity>
             {expanded && (
-                <Card.Content style={styles.content}>
+                <View style={styles.content}>
                     {children}
-                </Card.Content>
+                </View>
             )}
-        </Card>
+        </FkCard>
     );
 }
 
 const styles = StyleSheet.create({
     card: {
-        marginBottom: 12,
-        borderRadius: 12,
-        elevation: 2,
+        marginBottom: spacing.md,
+        overflow: 'hidden',
     },
     header: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        padding: 16,
-    },
-    headerLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
-    },
-    headerIcon: {
-        marginRight: 12,
+        padding: spacing.md,
+        gap: spacing.sm,
     },
     title: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333',
+        ...text.cardTitle,
         flex: 1,
     },
     content: {
-        paddingTop: 0,
+        paddingHorizontal: spacing.md,
+        paddingBottom: spacing.md,
     },
 });

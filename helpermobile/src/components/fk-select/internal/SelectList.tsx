@@ -10,6 +10,7 @@ import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFkTokens } from '../../../hooks/useFkTokens';
 import { FkSelectOption } from '../types';
+import { colors, radius } from '../../../theme/design';
 
 interface Props<T extends string | number> {
   options: FkSelectOption<T>[];
@@ -29,7 +30,7 @@ export default function SelectList<T extends string | number>({
   searchPlaceholder = 'Ara...',
   emptyMessage = 'Sonuç bulunamadı',
 }: Props<T>) {
-  const { tokens } = useFkTokens();
+  const { tokens, isDarkMode } = useFkTokens();
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -43,13 +44,13 @@ export default function SelectList<T extends string | number>({
   }, [options, search, searchable]);
 
   return (
-    <View>
+    <View style={styles.root}>
       {searchable ? (
         <View style={{ padding: tokens.spacing.lg }}>
           <View
             style={[
               styles.searchBox,
-              { backgroundColor: tokens.colors.surfaceMuted, borderRadius: tokens.radius.md },
+              { backgroundColor: tokens.colors.surfaceMuted, borderRadius: radius.md },
             ]}
           >
             <MaterialCommunityIcons name="magnify" size={18} color={tokens.colors.textSecondary} />
@@ -92,7 +93,7 @@ export default function SelectList<T extends string | number>({
                 disabled={opt.disabled}
                 style={[
                   styles.item,
-                  selected && { backgroundColor: `${tokens.colors.primary}15` },
+                  selected && { backgroundColor: isDarkMode ? `${tokens.colors.primary}22` : colors.primary[50] },
                   { opacity: opt.disabled ? 0.5 : 1 },
                 ]}
               >
@@ -138,7 +139,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   searchInput: { flex: 1, fontSize: 15 },
-  list: { maxHeight: 480, paddingHorizontal: 8 },
+  root: { flexShrink: 1 },
+  // Yükseklik FkModal'ın üst sınırından gelir (flexShrink zinciri)
+  list: { flexShrink: 1, paddingHorizontal: 8 },
   listContent: { paddingBottom: 16, flexGrow: 1 },
   empty: { alignItems: 'center', paddingVertical: 40 },
   item: {
@@ -148,7 +151,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 14,
     marginVertical: 1,
-    borderRadius: 8,
+    borderRadius: radius.md,
   },
   itemLeft: { flexDirection: 'row', alignItems: 'center', flex: 1, gap: 8 },
   itemIcon: { fontSize: 18 },

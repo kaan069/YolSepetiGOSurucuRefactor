@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet, Text, TextStyle } from 'react-native';
 import { useFkTokens } from '../../hooks/useFkTokens';
+import { colors } from '../../theme/design';
+import { getFieldLabelColor } from '../fk-form/fieldStyles';
 
 interface Props {
   children: React.ReactNode;
@@ -10,21 +12,20 @@ interface Props {
 }
 
 export default function FkLabel({ children, required, disabled, style }: Props) {
-  const { tokens } = useFkTokens();
+  const { tokens, isDarkMode } = useFkTokens();
   return (
     <Text
       style={[
         styles.label,
         {
-          color: disabled ? tokens.colors.textDisabled : tokens.colors.textSecondary,
-          marginBottom: tokens.spacing.sm,
+          color: getFieldLabelColor(tokens.colors, isDarkMode, disabled),
         },
         style,
       ]}
     >
       {children}
       {required ? (
-        <Text style={{ color: tokens.colors.error }}> *</Text>
+        <Text style={{ color: colors.danger[500] }}> *</Text>
       ) : null}
     </Text>
   );
@@ -32,8 +33,9 @@ export default function FkLabel({ children, required, disabled, style }: Props) 
 
 const styles = StyleSheet.create({
   label: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '500',
-    marginLeft: 4,
+    marginBottom: 6,
+    marginLeft: 2,
   },
 });

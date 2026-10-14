@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { TextInput as PaperTextInput } from 'react-native-paper';
-import FkTextInput, { FkTextInputProps } from './FkTextInput';
+import FkTextInput, { FkInputIconButton, FkTextInputProps } from './FkTextInput';
 
 type Props = Omit<FkTextInputProps, 'secureTextEntry' | 'rightIcon' | 'leftIcon' | 'keyboardType' | 'autoCapitalize'> & {
   numericPin?: boolean;
@@ -13,7 +12,7 @@ export default function FkPasswordInput({
   numericPin = false,
   maxLength,
   showToggle = true,
-  leftIcon = 'lock',
+  leftIcon = 'lock-outline',
   ...rest
 }: Props) {
   const [show, setShow] = useState(false);
@@ -28,8 +27,8 @@ export default function FkPasswordInput({
       leftIcon={leftIcon}
       rightIcon={
         showToggle ? (
-          <PaperTextInput.Icon
-            icon={show ? 'eye-off' : 'eye'}
+          <FkInputIconButton
+            icon={show ? 'eye-off-outline' : 'eye-outline'}
             onPress={() => setShow((v) => !v)}
           />
         ) : undefined
