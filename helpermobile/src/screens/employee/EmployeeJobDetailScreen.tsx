@@ -21,6 +21,7 @@ import { AppBar } from '../../components/common';
 import PhotosSection from '../../components/PhotosSection';
 import VehicleStatusSection from '../towTruckOffer/components/VehicleStatusSection';
 import { logger } from '../../utils/logger';
+import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmployeeJobDetail'>;
 
@@ -35,13 +36,13 @@ const serviceTypeConfig: Record<string, { label: string; icon: string }> = {
 };
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-    in_progress: { label: 'Devam Ediyor', color: '#2196F3' },
-    pending: { label: 'Bekliyor', color: '#FF9800' },
-    completed: { label: 'Tamamlandı', color: '#4CAF50' },
-    cancelled: { label: 'İptal', color: '#EF4444' },
+    in_progress: { label: 'Devam Ediyor', color: colors.info[500] },
+    pending: { label: 'Bekliyor', color: colors.warning[500] },
+    completed: { label: 'Tamamlandı', color: colors.success[500] },
+    cancelled: { label: 'İptal', color: colors.danger[500] },
 };
 
-const PRIMARY = '#26a69a';
+const PRIMARY = colors.primary[500];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -154,7 +155,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
     const statusInfo = jobDetail
         ? statusConfig[jobDetail.status] ?? {
               label: jobDetail.status,
-              color: '#9E9E9E',
+              color: colors.neutral[400],
           }
         : null;
 
@@ -205,7 +206,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                 <MaterialCommunityIcons
                     name="alert-circle-outline"
                     size={56}
-                    color="#EF4444"
+                    color={colors.danger[500]}
                     style={styles.errorIcon}
                 />
                 <Text style={[styles.errorText, { color: appColors.text.primary }]}>
@@ -274,7 +275,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                     <View
                         style={[
                             styles.locationDot,
-                            { backgroundColor: isInProgress ? '#4CAF50' : '#9E9E9E' },
+                            { backgroundColor: isInProgress ? colors.success[500] : colors.neutral[400] },
                         ]}
                     />
                     <Text
@@ -326,7 +327,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                             <MaterialCommunityIcons
                                 name="information-outline"
                                 size={20}
-                                color={statusInfo?.color ?? '#9E9E9E'}
+                                color={statusInfo?.color ?? colors.neutral[400]}
                                 style={styles.infoIcon}
                             />
                             <View style={styles.infoTextWrap}>
@@ -334,7 +335,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                 <View
                                     style={[
                                         styles.statusBadge,
-                                        { backgroundColor: statusInfo?.color ?? '#9E9E9E' },
+                                        { backgroundColor: statusInfo?.color ?? colors.neutral[400] },
                                     ]}
                                 >
                                     <Text style={styles.statusBadgeText}>
@@ -429,7 +430,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                         <InfoRow icon="office-building" label="Kat" value={`${jobDetail.service_details.floor}. kat`} />
                                     )}
                                     {jobDetail.service_details.has_obstacles && (
-                                        <InfoRow icon="alert-outline" label="Engel Durumu" value={jobDetail.service_details.obstacle_note || 'Engel var'} iconColor="#FF9800" />
+                                        <InfoRow icon="alert-outline" label="Engel Durumu" value={jobDetail.service_details.obstacle_note || 'Engel var'} iconColor={colors.warning[500]} />
                                     )}
                                     {!!jobDetail.service_details.estimated_duration_hours && (
                                         <InfoRow icon="clock-outline" label="Tahmini Süre" value={`${jobDetail.service_details.estimated_duration_hours} saat`} />
@@ -444,7 +445,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                         <InfoRow icon="car-side" label="Araç Tipi" value={jobDetail.service_details.vehicle_type} />
                                     )}
                                     {jobDetail.service_details.problem_types && jobDetail.service_details.problem_types.length > 0 && (
-                                        <InfoRow icon="wrench" label="Arıza Tipleri" value={jobDetail.service_details.problem_types.join(', ')} iconColor="#FF9800" />
+                                        <InfoRow icon="wrench" label="Arıza Tipleri" value={jobDetail.service_details.problem_types.join(', ')} iconColor={colors.warning[500]} />
                                     )}
                                     {!!jobDetail.service_details.problem_description && (
                                         <InfoRow icon="text-box-outline" label="Arıza Açıklaması" value={jobDetail.service_details.problem_description} />
@@ -474,16 +475,16 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                         value={`Çıkış: ${jobDetail.service_details.has_elevator_from ? 'Var' : 'Yok'} / Varış: ${jobDetail.service_details.has_elevator_to ? 'Var' : 'Yok'}`}
                                     />
                                     {jobDetail.service_details.has_large_items && (
-                                        <InfoRow icon="sofa-outline" label="Büyük Eşya" value={jobDetail.service_details.large_items_note || 'Var'} iconColor="#FF9800" />
+                                        <InfoRow icon="sofa-outline" label="Büyük Eşya" value={jobDetail.service_details.large_items_note || 'Var'} iconColor={colors.warning[500]} />
                                     )}
                                     {jobDetail.service_details.has_fragile_items && (
-                                        <InfoRow icon="glass-fragile" label="Kırılacak Eşya" value="Var" iconColor="#FF9800" />
+                                        <InfoRow icon="glass-fragile" label="Kırılacak Eşya" value="Var" iconColor={colors.warning[500]} />
                                     )}
                                     {jobDetail.service_details.needs_packing && (
-                                        <InfoRow icon="package-variant-closed" label="Paketleme" value="İsteniyor" iconColor="#2196F3" />
+                                        <InfoRow icon="package-variant-closed" label="Paketleme" value="İsteniyor" iconColor={colors.info[500]} />
                                     )}
                                     {jobDetail.service_details.needs_disassembly && (
-                                        <InfoRow icon="hammer-screwdriver" label="Söküm/Montaj" value="İsteniyor" iconColor="#2196F3" />
+                                        <InfoRow icon="hammer-screwdriver" label="Söküm/Montaj" value="İsteniyor" iconColor={colors.info[500]} />
                                     )}
                                     {!!jobDetail.service_details.preferred_date && (
                                         <InfoRow icon="calendar" label="Tercih Edilen Tarih" value={`${jobDetail.service_details.preferred_date}${jobDetail.service_details.preferred_time_slot ? ' - ' + jobDetail.service_details.preferred_time_slot : ''}`} />
@@ -544,13 +545,13 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                             icon="map-marker-up"
                                             label="Alış Adresi"
                                             value={loc.pickup_address}
-                                            iconColor="#FF9800"
+                                            iconColor={colors.warning[500]}
                                         />
                                         {loc.pickup_lat !== undefined && loc.pickup_lng !== undefined && (
                                             <Button
                                                 mode="contained"
                                                 icon="navigation"
-                                                buttonColor="#FF9800"
+                                                buttonColor={colors.warning[500]}
                                                 style={styles.pickupNavButton}
                                                 onPress={() =>
                                                     openNavigation(loc.pickup_lat!, loc.pickup_lng!)
@@ -567,13 +568,13 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                             icon="map-marker-down"
                                             label="Bırakış Adresi"
                                             value={loc.dropoff_address}
-                                            iconColor="#4CAF50"
+                                            iconColor={colors.success[500]}
                                         />
                                         {loc.dropoff_lat !== undefined && loc.dropoff_lng !== undefined && (
                                             <Button
                                                 mode="contained"
                                                 icon="navigation"
-                                                buttonColor="#4CAF50"
+                                                buttonColor={colors.success[500]}
                                                 style={styles.navButton}
                                                 onPress={() =>
                                                     openNavigation(loc.dropoff_lat!, loc.dropoff_lng!)
@@ -649,7 +650,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                             <Button
                                 mode="contained"
                                 icon="phone"
-                                buttonColor="#4CAF50"
+                                buttonColor={colors.success[500]}
                                 style={styles.callButton}
                                 onPress={() =>
                                     Linking.openURL(
@@ -759,7 +760,7 @@ const styles = StyleSheet.create({
     },
     infoLabel: {
         fontSize: 12,
-        color: '#9E9E9E',
+        color: colors.neutral[400],
         marginBottom: 2,
         fontWeight: '400',
     },
@@ -777,7 +778,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
     },
     statusBadgeText: {
-        color: '#fff',
+        color: colors.white,
         fontSize: 13,
         fontWeight: '600',
     },

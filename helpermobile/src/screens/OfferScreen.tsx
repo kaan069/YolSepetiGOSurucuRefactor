@@ -16,6 +16,7 @@ import VehicleStatusGrid from '../components/offer/VehicleStatusGrid';
 import LocationAddresses from '../components/offer/LocationAddresses';
 import MapWithRoute from '../components/offer/MapWithRoute';
 import { logger } from '../utils/logger';
+import { colors } from '../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Offer'>;
 
@@ -397,8 +398,8 @@ export default function OfferScreen({ route, navigation }: Props) {
               {craneRequest.has_obstacles && (
                 <>
                   <Text style={styles.label}>Engeller:</Text>
-                  <Text style={{ color: '#ff9800', fontWeight: 'bold' }}>⚠️ Engel var</Text>
-                  {craneRequest.obstacle_note && <Text style={{ fontSize: 12, color: '#666', marginTop: 4 }}>{craneRequest.obstacle_note}</Text>}
+                  <Text style={{ color: colors.warning[500], fontWeight: 'bold' }}>Engel var</Text>
+                  {craneRequest.obstacle_note && <Text style={{ fontSize: 12, color: colors.neutral[500], marginTop: 4 }}>{craneRequest.obstacle_note}</Text>}
                   <Divider style={styles.divider} />
                 </>
               )}
@@ -434,7 +435,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10,
     padding: 10,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
     borderRadius: 8,
   },
   addressRow: {
@@ -445,16 +446,16 @@ const styles = StyleSheet.create({
   },
   addressLabel: {
     fontWeight: 'bold',
-    color: '#666',
+    color: colors.neutral[500],
     fontSize: 14,
   },
   addressValue: {
-    color: '#333',
+    color: colors.neutral[800],
     fontSize: 14,
   },
   distanceText: {
     fontWeight: 'bold',
-    color: '#26a69a',
+    color: colors.primary[500],
   },
   label: {
     fontWeight: 'bold',
@@ -476,15 +477,15 @@ const styles = StyleSheet.create({
     margin: 8,
   },
   chip: {
-    backgroundColor: '#e3f2fd',
+    backgroundColor: colors.info[50],
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#26a69a',
+    borderColor: colors.primary[500],
   },
   chipText: {
-    color: '#26a69a',
+    color: colors.primary[500],
     fontSize: 12,
     fontWeight: '600',
   },

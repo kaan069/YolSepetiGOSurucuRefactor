@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { colors } from '../../theme/design';
 
 interface MarkerIconProps {
     type: 'driver' | 'pickup' | 'dropoff';
@@ -12,7 +13,7 @@ export function MarkerIcon({ type, label }: MarkerIconProps) {
         return (
             <View style={styles.driverContainer}>
                 <View style={styles.driverCircle}>
-                    <MaterialCommunityIcons name="truck" size={24} color="#ffffff" />
+                    <MaterialCommunityIcons name="truck" size={24} color={colors.white} />
                 </View>
                 <View style={styles.driverPulse} />
             </View>
@@ -55,12 +56,12 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: '#26a69a',
+        backgroundColor: colors.primary[500],
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 3,
-        borderColor: '#ffffff',
-        shadowColor: '#26a69a',
+        borderColor: colors.white,
+        shadowColor: colors.primary[500],
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
         shadowRadius: 8,
@@ -72,7 +73,7 @@ const styles = StyleSheet.create({
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: '#26a69a',
+        backgroundColor: colors.primary[500],
         opacity: 0.2,
         zIndex: 1,
     },
@@ -90,7 +91,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 3,
-        borderColor: '#ffffff',
+        borderColor: colors.white,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
@@ -98,15 +99,15 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     pickupCircle: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: colors.success[500],
     },
     dropoffCircle: {
-        backgroundColor: '#F44336',
+        backgroundColor: colors.danger[500],
     },
     locationLabel: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#ffffff',
+        color: colors.white,
     },
     locationPin: {
         width: 0,
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 10,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
-        borderTopColor: '#ffffff',
+        borderTopColor: colors.white,
         marginTop: -3,
     },
 });

@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
+import { colors } from '../../theme/design';
 
 interface DistanceMetricsProps {
     distanceToCustomer: number | null;
@@ -35,7 +36,7 @@ export default function DistanceMetrics({
 const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
-        backgroundColor: '#f5f5f5',
+        backgroundColor: colors.neutral[100],
         borderRadius: 12,
         padding: 16,
         marginBottom: 16,
@@ -48,25 +49,25 @@ const styles = StyleSheet.create({
     metricValue: {
         fontSize: 28,
         fontWeight: 'bold',
-        color: '#26a69a',
+        color: colors.primary[500],
         marginBottom: 4,
     },
     metricLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: '#333',
+        color: colors.neutral[800],
         textAlign: 'center',
         marginBottom: 2,
     },
     metricSubtext: {
         fontSize: 12,
-        color: '#666',
+        color: colors.neutral[500],
         textAlign: 'center',
     },
     metricDivider: {
         width: 1,
         height: 60,
-        backgroundColor: '#ddd',
+        backgroundColor: colors.neutral[200],
         marginHorizontal: 12,
     },
 });

@@ -3,6 +3,7 @@ import { View, StyleSheet, TextInput as RNTextInput, TouchableOpacity, Platform 
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { CardBrand, getCardBrand, formatCardNumber, formatExpireDate } from './paymentUtils';
+import { colors } from '../../../theme/design';
 
 export interface NewCardFormProps {
   cardNumber: string;
@@ -35,7 +36,7 @@ const renderCardBrandLogo = (brand: CardBrand) => {
     case 'discover':
       return <Text style={[styles.previewBrand, { color: '#FF6000', fontStyle: 'normal' }]}>DISCOVER</Text>;
     default:
-      return <MaterialCommunityIcons name="credit-card" size={24} color="#fff" />;
+      return <MaterialCommunityIcons name="credit-card" size={24} color={colors.white} />;
   }
 };
 
@@ -104,7 +105,7 @@ export default function NewCardForm({
       {/* Card Preview */}
       <View style={styles.preview}>
         <View style={styles.previewHeader}>
-          <MaterialCommunityIcons name="contactless-payment" size={24} color="#fff" />
+          <MaterialCommunityIcons name="contactless-payment" size={24} color={colors.white} />
           {renderCardBrandLogo(cardBrand)}
         </View>
         <Text style={styles.previewNumber}>
@@ -131,7 +132,7 @@ export default function NewCardForm({
               ref={cardInputRef}
               style={styles.input}
               placeholder="0000 0000 0000 0000"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.neutral[400]}
               value={displayCardNumber}
               onChangeText={handleCardNumberChange}
               onSelectionChange={(e) => {
@@ -140,7 +141,7 @@ export default function NewCardForm({
               keyboardType="numeric"
               maxLength={19}
             />
-            <MaterialCommunityIcons name="credit-card-outline" size={20} color="#666" style={styles.inputIcon} />
+            <MaterialCommunityIcons name="credit-card-outline" size={20} color={colors.neutral[500]} style={styles.inputIcon} />
           </View>
         </View>
 
@@ -150,12 +151,12 @@ export default function NewCardForm({
             <RNTextInput
               style={styles.input}
               placeholder="AD SOYAD"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.neutral[400]}
               value={cardHolderName}
               onChangeText={setCardHolderName}
               autoCapitalize="characters"
             />
-            <MaterialCommunityIcons name="account-outline" size={20} color="#666" style={styles.inputIcon} />
+            <MaterialCommunityIcons name="account-outline" size={20} color={colors.neutral[500]} style={styles.inputIcon} />
           </View>
         </View>
 
@@ -165,7 +166,7 @@ export default function NewCardForm({
             <RNTextInput
               style={styles.inputSmall}
               placeholder="MM/YY"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.neutral[400]}
               value={expireDate}
               onChangeText={(text: string) => {
                 if (text.length < expireDate.length) {
@@ -187,7 +188,7 @@ export default function NewCardForm({
             <RNTextInput
               style={styles.inputSmall}
               placeholder="•••"
-              placeholderTextColor="#999"
+              placeholderTextColor={colors.neutral[400]}
               value={cvc}
               onChangeText={(text: string) => setCvc(text.replace(/\D/g, '').slice(0, 4))}
               keyboardType="numeric"
@@ -200,7 +201,7 @@ export default function NewCardForm({
         {/* Save Card Toggle */}
         <TouchableOpacity style={styles.saveToggle} onPress={() => setSaveCard(!saveCard)} activeOpacity={0.7}>
           <View style={[styles.checkbox, saveCard && styles.checkboxChecked]}>
-            {saveCard && <MaterialCommunityIcons name="check" size={16} color="#fff" />}
+            {saveCard && <MaterialCommunityIcons name="check" size={16} color={colors.white} />}
           </View>
           <Text style={styles.saveText}>Bu kartı kaydet (Sonraki ödemelerde kullan)</Text>
         </TouchableOpacity>
@@ -228,7 +229,7 @@ const styles = StyleSheet.create({
   previewBrand: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.white,
     fontStyle: 'italic',
   },
   mastercardLogo: {
@@ -243,7 +244,7 @@ const styles = StyleSheet.create({
   previewNumber: {
     fontSize: 22,
     fontWeight: '500',
-    color: '#fff',
+    color: colors.white,
     letterSpacing: 2,
     marginTop: 30,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
   },
   previewValue: {
     fontSize: 14,
-    color: '#fff',
+    color: colors.white,
     fontWeight: '500',
   },
   // Form
@@ -273,30 +274,30 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 13,
-    color: '#666',
+    color: colors.neutral[500],
     fontWeight: '500',
   },
   inputWrapper: {
     position: 'relative',
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 12,
     padding: 16,
     paddingRight: 44,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    color: '#333',
+    borderColor: colors.neutral[200],
+    color: colors.neutral[800],
   },
   inputSmall: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderRadius: 12,
     padding: 16,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    color: '#333',
+    borderColor: colors.neutral[200],
+    color: colors.neutral[800],
     textAlign: 'center',
   },
   inputIcon: {
@@ -319,17 +320,17 @@ const styles = StyleSheet.create({
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#ccc',
+    borderColor: colors.neutral[300],
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
+    backgroundColor: colors.success[500],
+    borderColor: colors.success[500],
   },
   saveText: {
     fontSize: 14,
-    color: '#333',
+    color: colors.neutral[800],
     flex: 1,
   },
 });

@@ -6,6 +6,7 @@ import { SavedCard } from '../../../api/payment';
 import { formatCurrency } from './paymentUtils';
 import SavedCardItem from './SavedCardItem';
 import NewCardForm, { NewCardFormProps } from './NewCardForm';
+import { colors } from '../../../theme/design';
 
 interface PaymentSelectScreenProps {
   commissionAmount: number;
@@ -72,7 +73,7 @@ export default function PaymentSelectScreen({
               />
             ))}
             <TouchableOpacity style={styles.addNewCardButton} onPress={onShowNewCardForm} activeOpacity={0.7}>
-              <MaterialCommunityIcons name="plus-circle-outline" size={24} color="#1976D2" />
+              <MaterialCommunityIcons name="plus-circle-outline" size={24} color={colors.info[600]} />
               <Text style={styles.addNewCardText}>Yeni Kart Ekle</Text>
             </TouchableOpacity>
           </View>
@@ -95,7 +96,7 @@ export default function PaymentSelectScreen({
 
         {/* Security Info */}
         <View style={styles.securitySection}>
-          <MaterialCommunityIcons name="shield-check" size={20} color="#4CAF50" />
+          <MaterialCommunityIcons name="shield-check" size={20} color={colors.success[500]} />
           <Text style={styles.securityText}>
             Ödemeniz 256-bit SSL ile korunmaktadır. iyzico güvencesi ile güvenli ödeme.
           </Text>
@@ -126,7 +127,7 @@ export default function PaymentSelectScreen({
           disabled={!canPay}
           activeOpacity={0.8}
         >
-          <MaterialCommunityIcons name="lock" size={20} color="#fff" />
+          <MaterialCommunityIcons name="lock" size={20} color={colors.white} />
           <Text style={styles.payButtonText}>
             Güvenli Ödeme - {formatCurrency(commissionAmount)} ₺
           </Text>
@@ -149,7 +150,7 @@ const styles = StyleSheet.create({
   },
   // Amount
   amountSection: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: colors.success[50],
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
@@ -158,17 +159,17 @@ const styles = StyleSheet.create({
   },
   amountLabel: {
     fontSize: 14,
-    color: '#2E7D32',
+    color: colors.success[700],
     marginBottom: 4,
   },
   amountValue: {
     fontSize: 36,
     fontWeight: '700',
-    color: '#1B5E20',
+    color: colors.success[800],
   },
   amountBreakdown: {
     fontSize: 13,
-    color: '#388E3C',
+    color: colors.success[600],
     marginTop: 6,
   },
   // Section
@@ -184,12 +185,12 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: colors.neutral[800],
     marginBottom: 12,
   },
   backToSavedText: {
     fontSize: 14,
-    color: '#1976D2',
+    color: colors.info[600],
     fontWeight: '500',
   },
   // Add New Card
@@ -199,21 +200,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 16,
     borderWidth: 2,
-    borderColor: '#1976D2',
+    borderColor: colors.info[600],
     borderStyle: 'dashed',
     borderRadius: 12,
     gap: 8,
   },
   addNewCardText: {
     fontSize: 15,
-    color: '#1976D2',
+    color: colors.info[600],
     fontWeight: '600',
   },
   // Security
   securitySection: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: colors.success[50],
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -222,7 +223,7 @@ const styles = StyleSheet.create({
   securityText: {
     flex: 1,
     fontSize: 13,
-    color: '#2E7D32',
+    color: colors.success[700],
     lineHeight: 18,
   },
   // Logos
@@ -259,31 +260,31 @@ const styles = StyleSheet.create({
   // Footer
   footer: {
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
+    borderTopColor: colors.neutral[200],
   },
   payButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#4CAF50',
-    borderRadius: 12,
-    paddingVertical: 18,
+    backgroundColor: colors.primary[500],
+    borderRadius: 16,
+    paddingVertical: 17,
     gap: 8,
-    shadowColor: '#4CAF50',
+    shadowColor: colors.primary[500],
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.2,
     shadowRadius: 8,
-    elevation: 6,
+    elevation: 4,
   },
   payButtonDisabled: {
-    backgroundColor: '#ccc',
-    shadowColor: '#ccc',
+    backgroundColor: colors.neutral[300],
+    shadowColor: colors.neutral[300],
   },
   payButtonText: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#fff',
+    color: colors.white,
   },
 });

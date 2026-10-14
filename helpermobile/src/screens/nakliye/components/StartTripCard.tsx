@@ -10,6 +10,8 @@ interface StartTripCardProps {
   loading?: boolean;
   onStartTrip: () => void;
   onStopTrip: () => void;
+  /** Konum paylaşımı kapalıyken gösterilen açıklama */
+  description?: string;
 }
 
 export default function StartTripCard({
@@ -18,6 +20,7 @@ export default function StartTripCard({
   loading = false,
   onStartTrip,
   onStopTrip,
+  description = 'Nakliye günü geldiğinde "Yola Çık" butonuna basarak müşteri ile canlı konum paylaşımı başlatabilirsiniz.',
 }: StartTripCardProps) {
   if (!visible) return null;
 
@@ -26,11 +29,7 @@ export default function StartTripCard({
       title={isLocationSharing ? 'Konum Paylaşılıyor' : 'Konum Paylaşımı'}
       icon={isLocationSharing ? 'map-marker-radius' : 'map-marker-off-outline'}
       iconColor={isLocationSharing ? colors.success[500] : colors.neutral[400]}
-      subtitle={
-        isLocationSharing
-          ? undefined
-          : 'Nakliye günü geldiğinde "Yola Çık" butonuna basarak müşteri ile canlı konum paylaşımı başlatabilirsiniz.'
-      }
+      subtitle={isLocationSharing ? undefined : description}
     >
       {isLocationSharing ? (
         <>

@@ -21,6 +21,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { cancellationAPI } from '../../api/requests';
 import type { CanCancelResponse } from '../../api/types';
 import type { ServiceType } from '../../constants/serviceTypes';
+import { colors } from '../../theme/design';
 
 type ModalStep = 'checking' | 'confirm' | 'cancelling';
 
@@ -133,7 +134,7 @@ export default function CancelJobModal({
             onPress={handleClose}
             disabled={step === 'cancelling'}
           >
-            <MaterialCommunityIcons name="close" size={24} color="#333" />
+            <MaterialCommunityIcons name="close" size={24} color={colors.neutral[800]} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>İş İptali</Text>
           <View style={styles.placeholder} />
@@ -143,7 +144,7 @@ export default function CancelJobModal({
           {/* Kontrol aşaması - Loading */}
           {step === 'checking' && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#F44336" />
+              <ActivityIndicator size="large" color={colors.danger[500]} />
               <Text style={styles.loadingText}>İptal durumu kontrol ediliyor...</Text>
             </View>
           )}
@@ -153,7 +154,7 @@ export default function CancelJobModal({
             <View style={styles.contentContainer}>
               <Card style={styles.errorCard}>
                 <Card.Content style={styles.errorContent}>
-                  <MaterialCommunityIcons name="alert-circle" size={56} color="#F44336" />
+                  <MaterialCommunityIcons name="alert-circle" size={56} color={colors.danger[500]} />
                   <Text style={styles.errorTitle}>İşlem Yapılamıyor</Text>
                   <Text style={styles.errorText}>{errorMessage}</Text>
                 </Card.Content>
@@ -162,7 +163,7 @@ export default function CancelJobModal({
                 mode="contained"
                 onPress={onClose}
                 style={styles.closeActionButton}
-                buttonColor="#666"
+                buttonColor={colors.neutral[500]}
               >
                 Kapat
               </Button>
@@ -174,7 +175,7 @@ export default function CancelJobModal({
             <View style={styles.contentContainer}>
               <Card style={styles.warningCard}>
                 <Card.Content style={styles.warningContent}>
-                  <MaterialCommunityIcons name="cancel" size={56} color="#FF9800" />
+                  <MaterialCommunityIcons name="cancel" size={56} color={colors.warning[500]} />
                   <Text style={styles.warningTitle}>İptal Edilemiyor</Text>
                   <Text style={styles.warningText}>
                     {canCancelData.reason || 'Bu iş şu anda iptal edilemiyor.'}
@@ -185,7 +186,7 @@ export default function CancelJobModal({
                 mode="contained"
                 onPress={onClose}
                 style={styles.closeActionButton}
-                buttonColor="#666"
+                buttonColor={colors.neutral[500]}
               >
                 Kapat
               </Button>
@@ -198,11 +199,11 @@ export default function CancelJobModal({
               {/* Uyarı başlığı */}
               <Card style={styles.alertCard}>
                 <Card.Content style={styles.alertContent}>
-                  <MaterialCommunityIcons name="alert-outline" size={40} color="#F44336" />
+                  <MaterialCommunityIcons name="alert-outline" size={40} color={colors.danger[500]} />
                   <Text style={styles.alertTitle}>İşi iptal etmek istediğinize emin misiniz?</Text>
                   {canCancelData.within_grace_period && (
                     <View style={styles.gracePeriodBadge}>
-                      <MaterialCommunityIcons name="clock-check-outline" size={16} color="#4CAF50" />
+                      <MaterialCommunityIcons name="clock-check-outline" size={16} color={colors.success[500]} />
                       <Text style={styles.gracePeriodText}>
                         Ücretsiz iptal süresi içindesiniz
                       </Text>
@@ -225,7 +226,7 @@ export default function CancelJobModal({
                     <View style={styles.divider} />
                     <View style={styles.refundRow}>
                       <Text style={styles.refundLabel}>İade Oranı</Text>
-                      <Text style={[styles.refundValue, { color: '#4CAF50' }]}>
+                      <Text style={[styles.refundValue, { color: colors.success[500] }]}>
                         %{canCancelData.refund_info.refund_rate}
                       </Text>
                     </View>
@@ -239,7 +240,7 @@ export default function CancelJobModal({
                     <View style={styles.divider} />
                     <View style={styles.refundRow}>
                       <Text style={styles.refundLabel}>Kesinti</Text>
-                      <Text style={[styles.refundValue, { color: '#F44336' }]}>
+                      <Text style={[styles.refundValue, { color: colors.danger[500] }]}>
                         {canCancelData.refund_info.deduction_amount} TL
                       </Text>
                     </View>
@@ -259,8 +260,8 @@ export default function CancelJobModal({
                     multiline
                     numberOfLines={3}
                     style={styles.reasonInput}
-                    outlineColor="#ddd"
-                    activeOutlineColor="#F44336"
+                    outlineColor={colors.neutral[200]}
+                    activeOutlineColor={colors.danger[500]}
                   />
                 </Card.Content>
               </Card>
@@ -271,7 +272,7 @@ export default function CancelJobModal({
                   mode="outlined"
                   onPress={onClose}
                   style={styles.cancelButton}
-                  textColor="#666"
+                  textColor={colors.neutral[500]}
                 >
                   Vazgeç
                 </Button>
@@ -279,7 +280,7 @@ export default function CancelJobModal({
                   mode="contained"
                   onPress={handleCancel}
                   style={styles.confirmButton}
-                  buttonColor="#F44336"
+                  buttonColor={colors.danger[500]}
                   disabled={!reason.trim()}
                   icon="cancel"
                 >
@@ -292,7 +293,7 @@ export default function CancelJobModal({
           {/* İptal işlemi devam ediyor */}
           {step === 'cancelling' && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#F44336" />
+              <ActivityIndicator size="large" color={colors.danger[500]} />
               <Text style={styles.loadingText}>İş iptal ediliyor...</Text>
             </View>
           )}
@@ -305,7 +306,7 @@ export default function CancelJobModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.neutral[50],
   },
   header: {
     flexDirection: 'row',
@@ -313,9 +314,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.neutral[200],
   },
   closeButton: {
     width: 40,
@@ -323,12 +324,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: colors.neutral[800],
   },
   placeholder: {
     width: 40,
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 15,
-    color: '#666',
+    color: colors.neutral[500],
   },
   contentContainer: {
     flex: 1,
@@ -354,7 +355,7 @@ const styles = StyleSheet.create({
   // Hata kartı
   errorCard: {
     marginBottom: 16,
-    backgroundColor: '#FFEBEE',
+    backgroundColor: colors.danger[50],
   },
   errorContent: {
     alignItems: 'center',
@@ -363,12 +364,12 @@ const styles = StyleSheet.create({
   errorTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#C62828',
+    color: colors.danger[700],
     marginTop: 12,
   },
   errorText: {
     fontSize: 14,
-    color: '#666',
+    color: colors.neutral[500],
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 20,
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
   // Uyarı kartı (iptal edilemez)
   warningCard: {
     marginBottom: 16,
-    backgroundColor: '#FFF3E0',
+    backgroundColor: colors.warning[50],
   },
   warningContent: {
     alignItems: 'center',
@@ -385,12 +386,12 @@ const styles = StyleSheet.create({
   warningTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#E65100',
+    color: colors.warning[700],
     marginTop: 12,
   },
   warningText: {
     fontSize: 14,
-    color: '#666',
+    color: colors.neutral[500],
     textAlign: 'center',
     marginTop: 8,
     lineHeight: 20,
@@ -399,7 +400,7 @@ const styles = StyleSheet.create({
   // Alert kartı (iptal edilebilir - başlık)
   alertCard: {
     marginBottom: 16,
-    backgroundColor: '#FFEBEE',
+    backgroundColor: colors.danger[50],
   },
   alertContent: {
     alignItems: 'center',
@@ -408,14 +409,14 @@ const styles = StyleSheet.create({
   alertTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#C62828',
+    color: colors.danger[700],
     marginTop: 8,
     textAlign: 'center',
   },
   gracePeriodBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: colors.success[50],
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -424,7 +425,7 @@ const styles = StyleSheet.create({
   },
   gracePeriodText: {
     fontSize: 13,
-    color: '#2E7D32',
+    color: colors.success[700],
     fontWeight: '500',
   },
   // İade bilgileri kartı
@@ -434,7 +435,7 @@ const styles = StyleSheet.create({
   refundTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: colors.neutral[800],
     marginBottom: 16,
   },
   refundRow: {
@@ -445,20 +446,20 @@ const styles = StyleSheet.create({
   },
   refundLabel: {
     fontSize: 14,
-    color: '#666',
+    color: colors.neutral[500],
   },
   refundValue: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#333',
+    color: colors.neutral[800],
   },
   refundAmount: {
-    color: '#4CAF50',
+    color: colors.success[500],
     fontSize: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.neutral[100],
   },
   // Sebep kartı
   reasonCard: {
@@ -467,11 +468,11 @@ const styles = StyleSheet.create({
   reasonTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: colors.neutral[800],
     marginBottom: 8,
   },
   reasonInput: {
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   // Aksiyon butonları
   actionButtons: {
@@ -482,7 +483,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    borderColor: '#ccc',
+    borderColor: colors.neutral[300],
   },
   confirmButton: {
     flex: 1,

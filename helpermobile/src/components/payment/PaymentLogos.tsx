@@ -8,6 +8,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { colors } from '../../theme/design';
 
 interface PaymentLogosProps {
   size?: 'small' | 'medium' | 'large';
@@ -55,12 +56,12 @@ export default function PaymentLogos({ size = 'medium', showLabel = true }: Paym
 const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
-    backgroundColor: '#F8F9FA',
+    backgroundColor: colors.neutral[50],
     borderRadius: 8,
     marginTop: 12,
   },
   label: {
-    color: '#666',
+    color: colors.neutral[500],
     marginBottom: 8,
     fontWeight: '500',
   },

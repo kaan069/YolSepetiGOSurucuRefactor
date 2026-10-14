@@ -211,7 +211,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
           .join('\n');
 
         Alert.alert(
-          '⚠️ Profil Tamamlanmamış',
+          'Profil Tamamlanmamış',
           `İş kabul edebilmek için profilinizi tamamlamanız gerekiyor.\n\nEksik bilgiler:\n${missingMessages}\n\nProfil tamamlama: %${completenessResponse.completion_percentage}`,
           [
             { text: 'Tamam', style: 'cancel' },
@@ -254,9 +254,9 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
     Alert.alert(
       'Teklif Gönder',
       `Bu çekici talebi için teklif göndermek istediğinize emin misiniz?\n\n` +
-        `💰 Teklifiniz: ${parsedPrice.toLocaleString('tr-TR')} TL\n` +
-        `📍 Toplam Mesafe: ${totalDistance.toFixed(1)} km\n\n` +
-        `ℹ️ Teklifiniz müşteriye gönderilecek ve onay beklemeye alınacak.`,
+        `Teklifiniz: ${parsedPrice.toLocaleString('tr-TR')} TL\n` +
+        `Toplam Mesafe: ${totalDistance.toFixed(1)} km\n\n` +
+        `Teklifiniz müşteriye gönderilecek ve onay beklemeye alınacak.`,
       [
         { text: 'İptal', style: 'cancel' },
         {
@@ -291,7 +291,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
       const offerPrice = response.driver_earnings || response.estimated_price || pricing?.driverEarnings || 0;
       showNotification(
         'success',
-        `✅ Teklifiniz gönderildi!\n\n💰 Tahmini Kazanç: ${offerPrice} TL\n\nℹ️ Müşteri sizin teklifinizi seçtiğinde iş "Devam Eden İşler"e geçecek.`,
+        `Teklifiniz gönderildi!\n\nTahmini Kazanç: ${offerPrice} TL\n\nMüşteri teklifinizi seçtiğinde iş "Devam Eden İşler"e geçecek.`,
         6000
       );
 
@@ -316,7 +316,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
 
       // Şirket bilgisi hatası
       if (backendError.toLowerCase().includes('şirket')) {
-        Alert.alert('⚠️ Şirket Bilgisi Eksik', backendError, [
+        Alert.alert('Şirket Bilgisi Eksik', backendError, [
           { text: 'İptal', style: 'cancel' },
           { text: 'Görüntüle', onPress: () => navigation.navigate('CompanyInfo' as any) },
         ]);

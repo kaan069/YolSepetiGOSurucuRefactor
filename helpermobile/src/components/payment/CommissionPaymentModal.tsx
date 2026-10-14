@@ -24,6 +24,7 @@ import { useCommissionPayment } from './commission/useCommissionPayment';
 import PaymentSelectScreen from './commission/PaymentSelectScreen';
 import { ProcessingScreen, SuccessScreen, FailedScreen } from './commission/PaymentResultScreens';
 import type { CommissionCancel } from './commission/cancelReason';
+import { colors } from '../../theme/design';
 
 interface CommissionPaymentModalProps {
   visible: boolean;
@@ -72,7 +73,7 @@ export default function CommissionPaymentModal({
         {payment.step === 'select' && (
           <View style={styles.header}>
             <TouchableOpacity style={styles.closeButton} onPress={payment.handleClose}>
-              <MaterialCommunityIcons name="close" size={24} color="#333" />
+              <MaterialCommunityIcons name="close" size={24} color={colors.neutral[800]} />
             </TouchableOpacity>
             <Text style={styles.headerTitle}>Komisyon Ödemesi</Text>
             <View style={styles.placeholder} />
@@ -131,7 +132,7 @@ export default function CommissionPaymentModal({
                     payment.setStep('select');
                   }}
                 >
-                  <MaterialCommunityIcons name="arrow-left" size={24} color="#333" />
+                  <MaterialCommunityIcons name="arrow-left" size={24} color={colors.neutral[800]} />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>3D Secure Doğrulama</Text>
                 <View style={styles.placeholder} />
@@ -147,7 +148,7 @@ export default function CommissionPaymentModal({
                 renderLoading={() => (
                   <View style={styles.webViewLoading}>
                     <Animated.View style={{ transform: [{ rotate: payment.spin }] }}>
-                      <MaterialCommunityIcons name="loading" size={40} color="#4CAF50" />
+                      <MaterialCommunityIcons name="loading" size={40} color={colors.success[500]} />
                     </Animated.View>
                     <Text style={styles.webViewLoadingText}>Yükleniyor...</Text>
                   </View>
@@ -180,7 +181,7 @@ export default function CommissionPaymentModal({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    backgroundColor: colors.neutral[50],
   },
   header: {
     flexDirection: 'row',
@@ -188,9 +189,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.neutral[200],
   },
   closeButton: {
     width: 40,
@@ -198,12 +199,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
+    color: colors.neutral[800],
   },
   placeholder: {
     width: 40,
@@ -211,7 +212,7 @@ const styles = StyleSheet.create({
   // 3DS
   threeDSContainer: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   threeDSHeader: {
     flexDirection: 'row',
@@ -219,9 +220,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomColor: colors.neutral[200],
   },
   webViewLoading: {
     position: 'absolute',
@@ -231,11 +232,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.white,
   },
   webViewLoadingText: {
     marginTop: 12,
     fontSize: 14,
-    color: '#666',
+    color: colors.neutral[500],
   },
 });

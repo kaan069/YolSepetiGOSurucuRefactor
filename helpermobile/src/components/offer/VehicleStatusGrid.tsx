@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
+import { colors } from '../../theme/design';
 
 interface StatusItemProps {
     label: string;
@@ -52,31 +53,31 @@ export default function VehicleStatusGrid({
         <View style={styles.container}>
             <StatusItem
                 label="Motor"
-                value={isRunning ? '✓ Çalışıyor' : '✗ Çalışmıyor'}
+                value={isRunning ? 'Çalışıyor' : 'Çalışmıyor'}
                 isOk={isRunning}
                 note={!isRunning ? runningNote : undefined}
             />
             <StatusItem
                 label="Vites"
-                value={isGearStuck ? '✗ Takılı' : '✓ Normal'}
+                value={isGearStuck ? 'Takılı' : 'Normal'}
                 isOk={!isGearStuck}
                 note={isGearStuck ? gearNote : undefined}
             />
             <StatusItem
                 label="Lastik"
-                value={isTireLocked ? '✗ Kilitli' : '✓ Normal'}
+                value={isTireLocked ? 'Kilitli' : 'Normal'}
                 isOk={!isTireLocked}
                 note={isTireLocked ? tireNote : undefined}
             />
             <StatusItem
                 label="Sıkışma"
-                value={isStuck ? '✗ Sıkışmış' : '✓ Sıkışma Yok'}
+                value={isStuck ? 'Sıkışmış' : 'Sıkışma Yok'}
                 isOk={!isStuck}
                 note={isStuck ? stuckNote : undefined}
             />
             <StatusItem
                 label="Kaza"
-                value={isCrashed ? '⚠️ Kaza Var' : '✓ Kaza Yok'}
+                value={isCrashed ? 'Kaza Var' : 'Kaza Yok'}
                 isOk={!isCrashed}
                 note={isCrashed ? crashedNote : undefined}
             />
@@ -97,27 +98,27 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 6,
         paddingHorizontal: 8,
-        backgroundColor: '#f9f9f9',
+        backgroundColor: colors.neutral[50],
         borderRadius: 6,
     },
     statusLabel: {
         fontWeight: '600',
         fontSize: 14,
-        color: '#555',
+        color: colors.neutral[600],
     },
     statusValue: {
         fontSize: 14,
         fontWeight: 'bold',
     },
     statusOk: {
-        color: '#4caf50',
+        color: colors.success[500],
     },
     statusWarning: {
-        color: '#ff9800',
+        color: colors.warning[500],
     },
     noteText: {
         fontSize: 12,
-        color: '#666',
+        color: colors.neutral[500],
         fontStyle: 'italic',
         marginLeft: 8,
         marginTop: 4,

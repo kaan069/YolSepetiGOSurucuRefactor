@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, ScrollView, Alert, View, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text, Button } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -26,6 +26,18 @@ import DriverPhotoUpload from '../../components/DriverPhotoUpload';
 import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModal';
 import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import { logger } from '../../utils/logger';
+import { FkCard, FkEmptyState, FkIconChip, FkInfoBanner, FkPill } from '../../components/fk';
+import {
+  InfoRow,
+  JobActions,
+  JobCompleteCard,
+  JobCustomerCard,
+  JobEarningsCard,
+  JobLocationCard,
+  JobSection,
+} from '../../components/job';
+import { StartTripCard } from '../nakliye/components';
+import { colors, getStatusStyle, spacing, text } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferJobDetail'>;
 
@@ -66,13 +78,13 @@ const TRANSFER_TYPE_LABELS: Record<string, string> = {
   vip: 'VIP Transfer',
 };
 
-// Arac tercihi etiketleri
+// Araç tercihi etiketleri
 const VEHICLE_PREFERENCE_LABELS: Record<string, string> = {
   sedan: 'Sedan',
-  vip_car: 'VIP Arac',
-  minibus: 'Minibus',
-  midibus: 'Midibus',
-  bus: 'Otobus',
+  vip_car: 'VIP Araç',
+  minibus: 'Minibüs',
+  midibus: 'Midibüs',
+  bus: 'Otobüs',
 };
 
 // Tarih formatlama
@@ -93,17 +105,17 @@ const formatDate = (dateStr: string) => {
 const getHeroConfig = (status: string) => {
   switch (status) {
     case 'awaiting_approval':
-      return { color: '#FF9800', icon: 'clock-outline' as const, label: 'Onay Bekleniyor', description: 'Teklif gonderildi, musteri onayi bekleniyor' };
+      return { icon: 'clock-outline' as const, label: 'Onay Bekleniyor', description: 'Teklif gönderildi, müşteri onayı bekleniyor' };
     case 'awaiting_payment':
-      return { color: '#2196F3', icon: 'credit-card-outline' as const, label: 'Odeme Bekleniyor', description: 'Musteri onayladi, odeme bekleniyor' };
+      return { icon: 'credit-card-outline' as const, label: 'Ödeme Bekleniyor', description: 'Müşteri onayladı, ödeme bekleniyor' };
     case 'in_progress':
-      return { color: '#4CAF50', icon: 'car-connected' as const, label: 'Devam Ediyor', description: 'Is devam ediyor' };
+      return { icon: 'car-connected' as const, label: 'Devam Ediyor', description: 'İş devam ediyor' };
     case 'completed':
-      return { color: '#9E9E9E', icon: 'check-circle' as const, label: 'Tamamlandi', description: 'Is basariyla tamamlandi' };
+      return { icon: 'check-circle' as const, label: 'Tamamlandı', description: 'İş başarıyla tamamlandı' };
     case 'cancelled':
-      return { color: '#F44336', icon: 'cancel' as const, label: 'Iptal Edildi', description: 'Is iptal edildi' };
+      return { icon: 'cancel' as const, label: 'İptal Edildi', description: 'İş iptal edildi' };
     default:
-      return { color: '#607D8B', icon: 'information-outline' as const, label: 'Bilinmiyor', description: '' };
+      return { icon: 'information-outline' as const, label: 'Bilinmiyor', description: '' };
   }
 };
 
@@ -142,7 +154,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
         const request = await requestsAPI.getTransferRequestDetail(parseInt(jobId));
         setTransferRequest(request);
       } catch (error: any) {
-        Alert.alert('Hata', 'Transfer is detaylari yuklenemedi');
+        Alert.alert('Hata', 'Transfer iş detayları yüklenemedi');
       } finally {
         setLoading(false);
       }
@@ -177,14 +189,14 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
         lastShownUpdateKeyRef.current = eventKey;
         const statusLabels: Record<string, string> = {
           'awaiting_approval': 'Onay Bekleniyor',
-          'awaiting_payment': 'Odeme Bekleniyor',
+          'awaiting_payment': 'Ödeme Bekleniyor',
           'in_progress': 'Devam Ediyor',
-          'completed': 'Tamamlandi',
-          'cancelled': 'Iptal Edildi',
+          'completed': 'Tamamlandı',
+          'cancelled': 'İptal Edildi',
         };
         const label = statusLabels[lastUpdatedStatus] || lastUpdatedStatus;
         useJobUpdateEventStore.getState().clear();
-        Alert.alert('Is Durumu Guncellendi', `Is durumu: ${label}`, [{
+        Alert.alert('İş Durumu Güncellendi', `İş durumu: ${label}`, [{
           text: 'Tamam',
           onPress: () => {
             navigation.navigate('Tabs', {
@@ -285,11 +297,11 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
       }
       // Konum paylaşımını başlat
       startLocationSharing(transferRequest.trackingToken, jobId, 'city');
-      Alert.alert('Yola Cikis', 'Yola cikis bildirildi ve konum paylasimi baslatildi. Musteriye SMS gonderildi.');
+      Alert.alert('Yola Çıkış', 'Yola çıkış bildirildi ve konum paylaşımı başlatıldı. Müşteriye SMS gönderildi.');
     } catch (err: any) {
       // Depart başarısız olsa bile konum paylaşımını başlat
       startLocationSharing(transferRequest.trackingToken, jobId, 'city');
-      Alert.alert('Konum Paylasimi', 'Konum paylasimi baslatildi.');
+      Alert.alert('Konum Paylaşımı', 'Konum paylaşımı başlatıldı.');
     } finally {
       setDepartLoading(false);
     }
@@ -298,10 +310,10 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
   // Konum paylasimini durdur
   const handleStopLocationSharing = () => {
     Alert.alert(
-      'Konum Paylasimi',
-      'Konum paylasimini durdurmak istediginize emin misiniz?',
+      'Konum Paylaşımı',
+      'Konum paylaşımını durdurmak istediğinize emin misiniz?',
       [
-        { text: 'Vazgec', style: 'cancel' },
+        { text: 'Vazgeç', style: 'cancel' },
         {
           text: 'Durdur',
           style: 'destructive',
@@ -315,7 +327,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
   const handleCompleteJob = () => {
     Alert.alert(
       'Bilgilendirme',
-      'Isi bitirebilmeniz icin musterinin takip linkinden onay vermesi gerekmektedir.',
+      'İşi bitirebilmeniz için müşterinin takip linkinden onay vermesi gerekmektedir.',
       [{ text: 'Tamam' }]
     );
   };
@@ -394,7 +406,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
   };
 
   const handlePaymentFailed = (errorMessage: string) => {
-    Alert.alert('Odeme Hatasi', errorMessage);
+    Alert.alert('Ödeme Hatası', errorMessage);
   };
 
   // Telefon arama
@@ -404,7 +416,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
       if (supported) {
         Linking.openURL(phoneUrl);
       } else {
-        Alert.alert('Hata', 'Telefon aramasi yapilamiyor');
+        Alert.alert('Hata', 'Telefon araması yapılamıyor');
       }
     });
   };
@@ -414,7 +426,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
     return (
       <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={["top", "bottom"]}>
         <LoadingSpinner size={80} />
-        <Text style={[styles.loadingText, { color: appColors.text.secondary }]}>Transfer is detaylari yukleniyor...</Text>
+        <Text style={[styles.loadingText, { color: appColors.text.secondary }]}>Transfer iş detayları yükleniyor...</Text>
       </SafeAreaView>
     );
   }
@@ -422,17 +434,22 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
   // Error
   if (!transferRequest) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={["bottom"]}>
-        <AppBar title="Transfer Is Detayi" />
-        <Text style={{ color: appColors.text.primary }}>Transfer is detayi bulunamadi.</Text>
-        <Button mode="outlined" onPress={() => navigation.goBack()} style={styles.backButton}>
-          Geri Don
-        </Button>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
+        <AppBar title="Transfer İş Detayı" />
+        <FkEmptyState
+          icon="file-search-outline"
+          title="Transfer iş detayı bulunamadı"
+          actionLabel="Geri Dön"
+          actionVariant="secondary"
+          onAction={() => navigation.goBack()}
+          style={styles.container}
+        />
       </SafeAreaView>
     );
   }
 
   const heroConfig = getHeroConfig(status || 'unknown');
+  const heroStatus = getStatusStyle(status);
   const isVip = transferRequest.transfer_type === 'vip';
   const transferTypeLabel = TRANSFER_TYPE_LABELS[transferRequest.transfer_type] || transferRequest.transfer_type;
   const vehiclePrefLabel = transferRequest.vehicle_preference
@@ -469,60 +486,38 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
-      <AppBar title="Transfer Is Detayi" />
+      <AppBar title="Transfer İş Detayı" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Hero Section - Durum Gosterimi */}
-        <Card style={[styles.heroCard, { backgroundColor: heroConfig.color }]}>
-          <Card.Content style={styles.heroContent}>
-            <MaterialCommunityIcons name={heroConfig.icon} size={48} color="#FFFFFF" />
-            <View style={styles.heroTextContainer}>
-              <Text style={styles.heroTitle}>{heroConfig.label}</Text>
-              <Text style={styles.heroDescription}>{heroConfig.description}</Text>
+        {/* Durum özeti */}
+        <FkCard style={styles.heroCard}>
+          <View style={styles.heroRow}>
+            <FkIconChip
+              icon={heroConfig.icon}
+              size={52}
+              shape="circle"
+              backgroundColor={heroStatus.bg}
+              iconColor={heroStatus.text}
+            />
+            <View style={styles.heroTexts}>
+              <Text style={[styles.heroTitle, { color: appColors.text.primary }]}>{heroConfig.label}</Text>
+              {heroConfig.description ? (
+                <Text style={[styles.heroDescription, { color: appColors.text.secondary }]}>{heroConfig.description}</Text>
+              ) : null}
             </View>
-          </Card.Content>
-        </Card>
+          </View>
+        </FkCard>
 
-        {/* Yola Çık / Konum Paylaşımı Butonu */}
-        {isInProgress && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Content>
-              {isLocationSharing ? (
-                <>
-                  <View style={styles.locationSharingActive}>
-                    <MaterialCommunityIcons name="map-marker-radius" size={24} color="#4CAF50" />
-                    <Text style={{ color: '#4CAF50', fontWeight: 'bold', marginLeft: 8 }}>
-                      Konum paylaşılıyor...
-                    </Text>
-                  </View>
-                  <Button
-                    icon="stop-circle"
-                    mode="outlined"
-                    textColor="#FF9800"
-                    style={{ borderColor: '#FF9800', marginTop: 8 }}
-                    contentStyle={{ paddingVertical: 4 }}
-                    onPress={handleStopLocationSharing}
-                  >
-                    Konum Paylaşımını Durdur
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  icon="navigation"
-                  mode="contained"
-                  buttonColor="#2196F3"
-                  contentStyle={{ paddingVertical: 8 }}
-                  loading={departLoading}
-                  disabled={departLoading}
-                  onPress={handleStartLocationSharing}
-                >
-                  {departLoading ? 'Yola Cikiliyor...' : 'Yola Cik'}
-                </Button>
-              )}
-            </Card.Content>
-          </Card>
-        )}
+        {/* Yola Çık / Konum Paylaşımı */}
+        <StartTripCard
+          visible={isInProgress}
+          isLocationSharing={isLocationSharing}
+          loading={departLoading}
+          onStartTrip={handleStartLocationSharing}
+          onStopTrip={handleStopLocationSharing}
+          description='Transfer zamanı geldiğinde "Yola Çık" butonuna basarak müşteri ile canlı konum paylaşımı başlatabilirsiniz.'
+        />
 
-        {/* Komisyon Odeme Karti — odeme bittiyse asla gosterme */}
+        {/* Komisyon Ödeme Kartı — ödeme bittiyse asla gösterme */}
         {isAwaitingPayment && !paymentCompleted && (
           <CommissionPaymentCard
             visible={true}
@@ -545,321 +540,149 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
           />
         )}
 
-        {/* Kazanc Karti */}
+        {/* Kazanç Kartı */}
         {(isAwaitingApproval || isInProgress || isCompleted) && driverEarnings > 0 && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Content style={styles.earningsContent}>
-              <MaterialCommunityIcons name="cash-multiple" size={28} color="#4CAF50" />
-              <View style={{ marginLeft: 12, flex: 1 }}>
-                <Text style={[styles.earningsLabel, { color: appColors.text.secondary }]}>
-                  {isCompleted ? 'Kazanciniz' : 'Tahmini Kazanc'}
-                </Text>
-                <Text style={styles.earningsAmount}>{driverEarnings.toLocaleString('tr-TR')} TL</Text>
-              </View>
-            </Card.Content>
-          </Card>
+          <JobEarningsCard
+            amount={driverEarnings}
+            status={isCompleted ? 'completed' : isAwaitingApproval ? 'awaiting_approval' : 'in_progress'}
+            label={isCompleted ? 'Kazancınız' : 'Tahmini Kazanç'}
+          />
         )}
 
-        {/* Musteri Bilgileri - Sadece devam eden islerde */}
+        {/* Müşteri Bilgileri - Sadece devam eden işlerde */}
         {isInProgress && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Title
-              title="Musteri Bilgileri"
-              titleStyle={{ color: appColors.text.primary }}
-              left={(props) => <MaterialCommunityIcons {...props} name="account" size={24} color="#26a69a" />}
-            />
-            <Card.Content>
-              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#2A2A2A' : '#f5f5f5' }]}>
-                {transferRequest.requestOwnerNameSurname && (
-                  <View style={styles.row}>
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Ad Soyad:</Text>
-                    <Text style={[styles.value, { color: appColors.text.primary }]}>
-                      {transferRequest.requestOwnerNameSurname}
-                    </Text>
-                  </View>
-                )}
-                {transferRequest.requestOwnerPhone && (
-                  <View style={styles.row}>
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Telefon:</Text>
-                    <Text style={[styles.value, { color: appColors.text.primary }]}>
-                      {transferRequest.requestOwnerPhone}
-                    </Text>
-                  </View>
-                )}
-              </View>
-              {transferRequest.requestOwnerPhone && (
-                <Button
-                  icon="phone"
-                  mode="contained"
-                  buttonColor="#26a69a"
-                  style={{ marginTop: 12 }}
-                  onPress={() => handleCallCustomer(transferRequest.requestOwnerPhone!)}
-                >
-                  Musteriyi Ara
-                </Button>
-              )}
-            </Card.Content>
-          </Card>
+          <JobCustomerCard
+            name={transferRequest.requestOwnerNameSurname}
+            phone={transferRequest.requestOwnerPhone}
+            showCallButton
+          />
         )}
 
         {/* Mesafe Bilgisi */}
         {!isAwaitingPayment && distanceToPickup !== null && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Content style={styles.distanceContent}>
-              <MaterialCommunityIcons name="map-marker-distance" size={28} color="#26a69a" />
-              <View style={{ marginLeft: 12 }}>
-                <Text style={[styles.distanceLabel, { color: appColors.text.secondary }]}>Alis Noktasina Uzaklik</Text>
-                <Text style={styles.distanceValue}>{distanceToPickup} km</Text>
-              </View>
-            </Card.Content>
-          </Card>
+          <JobSection>
+            <InfoRow
+              icon="map-marker-distance"
+              label="Alış noktasına uzaklık"
+              value={`${distanceToPickup} km`}
+              emphasize
+              valueColor={colors.primary[600]}
+            />
+          </JobSection>
         )}
 
-        {/* Transfer Detaylari Karti */}
+        {/* Transfer Detayları */}
         {!isAwaitingPayment && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Title
-              title="Transfer Detaylari"
-              titleStyle={{ color: appColors.text.primary }}
-              left={(props) => <MaterialCommunityIcons {...props} name="car-connected" size={24} color="#26a69a" />}
+          <JobSection
+            title="Transfer Detayları"
+            icon="car-connected"
+            right={<FkPill label={transferTypeLabel} color={isVip ? 'secondary' : 'success'} size="sm" />}
+          >
+            {transferRequest.transfer_type === 'organization' && transferRequest.passenger_count ? (
+              <InfoRow icon="account-multiple-outline" label="Kişi Sayısı" value={`${transferRequest.passenger_count} kişi`} divider />
+            ) : null}
+            {vehiclePrefLabel ? <InfoRow icon="car-estate" label="Araç Tercihi" value={vehiclePrefLabel} divider /> : null}
+            <InfoRow icon="calendar-outline" label="Tarih" value={formatDate(transferRequest.scheduled_date)} divider />
+            <InfoRow icon="clock-outline" label="Saat" value={transferRequest.scheduled_time} />
+            <FkPill
+              icon={transferRequest.is_round_trip ? 'swap-horizontal' : 'arrow-right'}
+              label={transferRequest.is_round_trip ? 'Gidiş - Dönüş' : 'Tek Yön'}
+              color={transferRequest.is_round_trip ? 'info' : 'neutral'}
+              style={styles.tripPill}
             />
-            <Card.Content>
-              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#2A2A2A' : '#f5f5f5' }]}>
-                {/* Transfer tipi badge */}
-                <View style={styles.row}>
-                  <View style={styles.infoRow}>
-                    <MaterialCommunityIcons
-                      name={isVip ? 'star-circle' : 'account-group'}
-                      size={18}
-                      color={isVip ? '#FFD700' : '#4CAF50'}
-                    />
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Transfer Tipi:</Text>
-                  </View>
-                  <View style={[styles.badge, { backgroundColor: isVip ? '#FFF3E0' : '#E8F5E9' }]}>
-                    <Text style={[styles.badgeText, { color: isVip ? '#E65100' : '#2E7D32' }]}>
-                      {transferTypeLabel}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Kisi sayisi (organizasyon icin) */}
-                {transferRequest.transfer_type === 'organization' && transferRequest.passenger_count && (
-                  <View style={styles.row}>
-                    <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="account-multiple" size={18} color="#2196F3" />
-                      <Text style={[styles.label, { color: appColors.text.secondary }]}>Kisi Sayisi:</Text>
-                    </View>
-                    <Text style={[styles.value, { color: appColors.text.primary }]}>
-                      {transferRequest.passenger_count} kisi
-                    </Text>
-                  </View>
-                )}
-
-                {/* Arac tercihi */}
-                {vehiclePrefLabel && (
-                  <View style={styles.row}>
-                    <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="car-estate" size={18} color="#9C27B0" />
-                      <Text style={[styles.label, { color: appColors.text.secondary }]}>Arac Tercihi:</Text>
-                    </View>
-                    <Text style={[styles.value, { color: appColors.text.primary }]}>
-                      {vehiclePrefLabel}
-                    </Text>
-                  </View>
-                )}
-
-                {/* Tarih + Saat */}
-                <View style={styles.row}>
-                  <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="calendar-clock" size={18} color="#FF9800" />
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Tarih:</Text>
-                  </View>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>
-                    {formatDate(transferRequest.scheduled_date)}
-                  </Text>
-                </View>
-
-                <View style={styles.row}>
-                  <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="clock-outline" size={18} color="#FF9800" />
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Saat:</Text>
-                  </View>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>
-                    {transferRequest.scheduled_time}
-                  </Text>
-                </View>
-
-                {/* Gidis-Donus bilgisi - belirgin banner */}
-                <View style={[
-                  styles.roundTripBanner,
-                  {
-                    backgroundColor: transferRequest.is_round_trip ? '#E3F2FD' : '#F3E5F5',
-                    borderColor: transferRequest.is_round_trip ? '#1976D2' : '#7B1FA2',
-                  },
-                ]}>
-                  <MaterialCommunityIcons
-                    name={transferRequest.is_round_trip ? 'swap-horizontal-circle' : 'arrow-right-circle'}
-                    size={26}
-                    color={transferRequest.is_round_trip ? '#1976D2' : '#7B1FA2'}
-                  />
-                  <Text style={[
-                    styles.roundTripText,
-                    { color: transferRequest.is_round_trip ? '#1565C0' : '#6A1B9A' },
-                  ]}>
-                    {transferRequest.is_round_trip ? 'Gidiş - Dönüş' : 'Tek Yön'}
-                  </Text>
-                </View>
-
-                {/* Ek notlar */}
-                {transferRequest.additional_notes && (
-                  <View style={{ marginTop: 8 }}>
-                    <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="note-text-outline" size={18} color="#795548" />
-                      <Text style={[styles.label, { color: appColors.text.secondary }]}>Ek Notlar:</Text>
-                    </View>
-                    <Text style={[styles.noteText, { color: appColors.text.primary }]}>
-                      {transferRequest.additional_notes}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </Card.Content>
-          </Card>
+            {transferRequest.additional_notes ? (
+              <FkInfoBanner
+                type="neutral"
+                icon="note-text-outline"
+                title="Ek Notlar"
+                message={transferRequest.additional_notes}
+                style={styles.block}
+              />
+            ) : null}
+          </JobSection>
         )}
 
-        {/* Alış Adresi */}
+        {/* Alış / Bırakış Adresleri */}
         {!isAwaitingPayment && !isAwaitingApproval && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Title
-              title="Alış Adresi"
-              titleStyle={{ color: appColors.text.primary }}
-              left={(props) => <MaterialCommunityIcons {...props} name="map-marker" size={24} color="#26a69a" />}
-            />
-            <Card.Content>
-              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#2A2A2A' : '#f5f5f5' }]}>
-                <Text style={[styles.addressText, { color: appColors.text.primary }]}>
-                  {transferRequest.pickup_address}
-                </Text>
-              </View>
-              {isInProgress && transferRequest.pickup_latitude && transferRequest.pickup_longitude && (
-                <Button
-                  icon="navigation-variant"
-                  mode="contained"
-                  buttonColor="#26a69a"
-                  style={{ marginTop: 12 }}
-                  onPress={() => openInMaps(transferRequest.pickup_latitude, transferRequest.pickup_longitude, 'Alış Noktası')}
-                >
-                  Alış Noktasına Git
-                </Button>
-              )}
-            </Card.Content>
-          </Card>
-        )}
-
-        {/* Bırakış Adresi */}
-        {!isAwaitingPayment && !isAwaitingApproval && transferRequest.dropoff_address && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Title
-              title="Bırakış Adresi"
-              titleStyle={{ color: appColors.text.primary }}
-              left={(props) => <MaterialCommunityIcons {...props} name="map-marker-check" size={24} color="#E91E63" />}
-            />
-            <Card.Content>
-              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#2A2A2A' : '#f5f5f5' }]}>
-                <Text style={[styles.addressText, { color: appColors.text.primary }]}>
-                  {transferRequest.dropoff_address}
-                </Text>
-              </View>
-              {isInProgress && transferRequest.dropoff_latitude && transferRequest.dropoff_longitude && (
-                <Button
-                  icon="navigation-variant"
-                  mode="contained"
-                  buttonColor="#E91E63"
-                  style={{ marginTop: 12 }}
-                  onPress={() => openInMaps(transferRequest.dropoff_latitude, transferRequest.dropoff_longitude, 'Teslim Noktası')}
-                >
-                  Teslim Noktasına Git
-                </Button>
-              )}
-            </Card.Content>
-          </Card>
+          <JobLocationCard
+            title="Adresler"
+            points={[
+              {
+                type: 'pickup',
+                label: 'Alış Adresi',
+                address: transferRequest.pickup_address,
+                latitude: transferRequest.pickup_latitude,
+                longitude: transferRequest.pickup_longitude,
+                directionsLabel:
+                  isInProgress && transferRequest.pickup_latitude && transferRequest.pickup_longitude
+                    ? 'Alış Noktasına Git'
+                    : undefined,
+              },
+              ...(transferRequest.dropoff_address
+                ? [
+                    {
+                      type: 'dropoff' as const,
+                      label: 'Bırakış Adresi',
+                      address: transferRequest.dropoff_address,
+                      latitude: transferRequest.dropoff_latitude,
+                      longitude: transferRequest.dropoff_longitude,
+                      directionsLabel:
+                        isInProgress && transferRequest.dropoff_latitude && transferRequest.dropoff_longitude
+                          ? 'Teslim Noktasına Git'
+                          : undefined,
+                    },
+                  ]
+                : []),
+            ]}
+          />
         )}
 
         {/* Dönüş Bilgileri (gidiş-dönüş ise) */}
         {!isAwaitingPayment && transferRequest.is_round_trip && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Title
+          transferRequest.return_same_route ? (
+            <JobSection title="Dönüş Bilgileri" icon="swap-horizontal">
+              <InfoRow icon="map-marker-path" label="Dönüş" value="Aynı rota üzerinden dönüş" />
+            </JobSection>
+          ) : (
+            <JobLocationCard
               title="Dönüş Bilgileri"
-              titleStyle={{ color: appColors.text.primary }}
-              left={(props) => <MaterialCommunityIcons {...props} name="swap-horizontal" size={24} color="#607D8B" />}
+              icon="swap-horizontal"
+              points={[
+                ...(transferRequest.return_pickup_location
+                  ? [
+                      {
+                        type: 'pickup' as const,
+                        label: 'Dönüş Alış',
+                        address: transferRequest.return_pickup_location.address,
+                        latitude: transferRequest.return_pickup_location.latitude,
+                        longitude: transferRequest.return_pickup_location.longitude,
+                        directionsLabel: isInProgress ? 'Konuma Git' : undefined,
+                      },
+                    ]
+                  : []),
+                ...(transferRequest.return_dropoff_location
+                  ? [
+                      {
+                        type: 'dropoff' as const,
+                        label: 'Dönüş Bırakış',
+                        address: transferRequest.return_dropoff_location.address,
+                        latitude: transferRequest.return_dropoff_location.latitude,
+                        longitude: transferRequest.return_dropoff_location.longitude,
+                        directionsLabel: isInProgress ? 'Konuma Git' : undefined,
+                      },
+                    ]
+                  : []),
+              ]}
             />
-            <Card.Content>
-              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#2A2A2A' : '#f5f5f5' }]}>
-                {transferRequest.return_same_route ? (
-                  <Text style={[styles.addressText, { color: appColors.text.primary }]}>
-                    Aynı rota üzerinden dönüş
-                  </Text>
-                ) : (
-                  <>
-                    {transferRequest.return_pickup_location && (
-                      <View style={{ marginBottom: 8 }}>
-                        <View style={styles.infoRow}>
-                          <MaterialCommunityIcons name="map-marker" size={16} color="#26a69a" />
-                          <Text style={[styles.label, { color: appColors.text.secondary }]}>Dönüş Alış:</Text>
-                        </View>
-                        <Text style={[styles.addressText, { color: appColors.text.primary }]}>
-                          {transferRequest.return_pickup_location.address}
-                        </Text>
-                        {isInProgress && (
-                          <Button
-                            icon="navigation-variant"
-                            mode="outlined"
-                            textColor="#26a69a"
-                            style={{ borderColor: '#26a69a', marginTop: 8 }}
-                            compact
-                            onPress={() => openInMaps(transferRequest.return_pickup_location!.latitude, transferRequest.return_pickup_location!.longitude, 'Dönüş Alış Noktası')}
-                          >
-                            Konuma Git
-                          </Button>
-                        )}
-                      </View>
-                    )}
-                    {transferRequest.return_dropoff_location && (
-                      <View>
-                        <View style={styles.infoRow}>
-                          <MaterialCommunityIcons name="map-marker-check" size={16} color="#E91E63" />
-                          <Text style={[styles.label, { color: appColors.text.secondary }]}>Dönüş Bırakış:</Text>
-                        </View>
-                        <Text style={[styles.addressText, { color: appColors.text.primary }]}>
-                          {transferRequest.return_dropoff_location.address}
-                        </Text>
-                        {isInProgress && (
-                          <Button
-                            icon="navigation-variant"
-                            mode="outlined"
-                            textColor="#E91E63"
-                            style={{ borderColor: '#E91E63', marginTop: 8 }}
-                            compact
-                            onPress={() => openInMaps(transferRequest.return_dropoff_location!.latitude, transferRequest.return_dropoff_location!.longitude, 'Dönüş Teslim Noktası')}
-                          >
-                            Konuma Git
-                          </Button>
-                        )}
-                      </View>
-                    )}
-                  </>
-                )}
-              </View>
-            </Card.Content>
-          </Card>
+          )
         )}
 
-        {/* Fotograflar */}
+        {/* Fotoğraflar */}
         {(isAwaitingApproval || isInProgress) && (
           <PhotosSection photos={transferRequest.photos} />
         )}
 
-        {/* Surucu Fotograf Yukleme */}
+        {/* Sürücü Fotoğraf Yükleme */}
         {isInProgress && (
           <DriverPhotoUpload
             requestId={getRequestId(transferRequest)}
@@ -873,64 +696,23 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
           />
         )}
 
-        {/* Sigortali is fiyat detayi */}
+        {/* Sigortalı iş fiyat detayı */}
         {transferRequest.pricing && (
           <InsurancePricingCard pricing={transferRequest.pricing} />
         )}
 
+        {/* İşi Tamamla */}
+        {isInProgress && <JobCompleteCard onComplete={handleCompleteJob} />}
 
-        {/* Isi Tamamla Butonu */}
-        {isInProgress && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Content>
-              <Button
-                icon="check-circle"
-                mode="contained"
-                buttonColor="#4CAF50"
-                contentStyle={{ paddingVertical: 8 }}
-                onPress={handleCompleteJob}
-              >
-                Isi Tamamla
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
-
-        {/* Teklifi Geri Çek Butonu - Onay beklerken */}
-        {isAwaitingApproval && transferRequest.trackingToken && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Content>
-              <Button
-                icon="undo-variant"
-                mode="outlined"
-                textColor="#FF9800"
-                style={{ borderColor: '#FF9800' }}
-                loading={withdrawLoading}
-                disabled={withdrawLoading}
-                onPress={handleWithdrawOffer}
-              >
-                Teklifi Geri Çek
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
-
-        {/* Isi Iptal Et Butonu */}
-        {isInProgress && transferRequest.trackingToken && (
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Content>
-              <Button
-                icon="cancel"
-                mode="outlined"
-                textColor="#F44336"
-                style={{ borderColor: '#F44336' }}
-                onPress={() => setShowCancelModal(true)}
-              >
-                Isi Iptal Et
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
+        {/* Teklifi Geri Çek (onay beklerken) / İşi İptal Et (devam ederken) */}
+        <JobActions
+          withdraw={
+            isAwaitingApproval && transferRequest.trackingToken
+              ? { onPress: handleWithdrawOffer, loading: withdrawLoading }
+              : null
+          }
+          cancel={isInProgress && transferRequest.trackingToken ? { onPress: () => setShowCancelModal(true) } : null}
+        />
       </ScrollView>
 
       {/* Odeme Modal — basari sonrasi asla geri acilmaz */}
@@ -981,139 +763,36 @@ const styles = StyleSheet.create({
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 16,
   },
   scrollContent: {
-    padding: 16,
+    padding: spacing.md,
     paddingBottom: 100,
   },
-  card: {
-    marginBottom: 16,
-  },
   loadingText: {
-    marginTop: 16,
+    marginTop: spacing.md,
   },
-  backButton: {
-    marginTop: 16,
-  },
-  // Hero section
   heroCard: {
-    marginBottom: 16,
-    elevation: 4,
+    marginBottom: spacing.md,
   },
-  heroContent: {
+  heroRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    gap: spacing.md,
   },
-  heroTextContainer: {
-    marginLeft: 16,
+  heroTexts: {
     flex: 1,
   },
   heroTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFFFFF',
+    ...text.section,
   },
   heroDescription: {
-    fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.9)',
-    marginTop: 4,
+    ...text.meta,
+    marginTop: 2,
   },
-  // Kazanc
-  earningsContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
+  tripPill: {
+    marginTop: spacing.sm + 4,
   },
-  earningsLabel: {
-    fontSize: 13,
-  },
-  earningsAmount: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-  },
-  // Mesafe
-  distanceContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  distanceLabel: {
-    fontSize: 13,
-  },
-  distanceValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#26a69a',
-  },
-  // Detay kartlari
-  infoBox: {
-    padding: 12,
-    borderRadius: 8,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  label: {
-    fontWeight: 'bold',
-    fontSize: 13,
-    marginLeft: 4,
-  },
-  value: {
-    fontSize: 14,
-    flex: 1,
-    textAlign: 'right',
-    marginLeft: 8,
-  },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  addressText: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
-  noteText: {
-    fontSize: 14,
-    marginTop: 4,
-    marginLeft: 24,
-    lineHeight: 20,
-    fontStyle: 'italic',
-  },
-  roundTripBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    marginTop: 10,
-  },
-  roundTripText: {
-    fontSize: 15,
-    fontWeight: 'bold',
-  },
-  locationSharingActive: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
+  block: {
+    marginTop: spacing.sm + 4,
   },
 });

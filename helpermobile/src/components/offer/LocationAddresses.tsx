@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Text } from 'react-native-paper';
+import { colors } from '../../theme/design';
 
 interface LocationAddressesProps {
     pickupAddress: string;
@@ -14,14 +15,14 @@ export default function LocationAddresses({
     return (
         <View style={styles.container}>
             <View style={styles.addressRow}>
-                <Text style={styles.addressLabel}>📍 Alınacak Konum:</Text>
+                <Text style={styles.addressLabel}>Alınacak Konum:</Text>
             </View>
             <Text style={styles.addressValue}>
                 {pickupAddress}
             </Text>
 
             <View style={[styles.addressRow, { marginTop: 12 }]}>
-                <Text style={styles.addressLabel}>📍 Bırakılacak Konum:</Text>
+                <Text style={styles.addressLabel}>Bırakılacak Konum:</Text>
             </View>
             <Text style={styles.addressValue}>
                 {dropoffAddress}
@@ -40,11 +41,11 @@ const styles = StyleSheet.create({
     addressLabel: {
         fontSize: 14,
         fontWeight: 'bold',
-        color: '#666',
+        color: colors.neutral[500],
     },
     addressValue: {
         fontSize: 14,
-        color: '#333',
+        color: colors.neutral[800],
         marginLeft: 4,
         lineHeight: 20,
     },

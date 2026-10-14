@@ -157,7 +157,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
           .join('\n');
 
         Alert.alert(
-          '⚠️ Profil Tamamlanmamış',
+          'Profil Tamamlanmamış',
           `İş kabul edebilmek için profilinizi tamamlamanız gerekiyor.\n\nEksik bilgiler:\n${missingMessages}`,
           [
             { text: 'Tamam', style: 'cancel' },
@@ -222,7 +222,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
       const backendError = error?.response?.data?.error || error?.response?.data?.message || '';
 
       if (backendError.toLowerCase().includes('şirket bilgi')) {
-        Alert.alert('⚠️ API Hatası', backendError, [
+        Alert.alert('Şirket Bilgisi Eksik', backendError, [
           { text: 'İptal', style: 'cancel' },
           { text: 'Görüntüle', onPress: () => navigation.navigate('CompanyInfo' as any) }
         ]);

@@ -16,6 +16,7 @@ import * as ImagePicker from 'expo-image-picker';
 import CollapsibleCard from './common/CollapsibleCard';
 import { commonAPI } from '../api/requests/common';
 import { RequestPhoto } from '../api/types';
+import { colors } from '../theme/design';
 
 interface DriverPhotoUploadProps {
   requestId: number;
@@ -118,12 +119,12 @@ export default function DriverPhotoUpload({
     <CollapsibleCard
       title="Saha Fotoğrafı"
       icon="camera-burst"
-      iconColor="#e65100"
+      iconColor={colors.warning[700]}
       defaultExpanded={true}
     >
       {/* Bilgilendirme */}
       <View style={styles.infoBox}>
-        <MaterialCommunityIcons name="alert-decagram" size={18} color="#e65100" />
+        <MaterialCommunityIcons name="alert-decagram" size={18} color={colors.warning[700]} />
         <Text style={styles.infoText}>
           Sahada gördüğünüz durum müşterinin bildirdiğinden farklıysa fotoğraf çekerek bize bildirin.
         </Text>
@@ -136,7 +137,7 @@ export default function DriverPhotoUpload({
             <View key={photo.id} style={styles.thumbContainer}>
               <Image source={{ uri: photo.image_url }} style={styles.thumb} resizeMode="cover" />
               <View style={styles.uploadedBadge}>
-                <MaterialCommunityIcons name="check-circle" size={14} color="#fff" />
+                <MaterialCommunityIcons name="check-circle" size={14} color={colors.white} />
               </View>
             </View>
           ))}
@@ -144,7 +145,7 @@ export default function DriverPhotoUpload({
             <View key={`pending-${index}`} style={styles.thumbContainer}>
               <Image source={{ uri }} style={styles.thumb} resizeMode="cover" />
               <TouchableOpacity style={styles.removeBtn} onPress={() => removePendingPhoto(index)}>
-                <MaterialCommunityIcons name="close-circle" size={20} color="#fff" />
+                <MaterialCommunityIcons name="close-circle" size={20} color={colors.white} />
               </TouchableOpacity>
             </View>
           ))}
@@ -155,12 +156,12 @@ export default function DriverPhotoUpload({
       {canAddMore && (
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.actionBtn} onPress={pickFromCamera} disabled={uploading}>
-            <MaterialCommunityIcons name="camera" size={22} color="#e65100" />
+            <MaterialCommunityIcons name="camera" size={22} color={colors.warning[700]} />
             <Text style={styles.actionBtnText}>Fotoğraf Çek</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.actionBtn, styles.actionBtnGallery]} onPress={pickFromGallery} disabled={uploading}>
-            <MaterialCommunityIcons name="image-plus" size={22} color="#1565c0" />
-            <Text style={[styles.actionBtnText, { color: '#1565c0' }]}>Galeriden Seç</Text>
+            <MaterialCommunityIcons name="image-plus" size={22} color={colors.info[700]} />
+            <Text style={[styles.actionBtnText, { color: colors.info[700] }]}>Galeriden Seç</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -174,7 +175,7 @@ export default function DriverPhotoUpload({
       {hasPending && (
         <View style={styles.sendSection}>
           <View style={styles.descriptionWrapper}>
-            <MaterialCommunityIcons name="pencil-outline" size={18} color="#999" style={styles.descriptionIcon} />
+            <MaterialCommunityIcons name="pencil-outline" size={18} color={colors.neutral[400]} style={styles.descriptionIcon} />
             <TextInput
               style={styles.descriptionInput}
               placeholder="Açıklama yazın... (opsiyonel)"
@@ -193,10 +194,10 @@ export default function DriverPhotoUpload({
             activeOpacity={0.8}
           >
             {uploading ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.white} />
             ) : (
               <>
-                <MaterialCommunityIcons name="send" size={20} color="#fff" />
+                <MaterialCommunityIcons name="send" size={20} color={colors.white} />
                 <Text style={styles.sendBtnText}>
                   {pendingPhotos.length} Fotoğraf Gönder
                 </Text>
@@ -214,7 +215,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#fff8e1',
+    backgroundColor: colors.warning[50],
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -272,21 +273,21 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: '#e65100',
-    backgroundColor: '#fff3e0',
+    borderColor: colors.warning[700],
+    backgroundColor: colors.warning[50],
   },
   actionBtnGallery: {
-    borderColor: '#1565c0',
-    backgroundColor: '#e3f2fd',
+    borderColor: colors.info[700],
+    backgroundColor: colors.info[50],
   },
   actionBtnText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#e65100',
+    color: colors.warning[700],
   },
   counter: {
     fontSize: 11,
-    color: '#999',
+    color: colors.neutral[400],
     textAlign: 'right',
     marginTop: 6,
   },
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
   descriptionWrapper: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: colors.neutral[100],
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 4,
@@ -309,7 +310,7 @@ const styles = StyleSheet.create({
   descriptionInput: {
     flex: 1,
     fontSize: 14,
-    color: '#333',
+    color: colors.neutral[800],
     minHeight: 44,
     maxHeight: 80,
     textAlignVertical: 'top',
@@ -320,17 +321,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: '#e65100',
+    backgroundColor: colors.warning[700],
     paddingVertical: 14,
     borderRadius: 12,
     elevation: 2,
-    shadowColor: '#e65100',
+    shadowColor: colors.warning[700],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
   },
   sendBtnText: {
-    color: '#fff',
+    color: colors.white,
     fontWeight: '700',
     fontSize: 15,
   },

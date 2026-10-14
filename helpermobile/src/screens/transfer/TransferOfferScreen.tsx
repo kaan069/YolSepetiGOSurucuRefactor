@@ -10,7 +10,7 @@ import {
   TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Text, Card } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -29,7 +29,10 @@ import { VehicleSelector, EmployeeSelector } from '../../components/common';
 import PhotosSection from '../../components/PhotosSection';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
-import { formatThousands, digitsOnly } from '../../utils/priceFormat';
+import PriceOfferSection from '../../components/offer/PriceOfferSection';
+import { InfoRow, JobLocationCard, JobSection } from '../../components/job';
+import { FkButton, FkEmptyState, FkInfoBanner, FkLoadingOverlay, FkPill, FkStickyFooter } from '../../components/fk';
+import { colors, spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferOffer'>;
 
@@ -52,13 +55,13 @@ const TRANSFER_TYPE_LABELS: Record<string, string> = {
   vip: 'VIP Transfer',
 };
 
-// Arac tercihi etiketleri
+// Araç tercihi etiketleri
 const VEHICLE_PREFERENCE_LABELS: Record<string, string> = {
   sedan: 'Sedan',
-  vip_car: 'VIP Arac',
-  minibus: 'Minibus',
-  midibus: 'Midibus',
-  bus: 'Otobus',
+  vip_car: 'VIP Araç',
+  minibus: 'Minibüs',
+  midibus: 'Midibüs',
+  bus: 'Otobüs',
 };
 
 export default function TransferOfferScreen({ route, navigation }: Props) {
@@ -94,7 +97,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
         const request = await requestsAPI.getTransferRequestDetail(parseInt(orderId));
         setTransferRequest(request);
       } catch (error: any) {
-        const errorMessage = error?.response?.data?.error || 'Talep detaylari yuklenemedi';
+        const errorMessage = error?.response?.data?.error || 'Talep detayları yüklenemedi';
         showNotification('error', errorMessage);
       } finally {
         setLoading(false);
@@ -124,10 +127,10 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
 
         if (filteredVehicles.length === 0) {
           const typeLabel = requestTransferType === 'vip' ? 'VIP' : 'Organizasyon';
-          showNotification('warning', `Kayitli ${typeLabel} transfer araciniz bulunamadi. Lutfen once arac ekleyin.`, 6000);
+          showNotification('warning', `Kayıtlı ${typeLabel} transfer aracınız bulunamadı. Lütfen önce araç ekleyin.`, 6000);
         }
       } catch (error: any) {
-        const errorMessage = error?.response?.data?.error || 'Arac listesi yuklenemedi';
+        const errorMessage = error?.response?.data?.error || 'Araç listesi yüklenemedi';
         showNotification('error', errorMessage);
       }
     };
@@ -195,8 +198,8 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
           .join('\n');
 
         Alert.alert(
-          'Profil Tamamlanmamis',
-          `Is kabul edebilmek icin profilinizi tamamlamaniz gerekiyor.\n\nEksik bilgiler:\n${missingMessages}`,
+          'Profil Tamamlanmamış',
+          `İş kabul edebilmek için profilinizi tamamlamanız gerekiyor.\n\nEksik bilgiler:\n${missingMessages}`,
           [
             { text: 'Tamam', style: 'cancel' },
             { text: 'Profili Tamamla', onPress: () => navigation.navigate('MissingDocuments') }
@@ -209,7 +212,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
     }
 
     if (!selectedVehicleId) {
-      showNotification('warning', 'Lutfen bir arac secin');
+      showNotification('warning', 'Lütfen bir araç seçin');
       return;
     }
     const priceCheck = validateOfferPrice(offerPrice, minOfferOverride);
@@ -239,7 +242,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
       );
 
       const totalPrice = response.driver_earnings || response.estimated_price || offerPrice;
-      showNotification('success', `Teklifiniz gonderildi!\n\nTahmini Kazanc: ${totalPrice} TL`, 6000);
+      showNotification('success', `Teklifiniz gönderildi!\n\nTahmini Kazanç: ${totalPrice} TL`, 6000);
 
       setTimeout(() => {
         navigation.navigate('Tabs', { screen: 'OrdersTab' } as any);
@@ -254,17 +257,17 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
       const backendError = error?.response?.data?.error || error?.response?.data?.message || '';
 
       if (backendError.toLowerCase().includes('sirket bilgi')) {
-        Alert.alert('API Hatasi', backendError, [
-          { text: 'Iptal', style: 'cancel' },
-          { text: 'Goruntule', onPress: () => navigation.navigate('CompanyInfo' as any) }
+        Alert.alert('Şirket Bilgisi Eksik', backendError, [
+          { text: 'İptal', style: 'cancel' },
+          { text: 'Görüntüle', onPress: () => navigation.navigate('CompanyInfo' as any) }
         ]);
       } else if (backendError.toLowerCase().includes('ehliyet') || backendError.toLowerCase().includes('belge')) {
-        Alert.alert('Belgeleriniz Onaylanmamis', backendError, [
+        Alert.alert('Belgeleriniz Onaylanmamış', backendError, [
           { text: 'Tamam', style: 'cancel' },
-          { text: 'Evraklarim', onPress: () => navigation.navigate('DocumentsScreen' as any) }
+          { text: 'Evraklarım', onPress: () => navigation.navigate('DocumentsScreen' as any) }
         ]);
       } else {
-        showNotification('error', backendError || 'Teklif gonderilemedi', 6000);
+        showNotification('error', backendError || 'Teklif gönderilemedi', 6000);
       }
     } finally {
       setAcceptingJob(false);
@@ -290,7 +293,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
     return (
       <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={['bottom']}>
         <LoadingSpinner size={80} />
-        <Text style={[styles.loadingText, { color: appColors.text.primary }]}>Talep detaylari yukleniyor...</Text>
+        <Text style={[styles.loadingText, { color: appColors.text.secondary }]}>Talep detayları yükleniyor...</Text>
       </SafeAreaView>
     );
   }
@@ -298,9 +301,9 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
   // Error
   if (!transferRequest) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={['bottom']}>
         <AppBar title="Transfer Talebi" />
-        <Text style={{ color: appColors.text.primary }}>Talep bulunamadi.</Text>
+        <FkEmptyState icon="file-search-outline" title="Talep bulunamadı" style={styles.container} />
       </SafeAreaView>
     );
   }
@@ -324,155 +327,66 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          {/* MapCard - Alis noktasi ve mesafe */}
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Title title="Talep Bilgileri" titleStyle={{ color: appColors.text.primary }} />
-            <Card.Content>
-              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#2A2A2A' : '#f5f5f5' }]}>
-                <View style={styles.infoRow}>
-                  <MaterialCommunityIcons name="map-marker" size={18} color="#26a69a" />
-                  <Text style={[styles.infoLabel, { color: appColors.text.secondary }]}>Alis Noktasi:</Text>
-                </View>
-                <Text style={[styles.addressText, { color: appColors.text.primary }]}>
-                  {transferRequest.pickup_address}
-                </Text>
+          {/* Alış / varış noktası ve mesafe */}
+          <JobLocationCard
+            title="Talep Bilgileri"
+            points={[
+              { type: 'pickup', label: 'Alış Noktası', address: transferRequest.pickup_address },
+              ...(transferRequest.dropoff_address
+                ? [{ type: 'dropoff' as const, label: 'Varış Noktası', address: transferRequest.dropoff_address }]
+                : []),
+            ]}
+          >
+            {distance !== null && distance !== undefined && (
+              <InfoRow
+                icon="map-marker-distance"
+                label="Müşteriye uzaklık"
+                value={`${distance} km`}
+                valueColor={colors.primary[600]}
+                style={styles.firstRow}
+                divider={!!transferRequest.estimated_km}
+              />
+            )}
+            {transferRequest.estimated_km ? (
+              <InfoRow
+                icon="map-marker-path"
+                label="Tahmini rota mesafesi"
+                value={`${transferRequest.estimated_km} km`}
+                valueColor={colors.primary[600]}
+              />
+            ) : null}
+          </JobLocationCard>
 
-                {transferRequest.dropoff_address && (
-                  <>
-                    <View style={[styles.infoRow, { marginTop: 12 }]}>
-                      <MaterialCommunityIcons name="map-marker-check" size={18} color="#E91E63" />
-                      <Text style={[styles.infoLabel, { color: appColors.text.secondary }]}>Varis Noktasi:</Text>
-                    </View>
-                    <Text style={[styles.addressText, { color: appColors.text.primary }]}>
-                      {transferRequest.dropoff_address}
-                    </Text>
-                  </>
-                )}
+          {/* Transfer detayları */}
+          <JobSection
+            title="Transfer Detayları"
+            icon={isVip ? 'star-circle-outline' : 'account-group-outline'}
+            right={<FkPill label={transferTypeLabel} color={isVip ? 'secondary' : 'success'} size="sm" />}
+          >
+            {transferRequest.transfer_type === 'organization' && transferRequest.passenger_count ? (
+              <InfoRow icon="account-multiple-outline" label="Kişi Sayısı" value={`${transferRequest.passenger_count} kişi`} divider />
+            ) : null}
+            {vehiclePrefLabel ? <InfoRow icon="car-estate" label="Araç Tercihi" value={vehiclePrefLabel} divider /> : null}
+            <InfoRow icon="calendar-outline" label="Tarih" value={formatDate(transferRequest.scheduled_date)} divider />
+            <InfoRow icon="clock-outline" label="Saat" value={transferRequest.scheduled_time} />
+            <FkPill
+              icon={transferRequest.is_round_trip ? 'swap-horizontal' : 'arrow-right'}
+              label={transferRequest.is_round_trip ? 'Gidiş - Dönüş' : 'Tek Yön'}
+              color={transferRequest.is_round_trip ? 'info' : 'neutral'}
+              style={styles.tripPill}
+            />
+            {transferRequest.additional_notes ? (
+              <FkInfoBanner
+                type="neutral"
+                icon="note-text-outline"
+                title="Ek Notlar"
+                message={transferRequest.additional_notes}
+                style={styles.block}
+              />
+            ) : null}
+          </JobSection>
 
-                {distance !== null && distance !== undefined && (
-                  <View style={[styles.row, { marginTop: 12 }]}>
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Musteriye Olan Uzaklik:</Text>
-                    <Text style={[styles.value, styles.distanceText]}>{distance} km</Text>
-                  </View>
-                )}
-
-                {transferRequest.estimated_km && (
-                  <View style={styles.row}>
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Tahmini Rota Mesafesi:</Text>
-                    <Text style={[styles.value, styles.distanceText]}>{transferRequest.estimated_km} km</Text>
-                  </View>
-                )}
-              </View>
-            </Card.Content>
-          </Card>
-
-          {/* Transfer Detaylari Karti */}
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Title title="Transfer Detaylari" titleStyle={{ color: appColors.text.primary }} />
-            <Card.Content>
-              <View style={[styles.infoBox, { backgroundColor: isDarkMode ? '#2A2A2A' : '#f5f5f5' }]}>
-                {/* Transfer tipi badge */}
-                <View style={styles.row}>
-                  <View style={styles.infoRow}>
-                    <MaterialCommunityIcons
-                      name={isVip ? 'star-circle' : 'account-group'}
-                      size={18}
-                      color={isVip ? '#FFD700' : '#4CAF50'}
-                    />
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Transfer Tipi:</Text>
-                  </View>
-                  <View style={[styles.badge, { backgroundColor: isVip ? '#FFF3E0' : '#E8F5E9' }]}>
-                    <Text style={[styles.badgeText, { color: isVip ? '#E65100' : '#2E7D32' }]}>
-                      {transferTypeLabel}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Kisi sayisi (organizasyon icin) */}
-                {transferRequest.transfer_type === 'organization' && transferRequest.passenger_count && (
-                  <View style={styles.row}>
-                    <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="account-multiple" size={18} color="#2196F3" />
-                      <Text style={[styles.label, { color: appColors.text.secondary }]}>Kisi Sayisi:</Text>
-                    </View>
-                    <Text style={[styles.value, { color: appColors.text.primary }]}>
-                      {transferRequest.passenger_count} kisi
-                    </Text>
-                  </View>
-                )}
-
-                {/* Arac tercihi */}
-                {vehiclePrefLabel && (
-                  <View style={styles.row}>
-                    <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="car-estate" size={18} color="#9C27B0" />
-                      <Text style={[styles.label, { color: appColors.text.secondary }]}>Arac Tercihi:</Text>
-                    </View>
-                    <Text style={[styles.value, { color: appColors.text.primary }]}>
-                      {vehiclePrefLabel}
-                    </Text>
-                  </View>
-                )}
-
-                {/* Tarih + Saat */}
-                <View style={styles.row}>
-                  <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="calendar-clock" size={18} color="#FF9800" />
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Tarih:</Text>
-                  </View>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>
-                    {formatDate(transferRequest.scheduled_date)}
-                  </Text>
-                </View>
-
-                <View style={styles.row}>
-                  <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="clock-outline" size={18} color="#FF9800" />
-                    <Text style={[styles.label, { color: appColors.text.secondary }]}>Saat:</Text>
-                  </View>
-                  <Text style={[styles.value, { color: appColors.text.primary }]}>
-                    {transferRequest.scheduled_time}
-                  </Text>
-                </View>
-
-                {/* Gidis-Donus bilgisi - belirgin banner */}
-                <View style={[
-                  styles.roundTripBanner,
-                  {
-                    backgroundColor: transferRequest.is_round_trip ? '#E3F2FD' : '#F3E5F5',
-                    borderColor: transferRequest.is_round_trip ? '#1976D2' : '#7B1FA2',
-                  },
-                ]}>
-                  <MaterialCommunityIcons
-                    name={transferRequest.is_round_trip ? 'swap-horizontal-circle' : 'arrow-right-circle'}
-                    size={26}
-                    color={transferRequest.is_round_trip ? '#1976D2' : '#7B1FA2'}
-                  />
-                  <Text style={[
-                    styles.roundTripText,
-                    { color: transferRequest.is_round_trip ? '#1565C0' : '#6A1B9A' },
-                  ]}>
-                    {transferRequest.is_round_trip ? 'Gidiş - Dönüş' : 'Tek Yön'}
-                  </Text>
-                </View>
-
-                {/* Ek notlar */}
-                {transferRequest.additional_notes && (
-                  <View style={{ marginTop: 8 }}>
-                    <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="note-text-outline" size={18} color="#795548" />
-                      <Text style={[styles.label, { color: appColors.text.secondary }]}>Ek Notlar:</Text>
-                    </View>
-                    <Text style={[styles.noteText, { color: appColors.text.primary }]}>
-                      {transferRequest.additional_notes}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </Card.Content>
-          </Card>
-
-          {/* Arac Secimi */}
+          {/* Araç Seçimi */}
           <VehicleSelector
             vehicles={transferVehicles}
             selectedId={selectedVehicleId}
@@ -480,7 +394,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
             serviceType="transfer"
           />
 
-          {/* Calisan Secimi (sirket icin) */}
+          {/* Çalışan Seçimi (şirket için) */}
           {providerType === 'company' && (
             <EmployeeSelector
               employees={employees}
@@ -490,77 +404,42 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
             />
           )}
 
-          {/* Fotograflar */}
+          {/* Fotoğraflar */}
           <PhotosSection photos={transferRequest.photos} />
 
-          {/* Gidis-Donus Uyarisi */}
+          {/* Gidiş-dönüş uyarısı */}
           {transferRequest.is_round_trip && (
-            <Card style={[styles.card, { backgroundColor: '#FFF8E1', borderLeftWidth: 4, borderLeftColor: '#FF8F00' }]}>
-              <Card.Content style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                <MaterialCommunityIcons name="alert-circle" size={24} color="#FF8F00" />
-                <Text style={{ flex: 1, color: '#E65100', fontSize: 13, fontWeight: '600', lineHeight: 19 }}>
-                  Dikkat! Bu talep gidiş-dönüş rotasıdır. Fiyat verirken bunu göz önünde bulundurun.
-                </Text>
-              </Card.Content>
-            </Card>
+            <FkInfoBanner
+              type="warning"
+              icon="alert-circle"
+              message="Dikkat! Bu talep gidiş-dönüş rotasıdır. Fiyat verirken bunu göz önünde bulundurun."
+              style={styles.roundTripWarning}
+            />
           )}
 
-          {/* Fiyat Teklifi Karti */}
-          <Card style={[styles.card, { backgroundColor: cardBg }]}>
-            <Card.Title title="Fiyat Teklifi" titleStyle={{ color: appColors.text.primary }} />
-            <Card.Content>
-              <View style={[styles.priceInputContainer, { backgroundColor: isDarkMode ? '#2A2A2A' : '#f5f5f5' }]}>
-                <View style={styles.priceRow}>
-                  <MaterialCommunityIcons name="currency-try" size={24} color="#4CAF50" />
-                  <TextInput
-                    style={[
-                      styles.priceInput,
-                      {
-                        color: appColors.text.primary,
-                        borderColor: isDarkMode ? '#444' : '#ddd',
-                        backgroundColor: isDarkMode ? '#333' : '#fff',
-                      },
-                    ]}
-                    placeholder="Fiyat teklifinizi girin"
-                    placeholderTextColor={isDarkMode ? '#888' : '#999'}
-                    keyboardType="numeric"
-                    value={formatThousands(offerPrice)}
-                    onChangeText={(t) => setOfferPrice(digitsOnly(t))}
-                  />
-                  <Text style={[styles.currencyLabel, { color: appColors.text.secondary }]}>TL</Text>
-                </View>
-                <Text style={[styles.priceHint, { color: appColors.text.secondary }]}>
-                  Musteri icin uygun gordugunu fiyati girin
-                </Text>
-              </View>
-            </Card.Content>
-          </Card>
-
-          {/* Teklif Gonder Butonu */}
-          <View style={styles.actionsContainer}>
-            <Button
-              mode="contained"
-              onPress={handleAccept}
-              loading={acceptingJob}
-              disabled={acceptingJob || !selectedVehicleId || !hasValidPrice}
-              style={styles.acceptButton}
-              icon="check-circle"
-            >
-              Teklif Gonder
-            </Button>
-          </View>
+          {/* Fiyat Teklifi */}
+          <PriceOfferSection
+            value={offerPrice}
+            onChange={setOfferPrice}
+            hint="Müşteri için uygun gördüğünüz fiyatı girin."
+          />
         </ScrollView>
+
+        <FkStickyFooter safeArea={false}>
+          <FkButton
+            onPress={handleAccept}
+            loading={acceptingJob}
+            disabled={acceptingJob || !selectedVehicleId || !hasValidPrice}
+            icon="send-check-outline"
+            size="lg"
+            fullWidth
+          >
+            Teklif Gönder
+          </FkButton>
+        </FkStickyFooter>
       </KeyboardAvoidingView>
 
-      {acceptingJob && (
-        <View style={styles.loadingOverlay}>
-          <View style={[styles.loadingContent, { backgroundColor: cardBg }]}>
-            <LoadingSpinner size={100} />
-            <Text style={[styles.loadingOverlayText, { color: appColors.text.primary }]}>Teklif gonderiliyor...</Text>
-            <Text style={[styles.loadingOverlaySubtext, { color: appColors.text.secondary }]}>Lutfen bekleyiniz</Text>
-          </View>
-        </View>
-      )}
+      {acceptingJob && <FkLoadingOverlay />}
     </SafeAreaView>
   );
 }
@@ -568,161 +447,31 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  keyboardAvoid: {
-    flex: 1,
   },
   centered: {
     justifyContent: 'center',
     alignItems: 'center',
   },
+  keyboardAvoid: {
+    flex: 1,
+  },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: spacing.md,
+    paddingBottom: spacing.lg,
   },
   loadingText: {
-    marginTop: 16,
+    marginTop: spacing.md,
   },
-  card: {
-    marginBottom: 16,
+  firstRow: {
+    marginTop: spacing.sm,
   },
-  infoBox: {
-    padding: 12,
-    borderRadius: 8,
+  tripPill: {
+    marginTop: spacing.sm + 4,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  block: {
+    marginTop: spacing.sm + 4,
   },
-  infoLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  addressText: {
-    fontSize: 14,
-    marginTop: 4,
-    marginLeft: 24,
-    lineHeight: 20,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  label: {
-    fontWeight: 'bold',
-    color: '#666',
-    fontSize: 13,
-    marginLeft: 4,
-  },
-  value: {
-    color: '#333',
-    fontSize: 14,
-    flex: 1,
-    textAlign: 'right',
-    marginLeft: 8,
-  },
-  distanceText: {
-    fontWeight: 'bold',
-    color: '#26a69a',
-  },
-  badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  badgeText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  noteText: {
-    fontSize: 14,
-    marginTop: 4,
-    marginLeft: 24,
-    lineHeight: 20,
-    fontStyle: 'italic',
-  },
-  priceInputContainer: {
-    padding: 12,
-    borderRadius: 8,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  priceInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  currencyLabel: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  priceHint: {
-    fontSize: 12,
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  actionsContainer: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  acceptButton: {
-    borderRadius: 8,
-    backgroundColor: '#4CAF50',
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999,
-  },
-  loadingContent: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 40,
-    alignItems: 'center',
-  },
-  loadingOverlayText: {
-    marginTop: 20,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-  },
-  loadingOverlaySubtext: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  roundTripBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    marginTop: 10,
-  },
-  roundTripText: {
-    fontSize: 15,
-    fontWeight: 'bold',
+  roundTripWarning: {
+    marginBottom: spacing.md,
   },
 });
