@@ -7,6 +7,7 @@ export { default as FkFormSection } from './FkFormSection';
 export { default as FkIconChip } from './FkIconChip';
 export { default as FkInfoBanner } from './FkInfoBanner';
 export { default as FkLabel } from './FkLabel';
+export { default as FkLoadingOverlay } from './FkLoadingOverlay';
 export { FkMenuGroup, FkMenuItem } from './FkMenu';
 export { default as FkModal } from './FkModal';
 export { default as FkPill } from './FkPill';

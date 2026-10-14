@@ -28,6 +28,8 @@ interface Props {
   contentStyle?: ViewStyle;
   textStyle?: TextStyle;
   iconPosition?: 'left' | 'right';
+  /** Renk tonu — özellikle çerçeveli/metin butonlarda (ör. secondary + danger = kırmızı çerçeve) */
+  tone?: 'primary' | 'danger' | 'warning' | 'success';
   testID?: string;
 }
 
@@ -54,17 +56,21 @@ export default function FkButton({
   contentStyle,
   textStyle,
   iconPosition = 'left',
+  tone,
   testID,
 }: Props) {
   const { tokens } = useFkTokens();
   const sz = SIZES[size];
   const isDisabled = !!disabled || !!loading;
 
+  const resolvedTone = tone ?? (variant === 'danger' ? 'danger' : variant === 'success' ? 'success' : 'primary');
   const mainColor =
-    variant === 'danger'
+    resolvedTone === 'danger'
       ? colors.danger[500]
-      : variant === 'success'
+      : resolvedTone === 'success'
       ? colors.success[600]
+      : resolvedTone === 'warning'
+      ? colors.secondary[500]
       : tokens.colors.primary;
 
   const filled = variant === 'primary' || variant === 'danger' || variant === 'success';

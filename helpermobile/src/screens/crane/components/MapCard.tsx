@@ -1,7 +1,7 @@
 // Talep bilgileri kartı - Mesafe ve süre
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Card, Text } from 'react-native-paper';
+import { InfoRow, JobSection } from '../../../components/job';
+import { colors } from '../../../theme/design';
 
 interface MapCardProps {
   latitude: number;
@@ -12,62 +12,23 @@ interface MapCardProps {
 }
 
 export default function MapCard({ distance, estimatedDuration }: MapCardProps) {
+  const hasDistance = distance !== null && distance !== undefined;
+  const hasDuration = estimatedDuration !== null && estimatedDuration !== undefined;
+  if (!hasDistance && !hasDuration) return null;
   return (
-    <Card style={styles.card}>
-      <Card.Title title="Talep Bilgileri" />
-      <Card.Content>
-        <View style={styles.info}>
-          {distance !== null && distance !== undefined && (
-            <View style={styles.row}>
-              <Text style={styles.label}>Müşteriye Olan Uzaklık:</Text>
-              <Text style={[styles.value, styles.distanceText]}>{distance} km</Text>
-            </View>
-          )}
-          {estimatedDuration !== null && estimatedDuration !== undefined && (
-            <View style={styles.row}>
-              <Text style={styles.label}>Tahmini İş Süresi:</Text>
-              <Text style={[styles.value, styles.durationText]}>{estimatedDuration} saat</Text>
-            </View>
-          )}
-        </View>
-      </Card.Content>
-    </Card>
+    <JobSection title="Talep Bilgileri" icon="information-outline">
+      {hasDistance && (
+        <InfoRow
+          icon="map-marker-distance"
+          label="Müşteriye uzaklık"
+          value={`${distance} km`}
+          valueColor={colors.primary[600]}
+          divider={hasDuration}
+        />
+      )}
+      {hasDuration && (
+        <InfoRow icon="timer-outline" label="Tahmini iş süresi" value={`${estimatedDuration} saat`} />
+      )}
+    </JobSection>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: 16,
-  },
-  info: {
-    padding: 10,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 8,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
-  label: {
-    fontWeight: 'bold',
-    color: '#666',
-    fontSize: 14,
-  },
-  value: {
-    color: '#333',
-    fontSize: 14,
-    flex: 1,
-    textAlign: 'right',
-    marginLeft: 8,
-  },
-  distanceText: {
-    fontWeight: 'bold',
-    color: '#26a69a',
-  },
-  durationText: {
-    fontWeight: 'bold',
-    color: '#4CAF50',
-  },
-});

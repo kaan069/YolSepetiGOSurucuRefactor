@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Button, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { ensureForegroundPermission } from '../../utils/locationPermission';
@@ -27,12 +27,16 @@ import { useEmployeeStore } from '../../store/useEmployeeStore';
 import { EmployeeSelector } from '../../components/common';
 import { ProviderType } from '../../api/types';
 import { logger } from '../../utils/logger';
+import { FkButton, FkEmptyState, FkLoadingOverlay, FkStickyFooter } from '../../components/fk';
+import { useAppTheme } from '../../hooks/useAppTheme';
+import { spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneOffer'>;
 
 export default function CraneOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
   const { showNotification } = useNotificationStore();
+  const { screenBg } = useAppTheme();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
 
   // State
@@ -238,7 +242,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
   // Loading
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered]} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={['bottom']}>
         <LoadingSpinner size={80} />
         <Text style={styles.loadingText}>Talep detayları yükleniyor...</Text>
       </SafeAreaView>
@@ -248,9 +252,9 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
   // Error
   if (!craneRequest) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered]} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={['bottom']}>
         <AppBar title="Vinç Talebi" />
-        <Text>Talep bulunamadı.</Text>
+        <FkEmptyState icon="file-search-outline" title="Talep bulunamadı" style={styles.flex} />
       </SafeAreaView>
     );
   }
@@ -259,7 +263,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
   const hasValidPrice = offerPrice.trim() !== '' && parseFloat(offerPrice) > 0;
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={['bottom']}>
       <AppBar title="Vinç Talebi" />
       <KeyboardAvoidingView
         style={styles.keyboardAvoid}
@@ -322,30 +326,23 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
             estimatedDuration={estimatedDuration || null}
           />
 
-          <View style={styles.actionsContainer}>
-            <Button
-              mode="contained"
-              onPress={handleAccept}
-              loading={acceptingJob}
-              disabled={acceptingJob || !selectedCraneId || !distance || !hasValidPrice}
-              style={styles.acceptButton}
-              icon="check-circle"
-            >
-              Teklif Gönder
-            </Button>
-          </View>
         </ScrollView>
+
+        <FkStickyFooter safeArea={false}>
+          <FkButton
+            onPress={handleAccept}
+            loading={acceptingJob}
+            disabled={acceptingJob || !selectedCraneId || !distance || !hasValidPrice}
+            icon="send-check-outline"
+            size="lg"
+            fullWidth
+          >
+            Teklif Gönder
+          </FkButton>
+        </FkStickyFooter>
       </KeyboardAvoidingView>
 
-      {acceptingJob && (
-        <View style={styles.loadingOverlay}>
-          <View style={styles.loadingContent}>
-            <LoadingSpinner size={100} />
-            <Text style={styles.loadingOverlayText}>Teklif gönderiliyor...</Text>
-            <Text style={styles.loadingOverlaySubtext}>Lütfen bekleyiniz</Text>
-          </View>
-        </View>
-      )}
+      {acceptingJob && <FkLoadingOverlay />}
     </SafeAreaView>
   );
 }
@@ -353,7 +350,9 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+  },
+  flex: {
+    flex: 1,
   },
   keyboardAvoid: {
     flex: 1,
@@ -363,48 +362,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
+    padding: spacing.md,
+    paddingBottom: spacing.lg,
   },
   loadingText: {
-    marginTop: 16,
-  },
-  actionsContainer: {
-    gap: 12,
-    marginBottom: 20,
-  },
-  acceptButton: {
-    borderRadius: 8,
-    backgroundColor: '#4CAF50',
-  },
-  loadingOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 9999,
-  },
-  loadingContent: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 40,
-    alignItems: 'center',
-  },
-  loadingOverlayText: {
-    marginTop: 20,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
-  },
-  loadingOverlaySubtext: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
+    marginTop: spacing.md,
   },
 });

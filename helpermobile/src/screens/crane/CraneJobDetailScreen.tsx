@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Card, Text, Button } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import { ensureForegroundPermission } from '../../utils/locationPermission';
@@ -32,6 +32,9 @@ import DriverPhotoUpload from '../../components/DriverPhotoUpload';
 import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModal';
 import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import { logger } from '../../utils/logger';
+import { FkButton, FkEmptyState } from '../../components/fk';
+import { JobCompleteCard, JobSection } from '../../components/job';
+import { spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneJobDetail'>;
 
@@ -235,12 +238,16 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
   // Error
   if (!craneRequest) {
     return (
-      <SafeAreaView style={[styles.container, styles.centered, { backgroundColor: screenBg }]} edges={["bottom"]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
         <AppBar title="Vinç İş Detayı" />
-        <Text>Vinç iş detayı bulunamadı.</Text>
-        <Button mode="outlined" onPress={() => navigation.goBack()} style={styles.backButton}>
-          Geri Dön
-        </Button>
+        <FkEmptyState
+          icon="file-search-outline"
+          title="Vinç iş detayı bulunamadı"
+          actionLabel="Geri Dön"
+          actionVariant="secondary"
+          onAction={() => navigation.goBack()}
+          style={styles.flex}
+        />
       </SafeAreaView>
     );
   }
@@ -379,33 +386,18 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
         )}
 
         {/* İşi Tamamla Butonu */}
-        {isInProgress && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Button
-                icon="check-circle"
-                mode="contained"
-                buttonColor="#4CAF50"
-                contentStyle={{ paddingVertical: 8 }}
-                onPress={handleCompleteJob}
-              >
-                İşi Tamamla
-              </Button>
-            </Card.Content>
-          </Card>
-        )}
+        {isInProgress && <JobCompleteCard onComplete={handleCompleteJob} />}
 
         {/* Teklifi Geri Çek Butonu */}
         {isAwaitingApproval && craneRequest.trackingToken && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Button
+          <JobSection>
+              <FkButton
+                variant="secondary"
+                tone="warning"
                 icon="undo"
-                mode="outlined"
-                textColor="#FF9800"
+                fullWidth
                 loading={withdrawLoading}
                 disabled={withdrawLoading}
-                style={{ borderColor: '#FF9800' }}
                 onPress={() => {
                   Alert.alert('Teklifi Geri Çek', 'Teklifinizi geri çekmek istediğinize emin misiniz?', [
                     { text: 'Vazgeç', style: 'cancel' },
@@ -422,27 +414,24 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
                   ]);
                 }}
               >
-                Teklifi Geri Cek
-              </Button>
-            </Card.Content>
-          </Card>
+                Teklifi Geri Çek
+              </FkButton>
+          </JobSection>
         )}
 
         {/* İşi İptal Et Butonu */}
         {(isInProgress || isAwaitingApproval) && craneRequest.trackingToken && (
-          <Card style={styles.card}>
-            <Card.Content>
-              <Button
-                icon="cancel"
-                mode="outlined"
-                textColor="#F44336"
-                style={{ borderColor: '#F44336' }}
-                onPress={() => setShowCancelModal(true)}
-              >
-                İşi İptal Et
-              </Button>
-            </Card.Content>
-          </Card>
+          <JobSection>
+            <FkButton
+              variant="secondary"
+              tone="danger"
+              icon="cancel"
+              fullWidth
+              onPress={() => setShowCancelModal(true)}
+            >
+              İşi İptal Et
+            </FkButton>
+          </JobSection>
         )}
       </ScrollView>
 
@@ -496,17 +485,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
+  flex: {
+    flex: 1,
+  },
   scrollContent: {
-    padding: 16,
+    padding: spacing.md,
     paddingBottom: 100,
   },
-  card: {
-    marginBottom: 16,
-  },
   loadingText: {
-    marginTop: 16,
-  },
-  backButton: {
-    marginTop: 16,
+    marginTop: spacing.md,
   },
 });
