@@ -55,11 +55,11 @@
     <key>NSCameraUsageDescription</key>
     <string>Bu uygulama araç fotoğrafı çekmek için kameranıza erişim izni istemektedir.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>Aktif iş sırasında konumunuzu müşteri ile paylaşmak için arka planda konum iznine ihtiyacımız var.</string>
+    <string>Çevrimiçiyken size iş atanabilmesi ve aktif iş sırasında konumunuzun müşteri ile paylaşılması için arka planda konum iznine ihtiyacımız var.</string>
     <key>NSLocationAlwaysUsageDescription</key>
-    <string>Aktif iş sırasında arka planda konum takibi için izin gereklidir.</string>
+    <string>Çevrimiçiyken ve aktif iş sırasında arka planda konum paylaşımı için izin gereklidir.</string>
     <key>NSLocationWhenInUseUsageDescription</key>
-    <string>Aktif iş sırasında konumunuzu müşteri ile paylaşmak için konum iznine ihtiyacımız var.</string>
+    <string>Çevrimiçiyken size iş atanabilmesi ve aktif iş sırasında konumunuzun müşteri ile paylaşılması için konum iznine ihtiyacımız var.</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSPhotoLibraryAddUsageDescription</key>

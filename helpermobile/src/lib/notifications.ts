@@ -4,6 +4,11 @@ import { Platform } from 'react-native';
 import { logger } from '../utils/logger';
 import { useCancellationEventStore } from '../store/useCancellationEventStore';
 import { applyAgencyAssignmentNotification } from '../store/useAgencyAssignmentStore';
+import { sendAppPing } from '../services/appLocationPing';
+import { handleLocationRequestPush } from '../services/presenceLocation';
+
+/** Backend'in sessiz konum isteği (data-only): konumu bayatlayan çevrimiçi sürücü için */
+const LOCATION_REQUEST_TYPE = 'location_request';
 
 /**
  * Notification handler configuration
@@ -71,6 +76,12 @@ export function setupForegroundNotificationHandler() {
     const data = remoteMessage.data || {};
     const type = data.type;
     const requestId = Number(data.request_id);
+
+    // Sessiz konum isteği: uygulama açıkken konumu ön plandan gönder, bildirim gösterme
+    if (type === LOCATION_REQUEST_TYPE) {
+      sendAppPing('background');
+      return;
+    }
     if ((type === 'request_cancelled' || type === 'request_auto_cancelled') && requestId) {
       useCancellationEventStore.getState().setCancelledJob(
         requestId,
@@ -113,6 +124,12 @@ export function setupForegroundNotificationHandler() {
  */
 export function setupBackgroundNotificationHandler() {
   messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+    // Sessiz konum isteği: arka planda konum alıp gönder (yönlendirme kaydı yazılmaz)
+    if (remoteMessage.data?.type === LOCATION_REQUEST_TYPE) {
+      await handleLocationRequestPush();
+      return;
+    }
+
     // Bildirime tıklandığında navigation için AsyncStorage'a kaydet
     // Böylece app mount olduğunda navigation yapılabilir
     const data = remoteMessage.data;

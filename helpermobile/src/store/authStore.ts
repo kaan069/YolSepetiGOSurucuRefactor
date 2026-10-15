@@ -9,6 +9,7 @@ import { useNotificationStore } from './useNotificationStore';
 import { useEmployeeStore } from './useEmployeeStore';
 import { useEmployeePanelStore } from './useEmployeePanelStore';
 import { backgroundLocationService } from '../services/backgroundLocationService';
+import { stopPresence } from '../services/presenceLocation';
 import { logger } from '../utils/logger';
 
 // Type definition for the store's actions.
@@ -187,6 +188,7 @@ export const useAuthStore = create<Store>((set, get) => ({
 
       // Arka plan konum takibini durdur
       await backgroundLocationService.forceStop();
+      await stopPresence();
 
     } catch (error: any) {
       logger.error('auth', 'logout failure', { message: error?.message });
@@ -209,6 +211,7 @@ export const useAuthStore = create<Store>((set, get) => ({
         useEmployeeStore.getState().clearEmployees();
         useEmployeePanelStore.getState().clearAll();
         await backgroundLocationService.forceStop();
+        await stopPresence();
       } catch (cleanupError) {
         logger.error('auth', 'logout.cleanup failure');
       }

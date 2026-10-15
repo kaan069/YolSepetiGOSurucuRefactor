@@ -2,6 +2,7 @@ import { registerRootComponent } from 'expo';
 import firebase from '@react-native-firebase/app';
 import { setupBackgroundNotificationHandler } from './src/lib/notifications';
 import './src/tasks/backgroundLocation'; // Arka plan konum task'ını kaydet (registerRootComponent'dan önce)
+import './src/tasks/presenceLocation'; // Çevrimiçi sürücü arka plan konum task'ı (acente haritası)
 
 import App from './src/App';
 

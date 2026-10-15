@@ -1,6 +1,7 @@
 import axiosInstance from './axiosConfig';
 
-export type AppPingTrigger = 'app_open' | 'foreground' | 'online' | 'periodic';
+/** background: uygulama arka plandayken (konum görevi / sessiz bildirim). Tanımayan backend 'periodic' sayar. */
+export type AppPingTrigger = 'app_open' | 'foreground' | 'online' | 'periodic' | 'background';
 
 class LocationAPI {
     /**

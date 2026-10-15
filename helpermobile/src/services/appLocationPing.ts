@@ -7,16 +7,20 @@
  * - foreground: ön plana gelince, son gönderimden 5 dk geçtiyse
  * - online:     sürücü çevrimiçi olunca
  * - periodic:   uygulama açık ve sürücü çevrimiçiyken 30 dk'da bir
+ * Uygulama arka plandayken: services/presenceLocation (trigger: background).
  *
  * Konum izni yoksa hiçbir şey gönderilmez (izin istenmez). Hatalar sessizce yutulur;
  * bir sonraki tetiklemede tekrar denenir, kuyruk yok.
  */
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { LocationObject } from 'expo-location';
 import locationAPI, { AppPingTrigger } from '../api/location';
 import { logger } from '../utils/logger';
 
 export const FOREGROUND_MIN_GAP_MS = 5 * 60 * 1000;
+/** Son başarılı ping zamanı (AsyncStorage): arka plan görevi ön plan ping'inin hemen ardından göndermesin */
+export const LAST_PING_AT_KEY = 'app-ping-last-at';
 export const PERIODIC_INTERVAL_MS = 30 * 60 * 1000;
 
 /** Konum ölçümü zaman aşımı; aşılırsa son bilinen konum kullanılır */
@@ -87,6 +91,7 @@ export function sendAppPing(trigger: AppPingTrigger): Promise<void> {
       const { latitude, longitude, accuracy } = position.coords;
       lastAttemptAt = Date.now();
       await locationAPI.appPing(latitude, longitude, trigger, accuracy ?? undefined);
+      await AsyncStorage.setItem(LAST_PING_AT_KEY, String(Date.now())).catch(() => {});
     } catch (error: any) {
       logger.debug('location', 'appPing failed', { trigger, status: error?.response?.status });
     } finally {

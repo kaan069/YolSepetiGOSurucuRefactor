@@ -24,8 +24,8 @@
                 "NSCameraUsageDescription": "Bu uygulama araç fotoğrafı çekmek için kameranıza erişim izni istemektedir.",
                 "NSPhotoLibraryUsageDescription": "Bu uygulama araç fotoğrafı seçmek için foto galerinize erişim izni istemektedir.",
                 "NSPhotoLibraryAddUsageDescription": "Bu uygulama fotoğraf kaydetmek için galerinize erişim izni istemektedir.",
-                "NSLocationAlwaysAndWhenInUseUsageDescription": "Aktif iş sırasında konumunuzu müşteri ile paylaşmak için arka planda konum iznine ihtiyacımız var.",
-                "NSLocationWhenInUseUsageDescription": "Aktif iş sırasında konumunuzu müşteri ile paylaşmak için konum iznine ihtiyacımız var.",
+                "NSLocationAlwaysAndWhenInUseUsageDescription": "Çevrimiçiyken size iş atanabilmesi ve aktif iş sırasında konumunuzun müşteri ile paylaşılması için arka planda konum iznine ihtiyacımız var.",
+                "NSLocationWhenInUseUsageDescription": "Çevrimiçiyken size iş atanabilmesi ve aktif iş sırasında konumunuzun müşteri ile paylaşılması için konum iznine ihtiyacımız var.",
                 "LSApplicationQueriesSchemes": [
                     "tel"
                 ],
@@ -75,9 +75,9 @@
             [
                 "expo-location",
                 {
-                    "locationAlwaysAndWhenInUsePermission": "Aktif iş sırasında konumunuzu müşteri ile paylaşmak için arka planda konum iznine ihtiyacımız var.",
-                    "locationAlwaysPermission": "Aktif iş sırasında arka planda konum takibi için izin gereklidir.",
-                    "locationWhenInUsePermission": "Aktif iş sırasında konumunuzu müşteri ile paylaşmak için konum iznine ihtiyacımız var.",
+                    "locationAlwaysAndWhenInUsePermission": "Çevrimiçiyken size iş atanabilmesi ve aktif iş sırasında konumunuzun müşteri ile paylaşılması için arka planda konum iznine ihtiyacımız var.",
+                    "locationAlwaysPermission": "Çevrimiçiyken ve aktif iş sırasında arka planda konum paylaşımı için izin gereklidir.",
+                    "locationWhenInUsePermission": "Çevrimiçiyken size iş atanabilmesi ve aktif iş sırasında konumunuzun müşteri ile paylaşılması için konum iznine ihtiyacımız var.",
                     "isAndroidBackgroundLocationEnabled": true,
                     "isAndroidForegroundServiceEnabled": true,
                     "isIosBackgroundLocationEnabled": true

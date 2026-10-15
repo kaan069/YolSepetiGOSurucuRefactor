@@ -11,6 +11,8 @@ import { rememberPosition, sendAppPing } from '../services/appLocationPing';
 type DriverState = {
   driverId: string;
   isAvailable: boolean;
+  /** isAvailable backend'den öğrenildi mi; açılışta bilinmezken arka plan konumu durdurulmasın */
+  isStatusKnown: boolean;
   currentLocation: LocationObject | null;
   isLoadingStatus: boolean;
   setAvailable: (v: boolean) => void;
@@ -25,6 +27,7 @@ type DriverState = {
 export const useDriverStore = create<DriverState>((set, get) => ({
   driverId: 'PUT-YOUR-DRIVER-ID',
   isAvailable: false,
+  isStatusKnown: false,
   currentLocation: null,
   isLoadingStatus: false,
 
@@ -40,7 +43,7 @@ export const useDriverStore = create<DriverState>((set, get) => ({
     try {
       set({ isLoadingStatus: true });
       const response = await authAPI.getOnlineStatus();
-      set({ isAvailable: response.user_is_online });
+      set({ isAvailable: response.user_is_online, isStatusKnown: true });
     } catch (error: any) {
       logger.error('auth', 'driverStore.loadOnlineStatus failure', { status: error?.response?.status });
     } finally {
@@ -51,7 +54,7 @@ export const useDriverStore = create<DriverState>((set, get) => ({
   updateOnlineStatus: async (isOnline: boolean) => {
     try {
       const response = await authAPI.updateOnlineStatus(isOnline);
-      set({ isAvailable: response.user_is_online });
+      set({ isAvailable: response.user_is_online, isStatusKnown: true });
       // Çevrimiçi olunca konum hemen bildirilir (acente haritası)
       if (response.user_is_online) sendAppPing('online');
     } catch (error: any) {
