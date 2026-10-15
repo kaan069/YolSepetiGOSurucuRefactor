@@ -30,7 +30,7 @@ import { authAPI, requestsAPI } from './api';
 import { navigateByRequestStatus, isStaleNotification } from './utils/notificationNavigation';
 import { isAgencyAssignmentClosedType } from './store/useAgencyAssignmentStore';
 import { useAgencyAssignmentSync } from './hooks/useAgencyAssignmentSync';
-import { useDriverLocationHeartbeat } from './hooks/useDriverLocationHeartbeat';
+import { useAppLocationPing } from './hooks/useAppLocationPing';
 import AgencyAssignmentPrompt from './components/AgencyAssignmentPrompt';
 import { backgroundLocationService } from './services/backgroundLocationService';
 import { logger } from './utils/logger';
@@ -201,9 +201,10 @@ export default function App() {
 
   useLocationTracking();
 
-  // Acente doğrudan ataması: açılış / ön plan senkronu ve boştaki çevrimiçi sürücünün konum bildirimi
+  // Acente doğrudan ataması: açılış / ön plan senkronu
   useAgencyAssignmentSync();
-  useDriverLocationHeartbeat();
+  // Uygulama konum bildirimi (app-ping): acente haritasında sürücü iş adresi yerine gerçek yerinde görünsün
+  useAppLocationPing();
 
   // ═══════════════════════════════════════════════════════════════════════════
   // AKTİF İŞ WebSocket - useActiveJobStore'dan trackingToken alınır

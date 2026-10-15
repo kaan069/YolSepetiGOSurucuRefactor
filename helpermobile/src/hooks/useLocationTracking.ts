@@ -19,6 +19,7 @@ import { useActiveJobStore } from '../store/useActiveJobStore';
 import { useNakliyeLocationStore } from '../store/useNakliyeLocationStore';
 import { requestLocationPermissions } from '../utils/locationPermission';
 import { logger } from '../utils/logger';
+import { getSharedPosition } from '../services/appLocationPing';
 
 export function useLocationTracking() {
   const setCurrentLocation = useDriverStore((state) => state.setCurrentLocation);
@@ -39,12 +40,11 @@ export function useLocationTracking() {
       const granted = await requestLocationPermissions();
       if (!granted) return;
 
-      // İlk konumu bir kerelik al (harita için)
+      // İlk konumu bir kerelik al (harita için). app-ping'in açılış ölçümüyle paylaşılır,
+      // aynı anda iki konum isteği yapılmaz.
       try {
-        const location = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.High,
-        });
-        setCurrentLocation(location);
+        const location = await getSharedPosition();
+        if (location) setCurrentLocation(location);
       } catch (error) {
         logger.error('location', 'useLocationTracking.initialPosition failed');
       }

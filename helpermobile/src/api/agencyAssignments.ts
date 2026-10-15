@@ -42,14 +42,6 @@ class AgencyAssignmentsAPI {
             throw error;
         }
     }
-
-    /**
-     * Boştaki çevrimiçi sürücünün konum bildirimi (acente haritası için).
-     * Backend sınırı dakikada 12 istek; 3-5 dakikada bir çağrılmalı.
-     */
-    async heartbeat(latitude: number, longitude: number): Promise<void> {
-        await axiosInstance.post('/vehicles/location/heartbeat/', { latitude, longitude });
-    }
 }
 
 export default new AgencyAssignmentsAPI();

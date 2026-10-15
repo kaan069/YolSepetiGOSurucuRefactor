@@ -17,6 +17,7 @@ import { useAppTheme } from '../hooks/useAppTheme';
 import { RootStackParamList } from '../navigation';
 import authAPI from '../api/auth';
 import { logger } from '../utils/logger';
+import { rememberPosition } from '../services/appLocationPing';
 import { FkButton, FkInfoBanner } from '../components/fk';
 import { colors, radius, shadows, spacing as ds, text } from '../theme/design';
 
@@ -70,6 +71,7 @@ export default function HomeScreen() {
         accuracy: Location.Accuracy.High,
       });
 
+      if (freshLocation) rememberPosition(freshLocation);
       if (freshLocation && mapRef.current) {
         const userRegion = {
           latitude: freshLocation.coords.latitude,

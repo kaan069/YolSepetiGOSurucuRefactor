@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { LocationObject } from 'expo-location';
 import authAPI from '../api/auth';
 import { logger } from '../utils/logger';
+import { rememberPosition, sendAppPing } from '../services/appLocationPing';
 
 // Type definition for the driver's state.
 // Sürücü state'i için tip tanımı.
@@ -29,7 +30,11 @@ export const useDriverStore = create<DriverState>((set, get) => ({
 
   setAvailable: (v) => set({ isAvailable: v }),
   setDriverId: (id) => set({ driverId: id }),
-  setCurrentLocation: (location) => set({ currentLocation: location }),
+  setCurrentLocation: (location) => {
+    // app-ping aynı konumu yeniden ölçmeden kullanabilsin
+    rememberPosition(location);
+    set({ currentLocation: location });
+  },
 
   loadOnlineStatus: async () => {
     try {
@@ -47,6 +52,8 @@ export const useDriverStore = create<DriverState>((set, get) => ({
     try {
       const response = await authAPI.updateOnlineStatus(isOnline);
       set({ isAvailable: response.user_is_online });
+      // Çevrimiçi olunca konum hemen bildirilir (acente haritası)
+      if (response.user_is_online) sendAppPing('online');
     } catch (error: any) {
       logger.error('auth', 'driverStore.updateOnlineStatus failure', { status: error?.response?.status });
       set({ isAvailable: !isOnline });

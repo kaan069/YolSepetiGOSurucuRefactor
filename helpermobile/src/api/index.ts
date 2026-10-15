@@ -7,6 +7,7 @@ export { default as ratingsAPI } from './ratings';
 export { default as paymentAPI } from './payment';
 export { default as referralAPI } from './referral';
 export { default as agencyAssignmentsAPI } from './agencyAssignments';
+export { default as locationAPI } from './location';
 export type { DriverAgencyAssignment } from './agencyAssignments';
 export { default as axiosInstance } from './axiosConfig';
 export * from './types';
