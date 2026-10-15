@@ -68,6 +68,7 @@ import {
 // Utils
 import { calculateDistance, parseRouteDistance, getRequestId } from './utils';
 import { logger } from '../../utils/logger';
+import { buildSupportWhatsAppUrl } from '../../constants/support';
 import PriceOfferSection from '../../components/offer/PriceOfferSection';
 import { FkEmptyState, FkInfoBanner } from '../../components/fk';
 import { spacing } from '../../theme/design';
@@ -337,7 +338,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
           { text: 'Tamam', style: 'cancel' },
           {
             text: 'WhatsApp Destek',
-            onPress: () => Linking.openURL('https://wa.me/905555555555'),
+            onPress: () => Linking.openURL(buildSupportWhatsAppUrl()),
           },
           {
             text: 'Evraklarım',

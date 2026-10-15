@@ -1,5 +1,5 @@
-import React from 'react';
-import { Image, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, Image, Linking, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 import { ActivityIndicator, Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFkTokens } from '../../hooks/useFkTokens';
@@ -8,6 +8,14 @@ import FkFormError from '../fk-ui/FkFormError';
 import FkLabel from '../fk-ui/FkLabel';
 import { isPdfFile } from '../../utils/fileHelpers';
 import { pickDocument, pickImage } from './internal/pickerUtils';
+
+/** Seçilen dosya alana uygun değilse kullanıcıya gösterilecek uyarı */
+export interface FkUploadWarning {
+  title: string;
+  message: string;
+  /** Yardım bağlantısı (ör. WhatsApp destek) — uyarıda ikinci buton olarak gösterilir */
+  help?: { label: string; url: string };
+}
 
 interface Props {
   value: string | null;
@@ -27,6 +35,11 @@ interface Props {
   previewHeight?: number;
   containerStyle?: ViewStyle;
   testID?: string;
+  /**
+   * Seçilen dosyayı alana koymadan önce kontrol eder (ör. utils/documentCheck: yanlış belge).
+   * Uyarı dönerse dosya alana konmaz (alan önceki hâlinde kalır); null ise doğrudan kabul edilir.
+   */
+  verify?: (uri: string) => Promise<FkUploadWarning | null>;
 }
 
 export default function FkDocumentUpload({
@@ -47,8 +60,10 @@ export default function FkDocumentUpload({
   previewHeight = 200,
   containerStyle,
   testID,
+  verify,
 }: Props) {
   const { tokens } = useFkTokens();
+  const [verifying, setVerifying] = useState(false);
   const acceptImage = accept.includes('image');
   const acceptPdf = accept.includes('pdf');
 
@@ -56,22 +71,50 @@ export default function FkDocumentUpload({
   const showGallery = enableGallery && acceptImage;
   const showFile = enableFile && (acceptPdf || acceptImage);
 
+  // Seçilen dosya: kontrol varsa önce kontrol; uyarı çıkarsa dosya alana konmaz
+  const acceptPicked = async (uri: string) => {
+    if (!verify) {
+      onChange(uri);
+      return;
+    }
+    setVerifying(true);
+    let warning: FkUploadWarning | null = null;
+    try {
+      warning = await verify(uri);
+    } catch {
+      warning = null;
+    } finally {
+      setVerifying(false);
+    }
+    if (!warning) {
+      onChange(uri);
+      return;
+    }
+    const { help } = warning;
+    Alert.alert(warning.title, warning.message, [
+      { text: 'Başka Dosya Seç', style: 'cancel' },
+      ...(help
+        ? [{ text: help.label, onPress: () => Linking.openURL(help.url).catch(() => {}) }]
+        : []),
+    ]);
+  };
+
   const handleCamera = async () => {
-    if (disabled) return;
+    if (disabled || verifying) return;
     const uri = await pickImage({ source: 'camera', quality: imageQuality });
-    if (uri) onChange(uri);
+    if (uri) acceptPicked(uri);
   };
 
   const handleGallery = async () => {
-    if (disabled) return;
+    if (disabled || verifying) return;
     const uri = await pickImage({ source: 'gallery', quality: imageQuality });
-    if (uri) onChange(uri);
+    if (uri) acceptPicked(uri);
   };
 
   const handleFile = async () => {
-    if (disabled) return;
+    if (disabled || verifying) return;
     const doc = await pickDocument({ accept, maxSizeMB });
-    if (doc) onChange(doc.uri);
+    if (doc) acceptPicked(doc.uri);
   };
 
   const handleRemove = () => {
@@ -112,7 +155,7 @@ export default function FkDocumentUpload({
         <Text style={[styles.helper, { color: tokens.colors.textSecondary }]}>{helperText}</Text>
       ) : null}
 
-      {loading ? (
+      {loading || verifying ? (
         <View
           style={[
             styles.loading,
@@ -124,6 +167,11 @@ export default function FkDocumentUpload({
           ]}
         >
           <ActivityIndicator color={tokens.colors.primary} />
+          {verifying ? (
+            <Text style={[styles.verifyingText, { color: tokens.colors.textSecondary }]}>
+              Belge kontrol ediliyor...
+            </Text>
+          ) : null}
         </View>
       ) : value ? (
         <View>
@@ -210,6 +258,7 @@ export default function FkDocumentUpload({
 const styles = StyleSheet.create({
   helper: { fontSize: 12, marginBottom: 8 },
   loading: { justifyContent: 'center', alignItems: 'center' },
+  verifyingText: { marginTop: 10, fontSize: 13 },
   pdfPreview: { alignItems: 'center', justifyContent: 'center', gap: 8 },
   pdfName: { fontSize: 14, fontWeight: '600', maxWidth: '80%' },
   actionsRow: { flexDirection: 'row', gap: 12 },

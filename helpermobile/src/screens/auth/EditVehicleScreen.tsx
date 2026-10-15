@@ -38,6 +38,7 @@ import { useEditVehicleForm } from './editVehicle/useEditVehicleForm';
 import { useUpdateVehicle } from './editVehicle/useUpdateVehicle';
 import { useVehiclePhotos } from './editVehicle/useVehiclePhotos';
 import { TransferVehicleInfo } from '../../store/useVehicleStore';
+import { documentVerifier } from '../../utils/documentCheck';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditVehicle'>;
 
@@ -131,6 +132,7 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
               value={vehiclePhoto}
               onChange={setVehiclePhotoUri}
               loading={loadingPhoto}
+              verify={documentVerifier('vehicle_photo')}
               disabled={readOnly}
               imageQuality={0.8}
             />
@@ -143,6 +145,7 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
               helperText="Araç sigorta belgesini fotoğraf veya PDF olarak yükleyin"
               value={insurancePhoto}
               onChange={setInsurancePhotoUri}
+              verify={documentVerifier('vehicle_insurance')}
               disabled={readOnly}
               imageQuality={0.8}
             />

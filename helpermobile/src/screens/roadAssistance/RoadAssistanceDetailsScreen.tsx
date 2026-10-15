@@ -328,6 +328,7 @@ export default function RoadAssistanceDetailsScreen({ navigation, route }: Props
               vehiclePhoto={insurancePhoto}
               onPhotoChange={setInsurancePhoto}
               title="Sigorta Belgesi"
+              documentKind="vehicle_insurance"
               helperText="Araç sigorta belgesini fotoğraf veya PDF olarak yükleyin"
               required
             />

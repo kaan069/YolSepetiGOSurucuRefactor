@@ -1,5 +1,6 @@
 import React from 'react';
 import { FkDocumentUpload, FkFormSection } from '../../../components/fk';
+import { documentVerifier } from '../../../utils/documentCheck';
 
 interface VehiclePhotoSectionProps {
   vehiclePhoto: string | null;
@@ -9,6 +10,8 @@ interface VehiclePhotoSectionProps {
   required?: boolean;
   /** @deprecated artık kullanılmıyor — tema turkuazına sabitlendi */
   primaryColor?: string;
+  /** Yanlış belge kontrolü: araç fotoğrafı (varsayılan) ya da sigorta poliçesi */
+  documentKind?: 'vehicle_photo' | 'vehicle_insurance';
 }
 
 export default function VehiclePhotoSection({
@@ -17,6 +20,7 @@ export default function VehiclePhotoSection({
   title = 'Araç Fotoğrafı',
   helperText = 'Plaka görünür şekilde araç fotoğrafı ekleyin',
   required,
+  documentKind = 'vehicle_photo',
 }: VehiclePhotoSectionProps) {
   return (
     <FkFormSection title={`${title}`} icon="camera-outline" required={required}>
@@ -25,6 +29,7 @@ export default function VehiclePhotoSection({
         value={vehiclePhoto}
         onChange={onPhotoChange}
         imageQuality={0.8}
+        verify={documentVerifier(documentKind)}
       />
     </FkFormSection>
   );

@@ -26,6 +26,7 @@ import { FkButton, FkCard, FkDocumentUpload, FkFormSection, FkImageGrid, FkSelec
 import { TRANSPORT_VEHICLE_BRANDS, getVehicleYears, getModelsByBrand } from '../../data/vehicleData';
 import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
+import { documentVerifier, DocumentKind } from '../../utils/documentCheck';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferVehicleDetails'>;
 
@@ -70,6 +71,20 @@ const ORGANIZATION_DOCUMENTS: DocumentField[] = [
   { key: 'psychotechnic_report_photo', label: 'Psikoteknik Rapor' },
   { key: 'passenger_seat_insurance_photo', label: 'Yolcu Koltuk Sigortası' },
 ];
+
+/** Transfer belge alanı -> yanlış belge kontrolü türü */
+const TRANSFER_DOCUMENT_KINDS: Record<string, DocumentKind> = {
+  license_photo: 'driver_license',
+  traffic_insurance_photo: 'traffic_insurance',
+  kasko_photo: 'kasko',
+  authority_certificate_photo: 'authority_certificate',
+  src_certificate_photo: 'src_certificate',
+  psychotechnic_report_photo: 'psychotechnic',
+  passenger_seat_insurance_photo: 'passenger_seat_insurance',
+  tourism_transport_certificate_photo: 'tourism_certificate',
+  s_plate_certificate_photo: 's_plate_certificate',
+  route_permit_photo: 'route_permit',
+};
 
 const ALL_VEHICLE_CLASSES = [
   { value: 'sedan', label: 'Sedan' },
@@ -508,6 +523,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
                     setDocumentPhotos(prev => ({ ...prev, [doc.key]: uri }))
                   }
                   imageQuality={0.8}
+                  verify={TRANSFER_DOCUMENT_KINDS[doc.key] ? documentVerifier(TRANSFER_DOCUMENT_KINDS[doc.key]) : undefined}
                 />
               </FkFormSection>
             ))}
@@ -558,6 +574,7 @@ export default function TransferVehicleScreen({ navigation, route }: Props) {
                 value={mPhoto}
                 onChange={setMPhoto}
                 imageQuality={0.8}
+                verify={documentVerifier('vehicle_photo')}
                 error={mErrors.photo}
               />
             </FkFormSection>

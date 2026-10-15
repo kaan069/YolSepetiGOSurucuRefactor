@@ -20,6 +20,7 @@ import { useFkTokens } from '../../hooks/useFkTokens';
 import { buildFullUrl } from '../../utils/fileHelpers';
 import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
+import { documentVerifier } from '../../utils/documentCheck';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DocumentsScreen'>;
 type DocType = 'license' | 'tax' | 'k_document';
@@ -301,6 +302,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
             helperText="Ehliyetinizin ön yüzünü net bir şekilde çekin veya yükleyin."
             value={licensePhoto}
             onChange={(uri) => setDoc('license', uri)}
+            verify={documentVerifier('driver_license')}
             disabled={approved}
             imageQuality={0.8}
           />
@@ -311,6 +313,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
             helperText="Vergi levhanızı net bir şekilde çekin veya yükleyin."
             value={taxPlatePhoto}
             onChange={(uri) => setDoc('tax', uri)}
+            verify={documentVerifier('tax_plate')}
             disabled={approved}
             imageQuality={0.8}
           />
@@ -321,6 +324,7 @@ export default function DocumentsScreen({ navigation, route }: Props) {
             helperText="K belgenizi fotoğraf çekerek, galeriden seçerek veya PDF olarak yükleyebilirsiniz."
             value={kDocumentPhoto}
             onChange={(uri) => setDoc('k_document', uri)}
+            verify={documentVerifier('k_document')}
             disabled={approved}
             imageQuality={0.8}
           />

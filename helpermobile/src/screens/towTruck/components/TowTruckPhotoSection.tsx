@@ -1,5 +1,6 @@
 import React from 'react';
 import { FkDocumentUpload, FkFormSection } from '../../../components/fk';
+import { documentVerifier } from '../../../utils/documentCheck';
 
 interface TowTruckPhotoSectionProps {
   vehiclePhoto: string | null;
@@ -7,6 +8,8 @@ interface TowTruckPhotoSectionProps {
   title?: string;
   helperText?: string;
   required?: boolean;
+  /** Yanlış belge kontrolü: araç fotoğrafı (varsayılan) ya da sigorta poliçesi */
+  documentKind?: 'vehicle_photo' | 'vehicle_insurance';
 }
 
 export default function TowTruckPhotoSection({
@@ -15,6 +18,7 @@ export default function TowTruckPhotoSection({
   title = 'Araç Fotoğrafı',
   helperText = 'Plaka görünür şekilde araç fotoğrafı ekleyin',
   required,
+  documentKind = 'vehicle_photo',
 }: TowTruckPhotoSectionProps) {
   return (
     <FkFormSection title={`${title}`} icon="camera-outline" required={required}>
@@ -23,6 +27,7 @@ export default function TowTruckPhotoSection({
         value={vehiclePhoto}
         onChange={onPhotoChange}
         imageQuality={0.8}
+        verify={documentVerifier(documentKind)}
       />
     </FkFormSection>
   );
