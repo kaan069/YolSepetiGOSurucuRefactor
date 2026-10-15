@@ -16,10 +16,12 @@ interface AcceptButtonProps {
   towTruckCount: number;
   /** Fiyat hesaplandı mı? */
   hasPricing: boolean;
+  /** Ek kilit (ör. acente atamasının süresi doldu) */
+  disabled?: boolean;
 }
 
-export default function AcceptButton({ onPress, loading, towTruckCount, hasPricing }: AcceptButtonProps) {
-  const isDisabled = loading || towTruckCount === 0 || !hasPricing;
+export default function AcceptButton({ onPress, loading, towTruckCount, hasPricing, disabled }: AcceptButtonProps) {
+  const isDisabled = loading || !!disabled || towTruckCount === 0 || !hasPricing;
   const buttonText = towTruckCount === 0 ? 'Kayıtlı Çekici Yok' : 'Teklif Gönder';
   return (
     <FkStickyFooter safeArea={false}>

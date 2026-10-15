@@ -13,6 +13,10 @@ import { useAuthStore } from "../store/authStore";
 import { useNotificationStore } from "../store/notificationStore";
 import authAPI from "../api/auth";
 import { navigateByRequestStatus, isStaleNotification } from "../utils/notificationNavigation";
+import {
+    applyAgencyAssignmentNotification,
+    isAgencyAssignmentClosedType,
+} from "../store/useAgencyAssignmentStore";
 import { logger } from "../utils/logger";
 
 const FCM_TOKEN_KEY = "fcm_token";
@@ -185,6 +189,9 @@ export function useNotifications(navigationRef?: any) {
                 const serviceType = data.service_type || data.type || 'tow';
                 const notificationType = data.type;
 
+                // Acente ataması: uygulama arka plandayken onMessage çalışmaz, store'a buradan yazılır
+                applyAgencyAssignmentNotification(data);
+
                 // Eski bildirim (>24h): iş büyük ihtimalle başka sürücüye atanmış —
                 // OfferScreen'de 404 ile boş ekran yerine doğrudan OrdersTab'a al.
                 const stale = isStaleNotification(remoteMessage);
@@ -199,7 +206,7 @@ export function useNotifications(navigationRef?: any) {
                         if (notificationType === 'job_completed' || notificationType === 'request_completed') {
                             navigationRef.current.navigate('Tabs', { screen: 'EarningsTab' });
                         }
-                        else if (notificationType === 'request_cancelled') {
+                        else if (notificationType === 'request_cancelled' || isAgencyAssignmentClosedType(notificationType)) {
                             navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
                         }
                         else if (orderId) {
@@ -262,6 +269,9 @@ export function useNotifications(navigationRef?: any) {
                 const serviceType = data.service_type || data.type || 'tow';
                 const notificationType = data.type;
 
+                // Acente ataması: uygulama kapalıyken gelen atama store'a buradan yazılır
+                applyAgencyAssignmentNotification(data);
+
                 // Eski bildirim (>24h): killed state'te eski bildirime tıklamak yaygın —
                 // OfferScreen'de 404 görmek yerine OrdersTab'a yönlendir.
                 const stale = isStaleNotification(remoteMessage);
@@ -275,7 +285,7 @@ export function useNotifications(navigationRef?: any) {
                     if (notificationType === 'job_completed' || notificationType === 'request_completed') {
                         navigationRef.current?.navigate('Tabs', { screen: 'EarningsTab' });
                     }
-                    else if (notificationType === 'request_cancelled') {
+                    else if (notificationType === 'request_cancelled' || isAgencyAssignmentClosedType(notificationType)) {
                         navigationRef.current?.navigate('Tabs', { screen: 'OrdersTab' });
                     }
                     else if (orderId) {

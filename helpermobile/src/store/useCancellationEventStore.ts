@@ -8,7 +8,7 @@ interface CancellationEventState {
   lastCancelledJobId: number | null;
   lastCancelledServiceType: string | null;
   lastCancelledAt: number | null;
-  // Backend iptal sebebi: customer_cancelled | admin_cancelled | driver_cancelled | payment_timeout | expired | reassigned
+  // Backend iptal sebebi: customer_cancelled | admin_cancelled | agency_cancelled | driver_cancelled | payment_timeout | expired | reassigned
   lastCancelledReason: string | null;
   setCancelledJob: (jobId: number, serviceType: string, reason?: string | null) => void;
   clear: () => void;

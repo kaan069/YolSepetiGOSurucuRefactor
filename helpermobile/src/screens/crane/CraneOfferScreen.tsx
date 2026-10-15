@@ -30,11 +30,15 @@ import { logger } from '../../utils/logger';
 import { FkButton, FkEmptyState, FkLoadingOverlay, FkStickyFooter } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { spacing } from '../../theme/design';
+import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
+import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneOffer'>;
 
 export default function CraneOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
+  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
+  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const { screenBg } = useAppTheme();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
@@ -148,6 +152,10 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
 
   // Teklif gönder
   const handleAccept = async () => {
+    if (agency.expired) {
+      Alert.alert('Süre Doldu', 'Atamanın yanıt süresi doldu, bu iş için artık teklif veremezsiniz.');
+      return;
+    }
     // Profil kontrolü
     try {
       const completenessResponse = await documentsAPI.checkProfileCompleteness();
@@ -205,6 +213,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
         parseFloat(offerPrice),
         selectedEmployeeId || undefined
       );
+      agency.markOffered();
 
       const totalPrice = response.driver_earnings || response.estimated_price || offerPrice;
       showNotification('success', `Teklifiniz gönderildi!\n\nTahmini Kazanç: ${totalPrice} TL`, 6000);
@@ -219,6 +228,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
         }, 100);
       }, 1000);
     } catch (error: any) {
+      if (agency.handleOfferError(error)) return;
       const backendError = error?.response?.data?.error || error?.response?.data?.message || '';
 
       if (backendError.toLowerCase().includes('şirket bilgi')) {
@@ -274,6 +284,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          <AgencyAssignmentBanner agency={agency} />
           <MapCard
             latitude={parseFloat(craneRequest.latitude)}
             longitude={parseFloat(craneRequest.longitude)}
@@ -332,7 +343,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
           <FkButton
             onPress={handleAccept}
             loading={acceptingJob}
-            disabled={acceptingJob || !selectedCraneId || !distance || !hasValidPrice}
+            disabled={acceptingJob || agency.expired || !selectedCraneId || !distance || !hasValidPrice}
             icon="send-check-outline"
             size="lg"
             fullWidth

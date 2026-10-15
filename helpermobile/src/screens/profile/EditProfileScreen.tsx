@@ -15,12 +15,20 @@ import { RootStackParamList } from '../../navigation';
 import authAPI from '../../api/auth';
 import { User } from '../../api/types';
 import AppBar from '../../components/common/AppBar';
-import { FkButton, FkCard, FkFormSection, FkTextInput } from '../../components/fk';
+import {
+  FkButton,
+  FkFormSection,
+  FkInfoBanner,
+  FkMapPoint,
+  FkMapPointPicker,
+  FkTextInput,
+  parseMapPoint,
+  toCoordString,
+} from '../../components/fk';
 import { validateTCNumber } from '../../utils/tcValidation';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import { logger } from '../../utils/logger';
-import { colors } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EditProfile'>;
 
@@ -45,13 +53,15 @@ const EMPTY_FORM: FormState = {
 };
 
 export default function EditProfileScreen({ navigation }: Props) {
-  const { screenBg, isDarkMode, appColors } = useAppTheme();
+  const { screenBg, appColors } = useAppTheme();
   const { tokens } = useFkTokens();
 
   const [apiUser, setApiUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
+  // İş adresi koordinatı: acente haritasında konum göndermeyen sürücünün yeri
+  const [businessPoint, setBusinessPoint] = useState<FkMapPoint | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -68,6 +78,7 @@ export default function EditProfileScreen({ navigation }: Props) {
           businessAddressIl: response.user.business_address_il || '',
           businessAddressIlce: response.user.business_address_ilce || '',
         });
+        setBusinessPoint(parseMapPoint(response.user.business_latitude, response.user.business_longitude));
       } catch (error) {
         logger.error('general', 'Error loading user profile');
         Alert.alert('Hata', 'Profil bilgileri yüklenirken bir hata oluştu.');
@@ -121,6 +132,12 @@ export default function EditProfileScreen({ navigation }: Props) {
         business_address: form.businessAddress.trim(),
         business_address_il: form.businessAddressIl.trim(),
         business_address_ilce: form.businessAddressIlce.trim(),
+        ...(businessPoint
+          ? {
+              business_latitude: toCoordString(businessPoint.latitude),
+              business_longitude: toCoordString(businessPoint.longitude),
+            }
+          : {}),
       });
       Alert.alert('Başarılı', 'Profil bilgileriniz başarıyla güncellendi.', [
         { text: 'Tamam', onPress: () => navigation.goBack() },
@@ -251,18 +268,19 @@ export default function EditProfileScreen({ navigation }: Props) {
               multiline
               numberOfLines={3}
             />
+            <FkMapPointPicker
+              label="İş Yeri Konumu"
+              value={businessPoint}
+              onChange={setBusinessPoint}
+              helperText="İsteğe bağlı. Uygulama konum göndermediğinde acente haritalarında bu noktada görünürsünüz."
+            />
           </FkFormSection>
 
-          <FkCard style={[
-              styles.infoCard,
-              { backgroundColor: isDarkMode ? '#0d2137' : colors.info[50] },
-            ]}>
-              <Text variant="bodySmall" style={[styles.infoText, { color: tokens.colors.info }]}>
-                ℹ️ Telefon numaranız ve adres bilgileriniz müşterilerle iletişim kurmak için
-                kullanılır.
-              </Text>
-            
-          </FkCard>
+          <FkInfoBanner
+            type="info"
+            message="Telefon numaranız ve adres bilgileriniz müşterilerle iletişim kurmak için kullanılır."
+            style={styles.infoCard}
+          />
 
           <FkButton
             icon="content-save"
@@ -285,6 +303,5 @@ const styles = StyleSheet.create({
   loadingText: { marginTop: 16, fontSize: 16 },
   content: { flex: 1, padding: 16 },
   scrollContent: { paddingBottom: 100 },
-  infoCard: { marginBottom: 16, borderRadius: 12 },
-  infoText: { lineHeight: 20 },
+  infoCard: { marginBottom: 16 },
 });

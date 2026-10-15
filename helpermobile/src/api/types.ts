@@ -31,6 +31,9 @@ export interface User {
     business_address: string;
     business_address_il: string;
     business_address_ilce: string;
+    /** İş adresi koordinatı (backend DecimalField → "40.991000"); acente haritasında konum göndermeyen sürücünün yeri */
+    business_latitude?: string | number | null;
+    business_longitude?: string | number | null;
     service_cities?: string[];  // Sürücünün iş aldığı şehirler (çoklu) — boşsa hiçbir talep listelenmez/bildirilmez
     user_type: string[];
     provider_type?: ProviderType;  // Sahis / Firma / Eleman
@@ -63,6 +66,9 @@ export interface RegisterRequest {
     business_address: string;
     business_address_il: string;
     business_address_ilce: string;
+    /** 6 ondalıklı metin ("40.991000") — opsiyonel */
+    business_latitude?: string;
+    business_longitude?: string;
     password: string;
     password_confirm: string;
     user_type?: string[];  // Kullanıcı tipleri listesi (örn: ['towTruck', 'crane'])

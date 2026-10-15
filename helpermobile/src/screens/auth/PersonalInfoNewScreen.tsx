@@ -30,6 +30,9 @@ import {
   FkButton,
   FkFormSection,
   FkLocationInput,
+  FkMapPointPicker,
+  FkMapPoint,
+  toCoordString,
   FkPasswordInput,
   FkStepHeader,
   FkTextInput,
@@ -72,6 +75,8 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<FieldErrors>({});
+  // İş adresi koordinatı (opsiyonel): acente haritasında konum göndermeyen sürücünün yeri
+  const [businessPoint, setBusinessPoint] = useState<FkMapPoint | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [acceptedContracts, setAcceptedContracts] = useState<Record<string, boolean>>({});
@@ -165,6 +170,12 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
         business_address: form.address,
         business_address_il: form.city,
         business_address_ilce: form.district,
+        ...(businessPoint
+          ? {
+              business_latitude: toCoordString(businessPoint.latitude),
+              business_longitude: toCoordString(businessPoint.longitude),
+            }
+          : {}),
         password: form.password,
         password_confirm: form.passwordConfirm,
         user_type: data.vehicleTypes || ['towTruck', 'crane'],
@@ -319,6 +330,12 @@ export default function PersonalInfoNewScreen({ navigation, route }: Props) {
             }}
             errors={{ city: errors.city, district: errors.district, address: errors.address }}
             required
+          />
+          <FkMapPointPicker
+            label="İş Yeri Konumu"
+            value={businessPoint}
+            onChange={setBusinessPoint}
+            helperText="İsteğe bağlı. Uygulama konum göndermediğinde acente haritalarında bu noktada görünürsünüz."
           />
         </FkFormSection>
 

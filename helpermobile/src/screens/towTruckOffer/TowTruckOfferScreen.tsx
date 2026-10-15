@@ -71,11 +71,15 @@ import { logger } from '../../utils/logger';
 import PriceOfferSection from '../../components/offer/PriceOfferSection';
 import { FkEmptyState, FkInfoBanner } from '../../components/fk';
 import { spacing } from '../../theme/design';
+import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
+import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TowTruckOffer'>;
 
 export default function TowTruckOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
+  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
+  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
   const { screenBg, appColors, cardBg, isDarkMode } = useAppTheme();
@@ -201,6 +205,10 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
 
   // Teklif gönderme
   const handleAccept = async () => {
+    if (agency.expired) {
+      Alert.alert('Süre Doldu', 'Atamanın yanıt süresi doldu, bu iş için artık teklif veremezsiniz.');
+      return;
+    }
     // Profil tamamlığı kontrolü
     try {
       const completenessResponse = await documentsAPI.checkProfileCompleteness();
@@ -284,6 +292,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         [],
         selectedEmployeeId || undefined
       );
+      agency.markOffered();
 
       logger.debug('orders', 'Teklif gnderildi');
 
@@ -310,6 +319,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         }, 100);
       }, 1000);
     } catch (error: any) {
+      if (agency.handleOfferError(error)) return;
       logger.error('orders', 'Teklif gnderme hatas');
 
       const backendError = error?.response?.data?.error || error?.response?.data?.message || '';
@@ -374,6 +384,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+        <AgencyAssignmentBanner agency={agency} />
         {/* Talep Numarası */}
         <RequestHeader requestId={requestId} />
 
@@ -449,6 +460,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         loading={submitting}
         towTruckCount={towTrucks.length}
         hasPricing={!!pricing}
+        disabled={agency.expired}
       />
       </KeyboardAvoidingView>
 

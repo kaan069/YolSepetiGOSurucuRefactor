@@ -59,8 +59,9 @@ export function getCancelAlertMessage(cancel: CommissionCancel): string {
  * WebSocket job_cancelled / FCM request_cancelled sebebi -> sebep kodu.
  * - customer_cancelled -> müşteri iptali
  * - reassigned         -> iş yönetici tarafından bu sürücüden geri alındı
- * - diğerleri (admin_cancelled, driver_cancelled, payment_timeout, expired,
- *   sebep gelmeyen eski payload) -> yönetici/sistem iptali
+ * - diğerleri (admin_cancelled, agency_cancelled, driver_cancelled, payment_timeout,
+ *   expired, sebep gelmeyen eski payload) -> genel "Talep iptal edildi"
+ *   (acente iptali de müşteri iptali sayılmaz; FCM'de cancelled_by: 'agency')
  */
 export function cancelFromEventReason(reason?: string | null): CommissionCancel {
   const code: CommissionCancelCode =

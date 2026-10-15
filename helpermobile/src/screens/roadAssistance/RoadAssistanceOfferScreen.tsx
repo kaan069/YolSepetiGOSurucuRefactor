@@ -25,11 +25,15 @@ import { ProviderType } from '../../api/types';
 import { logger } from '../../utils/logger';
 import { FkButton, FkEmptyState, FkLoadingOverlay, FkStickyFooter } from '../../components/fk';
 import { spacing } from '../../theme/design';
+import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
+import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RoadAssistanceOffer'>;
 
 export default function RoadAssistanceOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
+  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
+  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
   const { screenBg, appColors } = useAppTheme();
@@ -125,6 +129,10 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
 
   // Teklif gönder
   const handleSubmitOffer = async () => {
+    if (agency.expired) {
+      Alert.alert('Süre Doldu', 'Atamanın yanıt süresi doldu, bu iş için artık teklif veremezsiniz.');
+      return;
+    }
     // Profil kontrolü
     try {
       const completenessResponse = await documentsAPI.checkProfileCompleteness();
@@ -178,6 +186,7 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
         selectedVehicleId,
         selectedEmployeeId || undefined
       );
+      agency.markOffered();
 
       showNotification('success', `Teklifiniz gönderildi!\n\nTeklif: ${formatNumber(parseInt(proposedPrice))} TL`, 5000);
 
@@ -196,6 +205,7 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
         }, 100);
       }, 1000);
     } catch (error: any) {
+      if (agency.handleOfferError(error)) return;
       const errorMessage = error?.response?.data?.error || 'Teklif gönderilirken hata oluştu';
       showNotification('error', errorMessage);
     } finally {
@@ -240,6 +250,7 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          <AgencyAssignmentBanner agency={agency} />
           <LocationCard
             address={request.address}
             latitude={parseFloat(request.latitude || '0')}
@@ -287,7 +298,7 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
           <FkButton
             onPress={handleSubmitOffer}
             loading={submitting}
-            disabled={submitting || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
+            disabled={submitting || agency.expired || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
             icon="send-check-outline"
             size="lg"
             fullWidth

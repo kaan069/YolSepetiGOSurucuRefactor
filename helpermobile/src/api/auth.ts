@@ -263,6 +263,9 @@ class AuthAPI {
         business_address: string;
         business_address_il: string;
         business_address_ilce: string;
+        /** 6 ondalıklı metin ("40.991000") */
+        business_latitude: string;
+        business_longitude: string;
         service_cities: string[];
         user_type: string[];
     }>): Promise<{ user: AuthResponse['user'] }> {

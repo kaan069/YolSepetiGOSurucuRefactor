@@ -3,6 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { logger } from '../utils/logger';
 import { useCancellationEventStore } from '../store/useCancellationEventStore';
+import { applyAgencyAssignmentNotification } from '../store/useAgencyAssignmentStore';
 
 /**
  * Notification handler configuration
@@ -77,6 +78,9 @@ export function setupForegroundNotificationHandler() {
         data.reason ? String(data.reason) : null,
       );
     }
+
+    // Acente doğrudan ataması: teklif ekranındaki bant ve global atama kartı store'dan okur
+    applyAgencyAssignmentNotification(data);
 
     if (remoteMessage.notification) {
       try {

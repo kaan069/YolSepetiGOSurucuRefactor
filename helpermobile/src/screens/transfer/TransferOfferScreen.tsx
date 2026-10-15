@@ -33,6 +33,8 @@ import PriceOfferSection from '../../components/offer/PriceOfferSection';
 import { InfoRow, JobLocationCard, JobSection } from '../../components/job';
 import { FkButton, FkEmptyState, FkInfoBanner, FkLoadingOverlay, FkPill, FkStickyFooter } from '../../components/fk';
 import { colors, spacing } from '../../theme/design';
+import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
+import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferOffer'>;
 
@@ -66,6 +68,8 @@ const VEHICLE_PREFERENCE_LABELS: Record<string, string> = {
 
 export default function TransferOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
+  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
+  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
   const { isDarkMode, appColors, cardBg, screenBg } = useAppTheme();
@@ -189,6 +193,10 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
 
   // Teklif gonder
   const handleAccept = async () => {
+    if (agency.expired) {
+      Alert.alert('Süre Doldu', 'Atamanın yanıt süresi doldu, bu iş için artık teklif veremezsiniz.');
+      return;
+    }
     // Profil kontrolu
     try {
       const completenessResponse = await documentsAPI.checkProfileCompleteness();
@@ -240,6 +248,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
           employee_id: selectedEmployeeId || undefined,
         }
       );
+      agency.markOffered();
 
       const totalPrice = response.driver_earnings || response.estimated_price || offerPrice;
       showNotification('success', `Teklifiniz gönderildi!\n\nTahmini Kazanç: ${totalPrice} TL`, 6000);
@@ -254,6 +263,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
         }, 100);
       }, 1000);
     } catch (error: any) {
+      if (agency.handleOfferError(error)) return;
       const backendError = error?.response?.data?.error || error?.response?.data?.message || '';
 
       if (backendError.toLowerCase().includes('sirket bilgi')) {
@@ -327,6 +337,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
+          <AgencyAssignmentBanner agency={agency} />
           {/* Alış / varış noktası ve mesafe */}
           <JobLocationCard
             title="Talep Bilgileri"
@@ -429,7 +440,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
           <FkButton
             onPress={handleAccept}
             loading={acceptingJob}
-            disabled={acceptingJob || !selectedVehicleId || !hasValidPrice}
+            disabled={acceptingJob || agency.expired || !selectedVehicleId || !hasValidPrice}
             icon="send-check-outline"
             size="lg"
             fullWidth

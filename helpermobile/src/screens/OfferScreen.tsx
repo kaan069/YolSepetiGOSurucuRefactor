@@ -19,6 +19,8 @@ import { logger } from '../utils/logger';
 import { colors } from '../theme/design';
 import { FkCard, FkButton } from '../components/fk';
 import { JobSection } from '../components/job';
+import { useAgencyAssignment } from '../hooks/useAgencyAssignment';
+import AgencyAssignmentBanner from '../components/AgencyAssignmentBanner';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Offer'>;
 
@@ -55,6 +57,8 @@ const getAddressDetails = async (latitude: number, longitude: number) => {
 
 export default function OfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
+  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
+  const agency = useAgencyAssignment(Number(orderId));
 
   const [currentLocation, setCurrentLocation] = useState<{latitude: number, longitude: number} | null>(null);
   const [addressDetails, setAddressDetails] = useState<{district: string, neighborhood: string}>({district: '', neighborhood: ''});
@@ -234,6 +238,7 @@ export default function OfferScreen({ route, navigation }: Props) {
     <SafeAreaView style={styles.container} edges={["bottom"]}>
       <AppBar title="Teklif" />
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <AgencyAssignmentBanner agency={agency} />
       {/* Map and Location Information */}
       {towTruckRequest ? (
         <>

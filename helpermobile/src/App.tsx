@@ -28,6 +28,10 @@ import { useActiveJobStore } from './store/useActiveJobStore';
 import { useNakliyeLocationStore } from './store/useNakliyeLocationStore';
 import { authAPI, requestsAPI } from './api';
 import { navigateByRequestStatus, isStaleNotification } from './utils/notificationNavigation';
+import { isAgencyAssignmentClosedType } from './store/useAgencyAssignmentStore';
+import { useAgencyAssignmentSync } from './hooks/useAgencyAssignmentSync';
+import { useDriverLocationHeartbeat } from './hooks/useDriverLocationHeartbeat';
+import AgencyAssignmentPrompt from './components/AgencyAssignmentPrompt';
 import { backgroundLocationService } from './services/backgroundLocationService';
 import { logger } from './utils/logger';
 
@@ -197,6 +201,10 @@ export default function App() {
 
   useLocationTracking();
 
+  // Acente doğrudan ataması: açılış / ön plan senkronu ve boştaki çevrimiçi sürücünün konum bildirimi
+  useAgencyAssignmentSync();
+  useDriverLocationHeartbeat();
+
   // ═══════════════════════════════════════════════════════════════════════════
   // AKTİF İŞ WebSocket - useActiveJobStore'dan trackingToken alınır
   // ⚠️ SADECE İŞ DEVAM EDİYORKEN (in_progress) KONUM GÖNDERİMİ YAPILIR
@@ -286,7 +294,7 @@ export default function App() {
 
         return (
           <NotificationBanner
-            visible={showBanner}
+            visible={showBanner && bannerNotifType !== 'agency_assignment'}
             title={bannerTitle}
             body={notification?.request.content.body || ''}
             onDismiss={() => setShowBanner(false)}
@@ -327,7 +335,7 @@ export default function App() {
                 else if (notificationType === 'job_completed' || notificationType === 'request_completed') {
                   navigationRef.current.navigate('Tabs', { screen: 'EarningsTab' });
                 }
-                else if (notificationType === 'request_cancelled') {
+                else if (notificationType === 'request_cancelled' || isAgencyAssignmentClosedType(notificationType)) {
                   navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
                 }
                 else if (orderId) {
@@ -342,6 +350,9 @@ export default function App() {
       })()}
 
       <GuideOverlay />
+
+      {/* Acente ataması - bildirimi kaçıran / uygulama açıkken atama alan sürücü için */}
+      <AgencyAssignmentPrompt navigationRef={navigationRef} />
 
       <GlobalNotification />
 

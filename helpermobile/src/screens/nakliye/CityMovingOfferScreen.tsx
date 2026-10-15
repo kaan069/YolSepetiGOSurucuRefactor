@@ -25,11 +25,15 @@ import { logger } from '../../utils/logger';
 import { FkButton, FkEmptyState, FkStickyFooter } from '../../components/fk';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { colors, spacing } from '../../theme/design';
+import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
+import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CityMovingOffer'>;
 
 export default function CityMovingOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
+  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
+  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const { screenBg } = useAppTheme();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
@@ -136,6 +140,10 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
 
   // Teklif gönder
   const handleSubmitOffer = async () => {
+    if (agency.expired) {
+      showNotification('warning', 'Atamanın yanıt süresi doldu, bu iş için artık teklif veremezsiniz.');
+      return;
+    }
     if (!request) return;
 
     const priceCheck = validateOfferPrice(proposedPrice, minOfferOverride);
@@ -157,6 +165,7 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
       if (!trackingToken) throw new Error('Tracking token bulunamadı');
 
       await requestsAPI.submitCityMovingOffer(trackingToken, price, totalDistance || 0, selectedVehicleId, selectedEmployeeId || undefined);
+      agency.markOffered();
 
       showNotification('success', 'Teklifiniz başarıyla gönderildi!');
 
@@ -175,6 +184,7 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
         }, 100);
       }, 1000);
     } catch (error: any) {
+      if (agency.handleOfferError(error)) return;
       const errorMessage = error?.response?.data?.error || 'Teklif gönderilemedi';
       showNotification('error', errorMessage);
     } finally {
@@ -220,6 +230,7 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
+          <AgencyAssignmentBanner agency={agency} />
           {/* Araç Seçimi */}
           <VehicleSelector
             vehicles={vehicles}
@@ -279,7 +290,7 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
           <FkButton
             onPress={handleSubmitOffer}
             loading={submitting}
-            disabled={submitting || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
+            disabled={submitting || agency.expired || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
             icon="send-check-outline"
             size="lg"
             fullWidth
