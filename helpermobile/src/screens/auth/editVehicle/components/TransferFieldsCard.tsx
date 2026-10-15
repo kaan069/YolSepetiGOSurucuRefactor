@@ -13,9 +13,11 @@ import { colors } from '../../../../theme/design';
 interface Props {
   formData: EditVehicleFormData;
   setFieldValue: (field: string, value: any) => void;
+  /** Onaylı araç: alanlar salt okunur */
+  readOnly?: boolean;
 }
 
-export default function TransferFieldsCard({ formData, setFieldValue }: Props) {
+export default function TransferFieldsCard({ formData, setFieldValue, readOnly }: Props) {
   const transferData = formData as Partial<TransferVehicleInfo>;
   const isVip = transferData.transferType === 'vip';
 
@@ -34,6 +36,7 @@ export default function TransferFieldsCard({ formData, setFieldValue }: Props) {
       </View>
 
       <FkTextInput
+        disabled={readOnly}
         label="Yolcu Kapasitesi"
         required
         value={transferData.passengerCapacity?.toString() || ''}
@@ -43,6 +46,7 @@ export default function TransferFieldsCard({ formData, setFieldValue }: Props) {
       />
 
       <FkSelect
+        disabled={readOnly}
         label="Araç Sınıfı"
         placeholder="Araç sınıfı seçin"
         value={transferData.vehicleClass || null}

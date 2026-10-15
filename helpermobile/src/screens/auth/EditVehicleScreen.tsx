@@ -15,7 +15,10 @@ import {
   FkButton,
   FkDocumentUpload,
   FkFormSection,
+  FkIconChip,
+  FkInfoBanner,
 } from '../../components/fk';
+import VehicleStatusChip from '../../components/common/VehicleStatusChip';
 import BasicInfoCard from './editVehicle/components/BasicInfoCard';
 import CraneFieldsCard from './editVehicle/components/CraneFieldsCard';
 import HomeMovingFieldsCard from './editVehicle/components/HomeMovingFieldsCard';
@@ -78,6 +81,12 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
     return <VehicleNotFound onBack={() => navigation.goBack()} />;
   }
 
+  const verificationStatus = 'verificationStatus' in vehicle ? vehicle.verificationStatus : undefined;
+  const rejectionReason =
+    'verificationRejectionReason' in vehicle ? vehicle.verificationRejectionReason : undefined;
+  // Onaylı araç salt okunur: backend güncellemede onayı sıfırlamadığı için uygulamadan değiştirilemez
+  const readOnly = verificationStatus === 'approved';
+
   const showPhoto = VEHICLE_KINDS_WITH_PHOTO.includes(vehicleType);
   const showInsurance = VEHICLE_KINDS_WITH_INSURANCE.includes(vehicleType);
   const transferType = (formData as Partial<TransferVehicleInfo>).transferType;
@@ -87,22 +96,33 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       style={[styles.container, { backgroundColor: screenBg }]}
     >
-      <AppBar title="Aracı Düzenle" />
+      <AppBar title={readOnly ? 'Araç Detayı' : 'Aracı Düzenle'} />
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.titleContainer}>
+          <FkIconChip icon={VEHICLE_KIND_ICONS[vehicleType]} size={56} shape="circle" />
           <Text variant="headlineMedium" style={styles.title}>
-            {VEHICLE_KIND_ICONS[vehicleType]} Aracı Düzenle
+            {readOnly ? 'Araç Detayı' : 'Aracı Düzenle'}
           </Text>
           <Text variant="bodyMedium" style={styles.subtitle}>
             {formData.plate} - {VEHICLE_KIND_LABELS[vehicleType]} Aracı
           </Text>
+          <VehicleStatusChip status={verificationStatus} rejectionReason={rejectionReason} />
         </View>
 
-        <BasicInfoCard formData={formData} errors={errors} updateField={updateField} />
+        {readOnly && (
+          <FkInfoBanner
+            type="success"
+            icon="check-decagram-outline"
+            message="Bu araç onaylandı. Bilgilerini değiştirmek için destek ekibiyle iletişime geçin."
+            style={styles.banner}
+          />
+        )}
+
+        <BasicInfoCard formData={formData} errors={errors} updateField={updateField} readOnly={readOnly} />
 
         {showPhoto && (
           <FkFormSection title={`${VEHICLE_KIND_LABELS[vehicleType]} Fotoğrafı`} icon="camera-outline" required>
@@ -111,6 +131,7 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
               value={vehiclePhoto}
               onChange={setVehiclePhotoUri}
               loading={loadingPhoto}
+              disabled={readOnly}
               imageQuality={0.8}
             />
           </FkFormSection>
@@ -122,6 +143,7 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
               helperText="Araç sigorta belgesini fotoğraf veya PDF olarak yükleyin"
               value={insurancePhoto}
               onChange={setInsurancePhotoUri}
+              disabled={readOnly}
               imageQuality={0.8}
             />
           </FkFormSection>
@@ -132,21 +154,23 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
             formData={formData}
             updateField={updateField}
             toggleSupportedVehicleType={toggleSupportedVehicleType}
+            readOnly={readOnly}
           />
         )}
 
         {vehicleType === 'crane' && (
-          <CraneFieldsCard formData={formData} errors={errors} updateField={updateField} />
+          <CraneFieldsCard formData={formData} errors={errors} updateField={updateField} readOnly={readOnly} />
         )}
 
         {vehicleType === 'transfer' && (
-          <TransferFieldsCard formData={formData} setFieldValue={setFieldValue} />
+          <TransferFieldsCard formData={formData} setFieldValue={setFieldValue} readOnly={readOnly} />
         )}
 
         {vehicleType === 'transfer' && transferType === 'vip' && (
           <TransferInteriorPhotosCard
             interiorPhotos={interiorPhotos}
             onChange={replaceInteriorPhotos}
+            readOnly={readOnly}
           />
         )}
 
@@ -159,31 +183,34 @@ export default function EditVehicleScreen({ route, navigation }: Props) {
             formData={formData}
             errors={errors}
             updateField={updateField}
+            readOnly={readOnly}
           />
         )}
 
         {vehicleType === 'homeMoving' && (
-          <HomeMovingFieldsCard formData={formData} updateField={updateField} />
+          <HomeMovingFieldsCard formData={formData} updateField={updateField} readOnly={readOnly} />
         )}
 
-        <View style={styles.buttonContainer}>
-          <FkButton
-            variant="secondary"
-            onPress={() => navigation.goBack()}
-            disabled={loading}
-            style={styles.button}
-          >
-            İptal
-          </FkButton>
-          <FkButton
-            onPress={handleSave}
-            loading={loading}
-            disabled={loading}
-            style={styles.button}
-          >
-            {loading ? 'Güncelleniyor...' : 'Kaydet'}
-          </FkButton>
-        </View>
+        {!readOnly && (
+          <View style={styles.buttonContainer}>
+            <FkButton
+              variant="secondary"
+              onPress={() => navigation.goBack()}
+              disabled={loading}
+              style={styles.button}
+            >
+              İptal
+            </FkButton>
+            <FkButton
+              onPress={handleSave}
+              loading={loading}
+              disabled={loading}
+              style={styles.button}
+            >
+              {loading ? 'Güncelleniyor...' : 'Kaydet'}
+            </FkButton>
+          </View>
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -193,9 +220,10 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flex: 1, padding: 20 },
   scrollContent: { paddingBottom: 100 },
-  titleContainer: { marginBottom: 24, alignItems: 'center' },
-  title: { fontWeight: 'bold', textAlign: 'center', marginBottom: 8 },
+  titleContainer: { marginBottom: 24, alignItems: 'center', gap: 8 },
+  title: { fontWeight: 'bold', textAlign: 'center' },
   subtitle: { textAlign: 'center', opacity: 0.7, paddingHorizontal: 20 },
+  banner: { marginBottom: 16 },
   buttonContainer: { flexDirection: 'row', gap: 12, paddingBottom: 20, marginTop: 8 },
   button: { flex: 1 },
 });

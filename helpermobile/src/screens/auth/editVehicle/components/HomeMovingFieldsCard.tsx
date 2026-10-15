@@ -7,12 +7,15 @@ import { EditVehicleFormData } from '../types';
 interface Props {
   formData: EditVehicleFormData;
   updateField: (field: string) => (value: any) => void;
+  /** Onaylı araç: alanlar salt okunur */
+  readOnly?: boolean;
 }
 
-export default function HomeMovingFieldsCard({ formData, updateField }: Props) {
+export default function HomeMovingFieldsCard({ formData, updateField, readOnly }: Props) {
   return (
     <FkFormSection title="Nakliye Araç Tipi">
       <FkSelect
+        disabled={readOnly}
         label="Araç Tipi"
         placeholder="Araç tipi seçin"
         value={formData.movingVehicleType || null}

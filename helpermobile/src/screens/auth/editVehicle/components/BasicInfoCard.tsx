@@ -7,12 +7,15 @@ interface Props {
   formData: EditVehicleFormData;
   errors: Record<string, string>;
   updateField: (field: string) => (value: any) => void;
+  /** Onaylı araç: alanlar salt okunur */
+  readOnly?: boolean;
 }
 
-export default function BasicInfoCard({ formData, errors, updateField }: Props) {
+export default function BasicInfoCard({ formData, errors, updateField, readOnly }: Props) {
   return (
     <FkFormSection title="Temel Bilgiler">
       <FkVehiclePlateInput
+        disabled={readOnly}
         label="Plaka"
         required
         value={formData.plate || ''}
@@ -23,6 +26,7 @@ export default function BasicInfoCard({ formData, errors, updateField }: Props) 
       <View style={styles.row}>
         <View style={styles.col}>
           <FkTextInput
+            disabled={readOnly}
             label="Marka"
             required
             value={formData.brand || ''}
@@ -32,6 +36,7 @@ export default function BasicInfoCard({ formData, errors, updateField }: Props) 
         </View>
         <View style={styles.col}>
           <FkTextInput
+            disabled={readOnly}
             label="Model"
             required
             value={formData.model || ''}
@@ -42,6 +47,7 @@ export default function BasicInfoCard({ formData, errors, updateField }: Props) 
       </View>
 
       <FkTextInput
+        disabled={readOnly}
         label="Yıl"
         required
         value={formData.year || ''}

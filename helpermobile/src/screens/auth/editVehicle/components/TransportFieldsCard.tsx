@@ -7,14 +7,17 @@ interface Props {
   formData: EditVehicleFormData;
   errors: Record<string, string>;
   updateField: (field: string) => (value: any) => void;
+  /** Onaylı araç: alanlar salt okunur */
+  readOnly?: boolean;
 }
 
-export default function TransportFieldsCard({ formData, errors, updateField }: Props) {
+export default function TransportFieldsCard({ formData, errors, updateField, readOnly }: Props) {
   return (
     <FkFormSection title="Nakliye Özellikleri">
       <View style={styles.row}>
         <View style={styles.col}>
           <FkTextInput
+            disabled={readOnly}
             label="Kapasite (ton)"
             required
             value={formData.capacity?.toString() || ''}
@@ -26,6 +29,7 @@ export default function TransportFieldsCard({ formData, errors, updateField }: P
         </View>
         <View style={styles.col}>
           <FkTextInput
+            disabled={readOnly}
             label="Hacim (m³)"
             required
             value={formData.volume?.toString() || ''}
@@ -40,6 +44,7 @@ export default function TransportFieldsCard({ formData, errors, updateField }: P
       <View style={styles.row}>
         <View style={styles.col}>
           <FkTextInput
+            disabled={readOnly}
             label="Uzunluk (m)"
             value={formData.length || ''}
             onChange={updateField('length')}
@@ -49,6 +54,7 @@ export default function TransportFieldsCard({ formData, errors, updateField }: P
         </View>
         <View style={styles.col}>
           <FkTextInput
+            disabled={readOnly}
             label="Genişlik (m)"
             value={formData.width || ''}
             onChange={updateField('width')}
@@ -59,6 +65,7 @@ export default function TransportFieldsCard({ formData, errors, updateField }: P
       </View>
 
       <FkTextInput
+        disabled={readOnly}
         label="Yükseklik (m)"
         value={formData.height || ''}
         onChange={updateField('height')}

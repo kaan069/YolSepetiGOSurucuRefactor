@@ -6,12 +6,15 @@ interface Props {
   formData: EditVehicleFormData;
   errors: Record<string, string>;
   updateField: (field: string) => (value: any) => void;
+  /** Onaylı araç: alanlar salt okunur */
+  readOnly?: boolean;
 }
 
-export default function CraneFieldsCard({ formData, errors, updateField }: Props) {
+export default function CraneFieldsCard({ formData, errors, updateField, readOnly }: Props) {
   return (
     <FkFormSection title="Teknik Özellikler">
       <FkTextInput
+        disabled={readOnly}
         label="Maksimum Yükseklik (metre)"
         required
         value={formData.maxHeight?.toString() || ''}

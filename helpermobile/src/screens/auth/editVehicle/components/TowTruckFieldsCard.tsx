@@ -7,6 +7,8 @@ interface Props {
   formData: EditVehicleFormData;
   updateField: (field: string) => (value: any) => void;
   toggleSupportedVehicleType: (type: string) => void;
+  /** Onaylı araç: alanlar salt okunur */
+  readOnly?: boolean;
 }
 
 const PLATFORM_OPTIONS = PLATFORM_TYPES.map((p) => ({
@@ -25,6 +27,7 @@ export default function TowTruckFieldsCard({
   formData,
   updateField,
   toggleSupportedVehicleType,
+  readOnly,
 }: Props) {
   const supportedValues = formData.supportedVehicleTypes ?? [];
 
@@ -32,6 +35,7 @@ export default function TowTruckFieldsCard({
     <>
       <FkFormSection title="Teknik Özellikler">
         <FkSelect
+          disabled={readOnly}
           label="Platform Türü"
           placeholder="Platform türü seçin"
           value={formData.platformType || null}
@@ -45,6 +49,7 @@ export default function TowTruckFieldsCard({
         description="Bu çekici aracın çekebileceği araç türlerini seçin (Birden fazla seçim yapabilirsiniz)"
       >
         <FkMultiSelect
+          disabled={readOnly}
           value={supportedValues}
           onChange={(next) => {
             const added = next.filter((v) => !supportedValues.includes(v));

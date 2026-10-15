@@ -75,13 +75,14 @@ export const VEHICLE_KINDS_WITH_INSURANCE: VehicleKind[] = [
   'roadAssistance',
 ];
 
+/** MaterialCommunityIcons adları (Araçlarım ekranındaki bölüm ikonlarıyla aynı) */
 export const VEHICLE_KIND_ICONS: Record<VehicleKind, string> = {
-  tow: '🚛',
-  crane: '🏗️',
-  homeMoving: '🏠',
-  roadAssistance: '🔧',
-  transfer: '🚐',
-  transport: '🚚',
+  tow: 'tow-truck',
+  crane: 'crane',
+  homeMoving: 'home-variant-outline',
+  roadAssistance: 'car-wrench',
+  transfer: 'bus',
+  transport: 'truck-delivery',
 };
 
 export const VEHICLE_KIND_LABELS: Record<VehicleKind, string> = {

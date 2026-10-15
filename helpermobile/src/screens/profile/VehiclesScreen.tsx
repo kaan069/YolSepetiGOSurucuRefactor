@@ -307,107 +307,138 @@ export default function VehiclesScreen({ navigation }: Props) {
     }
   };
 
-  return (
-    <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
-      <AppBar title="Araçlarım" />
+  type VehicleKind = RootStackParamList['EditVehicle']['vehicleType'];
 
-      {loading && (
-        <View style={styles.loadingOverlay}>
-          <LoadingSpinner size={80} />
-          <Text style={{ marginTop: 12, color: colors.neutral[500] }}>Araçlar yükleniyor...</Text>
-        </View>
-      )}
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
-        {/* Tow Trucks Card - Only show if user registered for tow service */}
-        {hasServiceType('tow') && (
-          <JobSection title={`Çekici Araçlarım (${towTrucks?.length || 0})`} icon="tow-truck" style={styles.card}>
-            {towTrucks && towTrucks.length > 0 ? (
-              towTrucks.map((truck) => (
-                <FkCard key={truck.id} variant="outlined" style={styles.vehicleCard}>
-                    <View style={styles.vehicleHeader}>
-                      <View style={styles.vehicleInfo}>
-                        <Text variant="titleMedium" style={styles.vehiclePlate}>
-                          {truck.plate}
-                        </Text>
-                        <Text variant="bodyMedium" style={styles.vehicleDetails}>
-                          {truck.brand} {truck.model} - {truck.year}
-                        </Text>
-                        <Text variant="bodySmall" style={styles.vehicleSpecs}>
-                          {truck.platformType === 'open' && 'Açık Platform'}
-                          {truck.platformType === 'closed' && 'Kapalı Kasa'}
-                          {truck.platformType === 'flatbed' && 'Düz Platform'}
-                        </Text>
-                        <VehicleStatusChip
-                          status={truck.verificationStatus}
-                          rejectionReason={truck.verificationRejectionReason}
-                        />
-                      </View>
-                      <View style={{ flexDirection: 'row' }}>
-                        {truck.verificationStatus !== 'approved' && (
-                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: truck.id, vehicleType: 'tow' })}>
-                            Düzenle
-                          </FkButton>
-                        )}
-                        <IconButton
-                          icon="delete"
-                          size={20}
-                          iconColor={colors.danger[600]}
-                          onPress={() => handleDeleteTowTruck(truck.id, truck.plate)}
-                          disabled={deletingVehicleId === truck.id}
-                        />
-                      </View>
+  const openVehicle = (vehicleId: string, vehicleType: VehicleKind) =>
+    navigation.navigate('EditVehicle', { vehicleId, vehicleType });
+
+  const renderAddButton = (onPress: () => void) => (
+    <FkButton variant="ghost" size="sm" icon="plus" onPress={onPress}>
+      Yeni Ekle
+    </FkButton>
+  );
+
+  /** Onaylı araç salt okunur detayda açılır (backend düzenlemede onayı sıfırlamıyor); diğerleri düzenlenebilir. */
+  const renderVehicleActions = (
+    vehicleId: string,
+    vehicleType: VehicleKind,
+    status: string | undefined,
+    onDelete: () => void,
+  ) => {
+    const approved = status === 'approved';
+    return (
+      <View style={styles.vehicleActions}>
+        <FkButton
+          variant="ghost"
+          size="sm"
+          icon={approved ? 'eye-outline' : 'pencil'}
+          onPress={() => openVehicle(vehicleId, vehicleType)}
+        >
+        {approved ? 'Detay' : 'Düzenle'}
+      </FkButton>
+      <IconButton
+        icon="delete"
+        size={20}
+        iconColor={colors.danger[600]}
+        onPress={onDelete}
+        disabled={deletingVehicleId === vehicleId}
+      />
+    </View>
+  );
+};
+
+return (
+  <SafeAreaView style={[styles.container, { backgroundColor: screenBg }]} edges={["bottom"]}>
+    <AppBar title="Araçlarım" />
+
+    {loading && (
+      <View style={styles.loadingOverlay}>
+        <LoadingSpinner size={80} />
+        <Text style={{ marginTop: 12, color: colors.neutral[500] }}>Araçlar yükleniyor...</Text>
+      </View>
+    )}
+    <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      {/* Tow Trucks Card - Only show if user registered for tow service */}
+      {hasServiceType('tow') && (
+        <JobSection
+          title={`Çekici Araçlarım (${towTrucks?.length || 0})`}
+          icon="tow-truck"
+          style={styles.card}
+          right={renderAddButton(() => navigation.navigate('TowTruckDetails'))}
+        >
+          {towTrucks && towTrucks.length > 0 ? (
+            towTrucks.map((truck) => (
+              <FkCard
+                key={truck.id}
+                variant="outlined"
+                style={styles.vehicleCard}
+                onPress={() => openVehicle(truck.id, 'tow')}
+              >
+                  <View style={styles.vehicleHeader}>
+                    <View style={styles.vehicleInfo}>
+                      <Text variant="titleMedium" style={styles.vehiclePlate}>
+                        {truck.plate}
+                      </Text>
+                      <Text variant="bodyMedium" style={styles.vehicleDetails}>
+                        {truck.brand} {truck.model} - {truck.year}
+                      </Text>
+                      <Text variant="bodySmall" style={styles.vehicleSpecs}>
+                        {truck.platformType === 'open' && 'Açık Platform'}
+                        {truck.platformType === 'closed' && 'Kapalı Kasa'}
+                        {truck.platformType === 'flatbed' && 'Düz Platform'}
+                      </Text>
+                      <VehicleStatusChip
+                        status={truck.verificationStatus}
+                        rejectionReason={truck.verificationRejectionReason}
+                      />
                     </View>
-                  
+                    {renderVehicleActions(truck.id, 'tow', truck.verificationStatus, () => handleDeleteTowTruck(truck.id, truck.plate))}
+                  </View>
                 </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı çekici aracınız bulunmuyor.</Text>
             )}
-            </JobSection>
+          </JobSection>
         )}
 
         {/* Cranes Card - Only show if user registered for crane service */}
         {hasServiceType('crane') && (
-          <JobSection title={`Vinç Araçlarım (${cranes?.length || 0})`} icon="crane" style={styles.card}>
+          <JobSection
+            title={`Vinç Araçlarım (${cranes?.length || 0})`}
+            icon="crane"
+            style={styles.card}
+            right={renderAddButton(() => navigation.navigate('CraneDetails'))}
+          >
             {cranes && cranes.length > 0 ? (
               cranes.map((crane) => (
-                <FkCard key={crane.id} variant="outlined" style={styles.vehicleCard}>
-                    <View style={styles.vehicleHeader}>
-                      <View style={styles.vehicleInfo}>
-                        <Text variant="titleMedium" style={styles.vehiclePlate}>
-                          {crane.plate}
-                        </Text>
-                        <Text variant="bodyMedium" style={styles.vehicleDetails}>
-                          {crane.brand} {crane.model} - {crane.year}
-                        </Text>
-                        <Text variant="bodySmall" style={styles.vehicleSpecs}>
-                          Max: {crane.maxHeight}m yukseklik
-                        </Text>
-                        <VehicleStatusChip
-                          status={crane.verificationStatus}
-                          rejectionReason={crane.verificationRejectionReason}
-                        />
-                      </View>
-                      <View style={{ flexDirection: 'row' }}>
-                        {crane.verificationStatus !== 'approved' && (
-                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: crane.id, vehicleType: 'crane' })}>
-                            Düzenle
-                          </FkButton>
-                        )}
-                        <IconButton
-                          icon="delete"
-                          size={20}
-                          iconColor={colors.danger[600]}
-                          onPress={() => handleDeleteCrane(crane.id, crane.plate)}
-                          disabled={deletingVehicleId === crane.id}
-                        />
-                      </View>
+                <FkCard
+                  key={crane.id}
+                  variant="outlined"
+                  style={styles.vehicleCard}
+                  onPress={() => openVehicle(crane.id, 'crane')}
+                >
+                  <View style={styles.vehicleHeader}>
+                    <View style={styles.vehicleInfo}>
+                      <Text variant="titleMedium" style={styles.vehiclePlate}>
+                        {crane.plate}
+                      </Text>
+                      <Text variant="bodyMedium" style={styles.vehicleDetails}>
+                        {crane.brand} {crane.model} - {crane.year}
+                      </Text>
+                      <Text variant="bodySmall" style={styles.vehicleSpecs}>
+                        Max: {crane.maxHeight}m yukseklik
+                      </Text>
+                      <VehicleStatusChip
+                        status={crane.verificationStatus}
+                        rejectionReason={crane.verificationRejectionReason}
+                      />
                     </View>
-
-                  
+                    {renderVehicleActions(crane.id, 'crane', crane.verificationStatus, () => handleDeleteCrane(crane.id, crane.plate))}
+                  </View>
                 </FkCard>
               ))
-              
+
             ) : (
               <Text style={styles.emptyText}>Kayıtlı vinç aracınız bulunmuyor.</Text>
             )}
@@ -416,234 +447,220 @@ export default function VehiclesScreen({ navigation }: Props) {
 
         {/* Transport Vehicles Card - Only show if user registered for transport service */}
         {hasServiceType('transport') && (
-          <JobSection title={`Nakliye Araçlarım (${transports?.length || 0})`} icon="truck-delivery" style={styles.card}>
+          <JobSection
+            title={`Nakliye Araçlarım (${transports?.length || 0})`}
+            icon="truck-delivery"
+            style={styles.card}
+            right={renderAddButton(() => navigation.navigate('TransportDetails'))}
+          >
             {transports && transports.length > 0 ? (
               transports.map((transport) => (
-                <FkCard key={transport.id} variant="outlined" style={styles.vehicleCard}>
-                    <View style={styles.vehicleHeader}>
-                      <View style={styles.vehicleInfo}>
-                        <Text variant="titleMedium" style={styles.vehiclePlate}>
-                          {transport.plate}
-                        </Text>
-                        <Text variant="bodyMedium" style={styles.vehicleDetails}>
-                          {transport.brand} {transport.model} • {transport.capacity} ton
-                        </Text>
-                        <Text variant="bodySmall" style={styles.vehicleSpecs}>
-                          {transport.volume}m³ • {getVehicleTypeName(transport.vehicleType)}
-                          {transport.hasLift && ' • Lift'}{transport.hasRamp && ' • Rampa'}
-                        </Text>
-                        <Text variant="bodySmall" style={styles.priceText}>
-                          {transport.pricePerKm} TL/km{transport.pricePerHour && ` • ${transport.pricePerHour} TL/saat`}
-                        </Text>
-                      </View>
-                      <View style={{ flexDirection: 'row' }}>
-                        <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: transport.id, vehicleType: 'transport' })}>
-                          Düzenle
-                        </FkButton>
-                        <IconButton
-                          icon="delete"
-                          size={20}
-                          iconColor={colors.danger[600]}
-                          onPress={() => handleDeleteTransport(transport.id, transport.plate)}
-                        />
+                <FkCard
+                  key={transport.id}
+                  variant="outlined"
+                  style={styles.vehicleCard}
+                  onPress={() => openVehicle(transport.id, 'transport')}
+                >
+                  <View style={styles.vehicleHeader}>
+                    <View style={styles.vehicleInfo}>
+                      <Text variant="titleMedium" style={styles.vehiclePlate}>
+                        {transport.plate}
+                      </Text>
+                      <Text variant="bodyMedium" style={styles.vehicleDetails}>
+                        {transport.brand} {transport.model} • {transport.capacity} ton
+                      </Text>
+                      <Text variant="bodySmall" style={styles.vehicleSpecs}>
+                        {transport.volume}m³ • {getVehicleTypeName(transport.vehicleType)}
+                        {transport.hasLift && ' • Lift'}{transport.hasRamp && ' • Rampa'}
+                      </Text>
+                      <Text variant="bodySmall" style={styles.priceText}>
+                        {transport.pricePerKm} TL/km{transport.pricePerHour && ` • ${transport.pricePerHour} TL/saat`}
+                      </Text>
+                    </View>
+                    {renderVehicleActions(transport.id, 'transport', undefined, () => handleDeleteTransport(transport.id, transport.plate))}
+                  </View>
+
+                  {transport.services.length > 0 && (
+                    <View style={styles.equipmentSection}>
+                      <Text variant="bodySmall" style={styles.equipmentLabel}>
+                        Hizmetler:
+                      </Text>
+                      <View style={styles.equipmentTags}>
+                        {transport.services.slice(0, 3).map((service, index) => (
+                          <Chip key={index} compact style={styles.equipmentChip}>
+                            {service}
+                          </Chip>
+                        ))}
+                        {transport.services.length > 3 && (
+                          <Text variant="bodySmall" style={styles.moreText}>
+                            +{transport.services.length - 3} daha
+                          </Text>
+                        )}
                       </View>
                     </View>
-
-                    {transport.services.length > 0 && (
-                      <View style={styles.equipmentSection}>
-                        <Text variant="bodySmall" style={styles.equipmentLabel}>
-                          Hizmetler:
-                        </Text>
-                        <View style={styles.equipmentTags}>
-                          {transport.services.slice(0, 3).map((service, index) => (
-                            <Chip key={index} compact style={styles.equipmentChip}>
-                              {service}
-                            </Chip>
-                          ))}
-                          {transport.services.length > 3 && (
-                            <Text variant="bodySmall" style={styles.moreText}>
-                              +{transport.services.length - 3} daha
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    )}
-                  
+                  )}
                 </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı nakliye aracınız bulunmuyor.</Text>
             )}
-            </JobSection>
+          </JobSection>
         )}
 
         {/* Nakliye (Evden Eve) Vehicles Card */}
         {hasServiceType('nakliye') && (
-          <JobSection title={`Evden Eve Nakliye (${homeMoving?.length || 0})`} icon="home-variant-outline" style={styles.card}>
+          <JobSection
+            title={`Evden Eve Nakliye (${homeMoving?.length || 0})`}
+            icon="home-variant-outline"
+            style={styles.card}
+            right={renderAddButton(() => navigation.navigate('HomeMovingDetails'))}
+          >
             {homeMoving && homeMoving.length > 0 ? (
               homeMoving.map((vehicle) => (
-                <FkCard key={vehicle.id} variant="outlined" style={styles.vehicleCard}>
-                    <View style={styles.vehicleHeader}>
-                      <View style={styles.vehicleInfo}>
-                        <Text variant="titleMedium" style={styles.vehiclePlate}>
-                          {vehicle.plate}
-                        </Text>
-                        <Text variant="bodyMedium" style={styles.vehicleDetails}>
-                          {vehicle.brand} {vehicle.model} - {vehicle.capacity} ton
-                        </Text>
-                        <Text variant="bodySmall" style={styles.vehicleSpecs}>
-                          {vehicle.volume}m3 - {getVehicleTypeName(vehicle.vehicleType)}
-                          {vehicle.hasLift && ' - Lift'}{vehicle.hasRamp && ' - Rampa'}
-                        </Text>
-                        <Text variant="bodySmall" style={styles.priceText}>
-                          {vehicle.pricePerKm} TL/km{vehicle.pricePerHour && ` - ${vehicle.pricePerHour} TL/saat`}
-                        </Text>
-                        <VehicleStatusChip
-                          status={vehicle.verificationStatus}
-                          rejectionReason={vehicle.verificationRejectionReason}
-                        />
-                      </View>
-                      <View style={{ flexDirection: 'row' }}>
-                        {vehicle.verificationStatus !== 'approved' && (
-                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'homeMoving' })}>
-                            Düzenle
-                          </FkButton>
+                <FkCard
+                  key={vehicle.id}
+                  variant="outlined"
+                  style={styles.vehicleCard}
+                  onPress={() => openVehicle(vehicle.id, 'homeMoving')}
+                >
+                  <View style={styles.vehicleHeader}>
+                    <View style={styles.vehicleInfo}>
+                      <Text variant="titleMedium" style={styles.vehiclePlate}>
+                        {vehicle.plate}
+                      </Text>
+                      <Text variant="bodyMedium" style={styles.vehicleDetails}>
+                        {vehicle.brand} {vehicle.model} - {vehicle.capacity} ton
+                      </Text>
+                      <Text variant="bodySmall" style={styles.vehicleSpecs}>
+                        {vehicle.volume}m3 - {getVehicleTypeName(vehicle.vehicleType)}
+                        {vehicle.hasLift && ' - Lift'}{vehicle.hasRamp && ' - Rampa'}
+                      </Text>
+                      <Text variant="bodySmall" style={styles.priceText}>
+                        {vehicle.pricePerKm} TL/km{vehicle.pricePerHour && ` - ${vehicle.pricePerHour} TL/saat`}
+                      </Text>
+                      <VehicleStatusChip
+                        status={vehicle.verificationStatus}
+                        rejectionReason={vehicle.verificationRejectionReason}
+                      />
+                    </View>
+                    {renderVehicleActions(vehicle.id, 'homeMoving', vehicle.verificationStatus, () => handleDeleteHomeMoving(vehicle.id, vehicle.plate))}
+                  </View>
+
+                  {vehicle.equipment && vehicle.equipment.length > 0 && (
+                    <View style={styles.equipmentSection}>
+                      <Text variant="bodySmall" style={styles.equipmentLabel}>
+                        Donanımlar:
+                      </Text>
+                      <View style={styles.equipmentTags}>
+                        {vehicle.equipment.slice(0, 3).map((eq, index) => (
+                          <Chip key={index} compact style={styles.equipmentChip}>
+                            {eq}
+                          </Chip>
+                        ))}
+                        {vehicle.equipment.length > 3 && (
+                          <Text variant="bodySmall" style={styles.moreText}>
+                            +{vehicle.equipment.length - 3} daha
+                          </Text>
                         )}
-                        <IconButton
-                          icon="delete"
-                          size={20}
-                          iconColor={colors.danger[600]}
-                          onPress={() => handleDeleteHomeMoving(vehicle.id, vehicle.plate)}
-                          disabled={deletingVehicleId === vehicle.id}
-                        />
                       </View>
                     </View>
-
-                    {vehicle.equipment && vehicle.equipment.length > 0 && (
-                      <View style={styles.equipmentSection}>
-                        <Text variant="bodySmall" style={styles.equipmentLabel}>
-                          Donanımlar:
-                        </Text>
-                        <View style={styles.equipmentTags}>
-                          {vehicle.equipment.slice(0, 3).map((eq, index) => (
-                            <Chip key={index} compact style={styles.equipmentChip}>
-                              {eq}
-                            </Chip>
-                          ))}
-                          {vehicle.equipment.length > 3 && (
-                            <Text variant="bodySmall" style={styles.moreText}>
-                              +{vehicle.equipment.length - 3} daha
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    )}
-                  
+                  )}
                 </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı nakliye aracınız bulunmuyor.</Text>
             )}
-            </JobSection>
+          </JobSection>
         )}
 
         {/* Road Assistance Card */}
         {hasServiceType('roadAssistance') && (
-          <JobSection title={`Yol Yardım Hizmetleri (${roadAssistance?.length || 0})`} icon="car-wrench" style={styles.card}>
+          <JobSection
+            title={`Yol Yardım Hizmetleri (${roadAssistance?.length || 0})`}
+            icon="car-wrench"
+            style={styles.card}
+            right={renderAddButton(() => navigation.navigate('RoadAssistanceDetails'))}
+          >
             {roadAssistance && roadAssistance.length > 0 ? (
               roadAssistance.map((service) => (
-                <FkCard key={service.id} variant="outlined" style={styles.vehicleCard}>
-                    <View style={styles.vehicleHeader}>
-                      <View style={styles.vehicleInfo}>
-                        <Text variant="titleMedium" style={styles.vehiclePlate}>
-                          {service.plate || 'Yol Yardım Hizmeti'}
-                        </Text>
-                        <Text variant="bodyMedium" style={styles.vehicleDetails}>
-                          {service.brand} {service.model} {service.year ? `- ${service.year}` : ''}
-                        </Text>
-                        <VehicleStatusChip
-                          status={service.verificationStatus}
-                          rejectionReason={service.verificationRejectionReason}
-                        />
-                      </View>
-                      <View style={{ flexDirection: 'row' }}>
-                        {service.verificationStatus !== 'approved' && (
-                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: service.id, vehicleType: 'roadAssistance' })}>
-                            Düzenle
-                          </FkButton>
-                        )}
-                        <IconButton
-                          icon="delete"
-                          size={20}
-                          iconColor={colors.danger[600]}
-                          onPress={() => handleDeleteRoadAssistance(service.id)}
-                          disabled={deletingVehicleId === service.id}
-                        />
-                      </View>
+                <FkCard
+                  key={service.id}
+                  variant="outlined"
+                  style={styles.vehicleCard}
+                  onPress={() => openVehicle(service.id, 'roadAssistance')}
+                >
+                  <View style={styles.vehicleHeader}>
+                    <View style={styles.vehicleInfo}>
+                      <Text variant="titleMedium" style={styles.vehiclePlate}>
+                        {service.plate || 'Yol Yardım Hizmeti'}
+                      </Text>
+                      <Text variant="bodyMedium" style={styles.vehicleDetails}>
+                        {service.brand} {service.model} {service.year ? `- ${service.year}` : ''}
+                      </Text>
+                      <VehicleStatusChip
+                        status={service.verificationStatus}
+                        rejectionReason={service.verificationRejectionReason}
+                      />
                     </View>
-
-                  
+                    {renderVehicleActions(service.id, 'roadAssistance', service.verificationStatus, () => handleDeleteRoadAssistance(service.id))}
+                  </View>
                 </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı yol yardım hizmetiniz bulunmuyor.</Text>
             )}
-            </JobSection>
+          </JobSection>
         )}
 
         {/* Transfer Araçlarım */}
         {hasServiceType('transfer') && (
-          <JobSection title={`Transfer Araçlarım (${transfers?.length || 0})`} icon="bus" style={styles.card}>
+          <JobSection
+            title={`Transfer Araçlarım (${transfers?.length || 0})`}
+            icon="bus"
+            style={styles.card}
+            right={renderAddButton(() => navigation.navigate('TransferVehicleDetails'))}
+          >
             {transfers && transfers.length > 0 ? (
               transfers.map((vehicle) => (
-                <FkCard key={vehicle.id} variant="outlined" style={styles.vehicleCard}>
-                    <View style={styles.vehicleHeader}>
-                      <View style={styles.vehicleInfo}>
-                        <Text variant="titleMedium" style={styles.vehiclePlate}>
-                          {vehicle.plate}
+                <FkCard
+                  key={vehicle.id}
+                  variant="outlined"
+                  style={styles.vehicleCard}
+                  onPress={() => openVehicle(vehicle.id, 'transfer')}
+                >
+                  <View style={styles.vehicleHeader}>
+                    <View style={styles.vehicleInfo}>
+                      <Text variant="titleMedium" style={styles.vehiclePlate}>
+                        {vehicle.plate}
+                      </Text>
+                      <Text variant="bodyMedium" style={styles.vehicleDetails}>
+                        {vehicle.brand} {vehicle.model} - {vehicle.year}
+                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                        <Chip
+                          compact
+                          style={{ backgroundColor: vehicle.transferType === 'vip' ? colors.warning[50] : colors.success[50] }}
+                          textStyle={{ color: vehicle.transferType === 'vip' ? colors.warning[700] : colors.success[700], fontSize: 11 }}
+                        >
+                          {vehicle.transferType === 'vip' ? 'VIP' : 'Servis'}
+                        </Chip>
+                        <Text variant="bodySmall" style={styles.vehicleSpecs}>
+                          {vehicle.passengerCapacity} kişilik
                         </Text>
-                        <Text variant="bodyMedium" style={styles.vehicleDetails}>
-                          {vehicle.brand} {vehicle.model} - {vehicle.year}
-                        </Text>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                          <Chip
-                            compact
-                            style={{ backgroundColor: vehicle.transferType === 'vip' ? colors.warning[50] : colors.success[50] }}
-                            textStyle={{ color: vehicle.transferType === 'vip' ? colors.warning[700] : colors.success[700], fontSize: 11 }}
-                          >
-                            {vehicle.transferType === 'vip' ? 'VIP' : 'Servis'}
-                          </Chip>
-                          <Text variant="bodySmall" style={styles.vehicleSpecs}>
-                            {vehicle.passengerCapacity} kişilik
-                          </Text>
-                        </View>
-                        <VehicleStatusChip
-                          status={vehicle.verificationStatus}
-                          rejectionReason={vehicle.verificationRejectionReason}
-                        />
                       </View>
-                      <View style={{ flexDirection: 'row' }}>
-                        {vehicle.verificationStatus !== 'approved' && (
-                          <FkButton variant="ghost" icon="pencil" size="sm" onPress={() => navigation.navigate('EditVehicle', { vehicleId: vehicle.id, vehicleType: 'transfer' })}>
-                            Düzenle
-                          </FkButton>
-                        )}
-                        <IconButton
-                          icon="delete"
-                          size={20}
-                          iconColor={colors.danger[600]}
-                          onPress={() => handleDeleteTransfer(vehicle.id, vehicle.plate)}
-                          disabled={deletingVehicleId === vehicle.id}
-                        />
-                      </View>
+                      <VehicleStatusChip
+                        status={vehicle.verificationStatus}
+                        rejectionReason={vehicle.verificationRejectionReason}
+                      />
                     </View>
-                  
+                    {renderVehicleActions(vehicle.id, 'transfer', vehicle.verificationStatus, () => handleDeleteTransfer(vehicle.id, vehicle.plate))}
+                  </View>
                 </FkCard>
               ))
             ) : (
               <Text style={styles.emptyText}>Kayıtlı transfer aracınız bulunmuyor.</Text>
             )}
-            </JobSection>
+          </JobSection>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -686,6 +703,10 @@ const styles = StyleSheet.create({
   },
   vehicleInfo: {
     flex: 1,
+  },
+  vehicleActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   vehiclePlate: {
     fontWeight: 'bold',

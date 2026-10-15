@@ -6,9 +6,11 @@ import { colors } from '../../../../theme/design';
 interface Props {
   interiorPhotos: (string | null)[];
   onChange: (next: (string | null)[]) => void;
+  /** Onaylı araç: alanlar salt okunur */
+  readOnly?: boolean;
 }
 
-export default function TransferInteriorPhotosCard({ interiorPhotos, onChange }: Props) {
+export default function TransferInteriorPhotosCard({ interiorPhotos, onChange, readOnly }: Props) {
   return (
     <FkFormSection
       title="Araç İçi Görselleri" icon="star-outline"
@@ -16,6 +18,7 @@ export default function TransferInteriorPhotosCard({ interiorPhotos, onChange }:
       description="Müşterilerin aracınızın içini görebilmesi için görseller ekleyin"
     >
       <FkImageGrid
+        disabled={readOnly}
         slots={INTERIOR_PHOTO_SLOT_COUNT}
         value={interiorPhotos}
         slotLabelPrefix="Görsel"
