@@ -12,6 +12,7 @@ import {
   EarningsServiceType,
   JobCountsResponse,
   RequestPhoto,
+  ScheduledJob,
 } from '../types';
 import { getMimeTypeFromUri } from '../vehicles';
 import { logOrdersError } from './_helpers';
@@ -209,6 +210,34 @@ class CommonAPI {
       return response.data;
     } catch (error: any) {
       logOrdersError('common.getAllServicesCounts', error);
+      throw error;
+    }
+  }
+
+  // ==================== RANDEVULU İŞLER ====================
+
+  /**
+   * Randevulu İşlerim: teklifi kabul edilmiş (ödeme bekleyen / devam eden), henüz yola
+   * çıkılmamış randevulu işler; bütün hizmetler tek listede, scheduledAt artan.
+   * Sayfalı ({count, next, results}); sayfalar sırayla birleştirilir.
+   */
+  async getScheduledJobs(): Promise<ScheduledJob[]> {
+    const MAX_PAGES = 5;
+    const jobs: ScheduledJob[] = [];
+    try {
+      for (let page = 1; page <= MAX_PAGES; page++) {
+        const response = await axiosInstance.get<{ next?: string | null; results?: ScheduledJob[] } | ScheduledJob[]>(
+          '/requests/scheduled/my-jobs/',
+          { params: { page, page_size: 50 } },
+        );
+        const data = response.data;
+        if (Array.isArray(data)) return data;
+        jobs.push(...(data.results ?? []));
+        if (!data.next) break;
+      }
+      return jobs;
+    } catch (error: any) {
+      logOrdersError('common.getScheduledJobs', error);
       throw error;
     }
   }

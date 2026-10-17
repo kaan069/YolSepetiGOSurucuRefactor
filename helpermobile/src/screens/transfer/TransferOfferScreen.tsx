@@ -30,11 +30,12 @@ import PhotosSection from '../../components/PhotosSection';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import { logger } from '../../utils/logger';
 import PriceOfferSection from '../../components/offer/PriceOfferSection';
-import { InfoRow, JobLocationCard, JobSection } from '../../components/job';
+import { InfoRow, JobLocationCard, JobSection, JobScheduleCard } from '../../components/job';
 import { FkButton, FkEmptyState, FkInfoBanner, FkLoadingOverlay, FkPill, FkStickyFooter } from '../../components/fk';
 import { colors, spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
+import { getScheduleInfo } from '../../utils/schedule';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferOffer'>;
 
@@ -338,6 +339,8 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <AgencyAssignmentBanner agency={agency} />
+          {/* Randevulu talep: tarih/aralık + teklif taahhüdü */}
+          <JobScheduleCard info={getScheduleInfo(transferRequest)} context="offer" />
           {/* Alış / varış noktası ve mesafe */}
           <JobLocationCard
             title="Talep Bilgileri"

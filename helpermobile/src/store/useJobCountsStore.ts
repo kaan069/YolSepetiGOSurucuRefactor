@@ -15,6 +15,8 @@ interface JobCounts {
   awaiting_approval: number;
   awaiting_payment: number;
   in_progress: number;
+  /** Randevulu İşlerim (yola çıkılmamış randevulu işler); in_progress bunları saymaz */
+  scheduled?: number;
 }
 
 interface ServiceJobCounts {
@@ -28,17 +30,26 @@ interface ServiceJobCounts {
 interface JobCountsState {
   // Her servis tipi için ayrı sayılar
   serviceCounts: ServiceJobCounts;
+  /** Backend randevulu işleri destekliyor mu (sayaçlarda `scheduled` geldi); eski backend'de Randevu butonu gizli */
+  scheduledSupported: boolean;
 
   // Actions
   updateServiceCounts: (serviceType: keyof ServiceJobCounts, counts: JobCounts) => void;
   incrementCount: (serviceType: keyof ServiceJobCounts, status: keyof JobCounts) => void;
   decrementCount: (serviceType: keyof ServiceJobCounts, status: keyof JobCounts) => void;
   resetAllCounts: () => void;
+  /** Randevulu İşlerim listesinden hizmet başına sayı (diğer sayılara dokunmaz) */
+  setScheduledCounts: (counts: Partial<Record<keyof ServiceJobCounts, number>>) => void;
+  markScheduledSupported: () => void;
 
   // Computed - aktif iş var mı? (awaiting_approval + awaiting_payment + in_progress > 0)
   hasActiveJobs: () => boolean;
   getTotalActiveJobCount: () => number;
 }
+
+/** Bütün hizmetlerdeki randevulu iş sayısı (Siparişler'deki Randevu butonu) */
+export const selectScheduledTotal = (state: JobCountsState): number =>
+  Object.values(state.serviceCounts).reduce((sum, c) => sum + (c.scheduled ?? 0), 0);
 
 const initialCounts: JobCounts = {
   pending: 0,
@@ -55,12 +66,14 @@ export const useJobCountsStore = create<JobCountsState>((set, get) => ({
     roadAssistance: { ...initialCounts },
     transfer: { ...initialCounts },
   },
+  scheduledSupported: false,
 
   updateServiceCounts: (serviceType, counts) => {
     set((state) => ({
       serviceCounts: {
         ...state.serviceCounts,
-        [serviceType]: counts,
+        // WebSocket sayaçları `scheduled` göndermeyebilir; son bilinen randevu sayısı korunur
+        [serviceType]: { ...counts, scheduled: counts.scheduled ?? state.serviceCounts[serviceType].scheduled },
       },
     }));
   },
@@ -71,7 +84,7 @@ export const useJobCountsStore = create<JobCountsState>((set, get) => ({
         ...state.serviceCounts,
         [serviceType]: {
           ...state.serviceCounts[serviceType],
-          [status]: state.serviceCounts[serviceType][status] + 1,
+          [status]: (state.serviceCounts[serviceType][status] ?? 0) + 1,
         },
       },
     }));
@@ -83,11 +96,23 @@ export const useJobCountsStore = create<JobCountsState>((set, get) => ({
         ...state.serviceCounts,
         [serviceType]: {
           ...state.serviceCounts[serviceType],
-          [status]: Math.max(0, state.serviceCounts[serviceType][status] - 1),
+          [status]: Math.max(0, (state.serviceCounts[serviceType][status] ?? 0) - 1),
         },
       },
     }));
   },
+
+  setScheduledCounts: (counts) => {
+    set((state) => {
+      const next = { ...state.serviceCounts };
+      (Object.keys(counts) as (keyof ServiceJobCounts)[]).forEach((service) => {
+        next[service] = { ...next[service], scheduled: counts[service] ?? 0 };
+      });
+      return { serviceCounts: next, scheduledSupported: true };
+    });
+  },
+
+  markScheduledSupported: () => set({ scheduledSupported: true }),
 
   resetAllCounts: () => {
     set({

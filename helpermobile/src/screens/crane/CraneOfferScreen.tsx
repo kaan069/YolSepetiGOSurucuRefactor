@@ -32,6 +32,8 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 import { spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
+import { JobScheduleCard } from '../../components/job';
+import { getScheduleInfo } from '../../utils/schedule';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneOffer'>;
 
@@ -285,6 +287,8 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <AgencyAssignmentBanner agency={agency} />
+          {/* Randevulu talep: tarih/aralık + teklif taahhüdü */}
+          <JobScheduleCard info={getScheduleInfo(craneRequest)} context="offer" />
           <MapCard
             latitude={parseFloat(craneRequest.latitude)}
             longitude={parseFloat(craneRequest.longitude)}

@@ -8,3 +8,4 @@ export { default as JobEarningsCard } from './JobEarningsCard';
 export type { JobEarningsStatus } from './JobEarningsCard';
 export { default as JobAwaitingApprovalBanner } from './JobAwaitingApprovalBanner';
 export { default as JobActions } from './JobActions';
+export { default as JobScheduleCard } from './JobScheduleCard';

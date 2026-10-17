@@ -21,6 +21,7 @@ import TowTruckOfferScreen from '../screens/towTruckOffer';
 import ProfileMenuScreen from '../screens/profile/ProfileMenuScreen';
 import VehicleAndServiceManagementScreen from '../screens/profile/VehicleAndServiceManagementScreen';
 import VehiclesScreen from '../screens/profile/VehiclesScreen';
+import ScheduledJobsScreen from '../screens/orders/ScheduledJobsScreen';
 import AccountManagementScreen from '../screens/profile/AccountManagementScreen';
 import DocumentsAndContractsScreen from '../screens/profile/DocumentsAndContractsScreen';
 import DocumentsScreen from '../screens/profile/DocumentsScreen';
@@ -98,6 +99,7 @@ export type RootStackParamList = {
   RoadAssistanceJobDetail: { jobId: string };
   TransferJobDetail: { jobId: string };
   NakliyeJobDetail: { jobId: string; movingType: 'home' | 'city' };
+  ScheduledJobs: undefined;
   EditVehicle: { vehicleId: string; vehicleType: 'tow' | 'crane' | 'transport' | 'homeMoving' | 'roadAssistance' | 'transfer' };
 
   // Profile Screens
@@ -373,6 +375,7 @@ function AppStack() {
       <Stack.Screen name="RoadAssistanceJobDetail" component={RoadAssistanceJobDetailScreen} />
       <Stack.Screen name="NakliyeJobDetail" component={NakliyeJobDetailScreen} />
       <Stack.Screen name="TransferJobDetail" component={TransferJobDetailScreen} />
+      <Stack.Screen name="ScheduledJobs" component={ScheduledJobsScreen} />
       <Stack.Screen name="EditVehicle" component={EditVehicleScreen} />
 
       {/* Vehicle Addition Screens - Araç Ekleme Ekranları */}

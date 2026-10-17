@@ -19,10 +19,14 @@ import ServiceTypeTabs from './components/ServiceTypeTabs';
 import OrdersTabs from './components/OrdersTabs';
 import MyJobsTabs from './components/MyJobsTabs';
 import OrdersList from './components/OrdersList';
+import ScheduledJobsButton from './components/ScheduledJobsButton';
 
 // Hooks
 import { useOrdersFilters } from './hooks/useOrdersFilters';
 import { useOrdersData, ServiceFilterType } from './hooks/useOrdersData';
+
+// Randevulu talep alan hizmetler (çekici ve yol yardımda randevu yok)
+const SCHEDULABLE_SERVICES: ServiceFilterType[] = ['crane', 'nakliye', 'transfer'];
 
 // Canonical ServiceType -> Screen service filter mapping
 const wsServiceToFilter: Record<ServiceType, ServiceFilterType> = {
@@ -64,6 +68,8 @@ type RouteType = NativeStackScreenProps<RootStackParamList, 'Orders'>['route'];
 
 export default function OrdersScreen() {
   const route = useRoute<RouteType>();
+  // Randevu butonu sadece randevuyu destekleyen backend'de (eski backend'de uç yok)
+  const scheduledSupported = useJobCountsStore((s) => s.scheduledSupported);
   const { screenBg, cardBg, isDarkMode, textPrimary } = useAppTheme();
   const insets = useSafeAreaInsets();
   const headerBorder = isDarkMode ? colors.neutral[800] : colors.neutral[200];
@@ -274,7 +280,13 @@ export default function OrdersScreen() {
             { paddingTop: insets.top + designSpacing.sm, backgroundColor: cardBg, borderBottomColor: headerBorder },
           ]}
         >
-          <Text style={[styles.title, { color: textPrimary }]}>İşler</Text>
+          {/* Başlık + Randevu (randevulu hizmet veren sürücüde: vinç, nakliye, transfer) */}
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, { color: textPrimary }]}>İşler</Text>
+            {scheduledSupported && userServiceTypes.some((t) => SCHEDULABLE_SERVICES.includes(t)) && (
+              <ScheduledJobsButton />
+            )}
+          </View>
 
           {/* Hizmet Türü Çipleri */}
           <ServiceTypeTabs
@@ -331,9 +343,15 @@ const styles = StyleSheet.create({
     paddingBottom: designSpacing.sm + 4,
     borderBottomWidth: 1,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: designSpacing.sm,
+    marginBottom: designSpacing.sm,
+  },
   title: {
     ...text.largeTitle,
-    marginBottom: designSpacing.sm,
   },
   body: {
     flex: 1,

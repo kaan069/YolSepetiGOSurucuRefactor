@@ -6,6 +6,7 @@ import { OrderStatus } from '../../../lib/types';
 import { useActiveJobStore } from '../../../store/useActiveJobStore';
 import { useJobCountsStore } from '../../../store/useJobCountsStore';
 import { OrdersJob } from '../types';
+import { craneRequestToJob, nakliyeRequestToJob, transferRequestToJob } from '../jobMappers';
 import type { ServiceType } from '../../../constants/serviceTypes';
 import { logger } from '../../../utils/logger';
 
@@ -260,6 +261,10 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
   const fetchAllServicesJobCounts = useCallback(async () => {
     try {
       const allCounts = await requestsAPI.getAllServicesCounts();
+      // Yeni backend sayaçlarda randevulu iş sayısını (scheduled) döner → Randevu butonu açılır
+      if (Object.values(allCounts).some((c) => typeof c?.scheduled === 'number')) {
+        useJobCountsStore.getState().markScheduledSupported();
+      }
       const zeroCounts = { pending: 0, awaiting_approval: 0, awaiting_payment: 0, in_progress: 0 };
 
       // Backend key'lerini store key'lerine map et
@@ -274,6 +279,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
         awaiting_approval: homeCounts.awaiting_approval + cityCounts.awaiting_approval,
         awaiting_payment: homeCounts.awaiting_payment + cityCounts.awaiting_payment,
         in_progress: homeCounts.in_progress + cityCounts.in_progress,
+        scheduled: (homeCounts.scheduled ?? 0) + (cityCounts.scheduled ?? 0),
       });
 
       updateServiceCounts('roadAssistance', allCounts['road-assistance'] || zeroCounts);
@@ -456,30 +462,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
     return requests
       .filter((request) => request && request.latitude && request.longitude)
-      .map((request): OrdersJob => {
-        const price = request.final_price || 0;
-
-        return {
-          id: request.id.toString(),
-          serviceType: 'crane',
-          vehicleType: `Vinç - ${request.load_type || '?'}`,
-          from: {
-            lat: parseFloat(request.latitude || '0'),
-            lng: parseFloat(request.longitude || '0'),
-            address: request.address || 'Adres belirtilmemiş',
-          },
-          to: {
-            lat: parseFloat(request.latitude || '0'),
-            lng: parseFloat(request.longitude || '0'),
-            address: request.address || 'Adres belirtilmemiş',
-          },
-          distance: 0,
-          estimatedPrice: price,
-          status: filter as OrderStatus,
-          createdAt: new Date(request.created_at),
-          description: `Yük: ${request.load_weight || '?'} kg | Yükseklik: ${request.lift_height || '?'}m | Kat: ${request.floor || '?'}${request.has_obstacles ? ' | Engel var' : ''}`,
-        };
-      });
+      .map((request) => craneRequestToJob(request, filter as OrderStatus));
   }, [craneRequests, requestsWithAddresses.crane, filter]);
 
   // Convert tow truck requests to job format
@@ -518,51 +501,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
   const nakliyeRequestsAsJobs = useMemo(() => {
     const requests = requestsWithAddresses.nakliye.length > 0 ? requestsWithAddresses.nakliye : nakliyeRequests;
 
-    return requests.map((request): OrdersJob => {
-      const price = request.final_price || request.estimated_price || 0;
-      const fromLat = parseFloat(request.from_latitude || request.pickup_latitude || '0');
-      const fromLng = parseFloat(request.from_longitude || request.pickup_longitude || '0');
-      const toLat = parseFloat(request.to_latitude || request.dropoff_latitude || '0');
-      const toLng = parseFloat(request.to_longitude || request.dropoff_longitude || '0');
-
-      // İş tipine göre label belirle
-      const isHomeMoving = request.movingType === 'homeMoving';
-      const typeLabel = isHomeMoving ? 'Evden Eve Nakliye' : 'Şehirler Arası Nakliye';
-
-      // Description oluştur
-      let description = '';
-      if (isHomeMoving) {
-        description = `${request.floor_from ? `Kat: ${request.floor_from}` : ''} ${request.has_elevator ? '| Asansör var' : ''} ${request.room_count ? `| ${request.room_count} oda` : ''}`.trim() || 'Evden eve nakliye talebi';
-      } else {
-        description = `${request.from_city || ''} → ${request.to_city || ''} ${request.load_weight ? `| ${request.load_weight} kg` : ''}`.trim() || 'Şehirler arası nakliye talebi';
-      }
-
-      return {
-        id: request.id.toString(),
-        // UI-level `ServiceGroup` — birleşik "Nakliye" kartı; atomik ayrım
-        // `movingType` üzerinden yapılır (navigation + setActiveJob).
-        serviceType: 'nakliye',
-        vehicleType: typeLabel,
-        movingType: request.movingType as OrdersJob['movingType'], // homeMoving veya cityMoving - teklif ekranına yönlendirme için
-        from: {
-          lat: fromLat,
-          lng: fromLng,
-          address: request.from_address || request.pickup_address || request.from_city || 'Alınacak adres',
-        },
-        to: {
-          lat: toLat,
-          lng: toLng,
-          address: request.to_address || request.dropoff_address || request.to_city || 'Bırakılacak adres',
-        },
-        distance: request.estimated_km || request.distance_km || 0,
-        estimatedPrice: typeof price === 'string' ? parseFloat(price) : price,
-        status: filter as OrderStatus,
-        createdAt: new Date(request.created_at),
-        description,
-        trackingToken: request.trackingToken || request.tracking_token,
-        preferredDate: request.preferred_date, // Nakliye için tercih edilen tarih
-      };
-    });
+    return requests.map((request) => nakliyeRequestToJob(request, filter as OrderStatus));
   }, [nakliyeRequests, requestsWithAddresses.nakliye, filter]);
 
   // Convert road assistance requests to job format
@@ -605,41 +544,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
   const transferRequestsAsJobs = useMemo(() => {
     const requests = requestsWithAddresses.transfer.length > 0 ? requestsWithAddresses.transfer : transferRequests;
 
-    return requests.map((request): OrdersJob => {
-      const price = request.final_price || request.estimated_price || 0;
-      const lat = parseFloat(request.pickup_latitude || request.latitude || '0');
-      const lng = parseFloat(request.pickup_longitude || request.longitude || '0');
-
-      // Transfer tipi ve yolcu bilgisi
-      const transferTypeLabel = request.transfer_type || 'Transfer';
-      const passengerInfo = request.passenger_count ? `${request.passenger_count} yolcu` : '';
-      const scheduleInfo = request.scheduled_date ? `${request.scheduled_date}${request.scheduled_time ? ' ' + request.scheduled_time : ''}` : '';
-
-      const descriptionParts = [transferTypeLabel, passengerInfo, scheduleInfo].filter(Boolean);
-      const description = descriptionParts.join(' | ') || 'Transfer talebi';
-
-      return {
-        id: request.id.toString(),
-        serviceType: 'transfer',
-        vehicleType: `Transfer - ${transferTypeLabel}`,
-        from: {
-          lat,
-          lng,
-          address: request.pickup_address || request.address || 'Alınacak konum',
-        },
-        to: {
-          lat: parseFloat(request.dropoff_latitude || request.destination_latitude || '0'),
-          lng: parseFloat(request.dropoff_longitude || request.destination_longitude || '0'),
-          address: request.dropoff_address || request.destination_address || 'Bırakılacak konum',
-        },
-        distance: request.estimated_km || request.distance_km || 0,
-        estimatedPrice: typeof price === 'string' ? parseFloat(price) : price,
-        status: filter as OrderStatus,
-        createdAt: new Date(request.created_at),
-        description,
-        trackingToken: request.trackingToken || request.tracking_token,
-      };
-    });
+    return requests.map((request) => transferRequestToJob(request, filter as OrderStatus));
   }, [transferRequests, requestsWithAddresses.transfer, filter]);
 
   // Backend'den gelen veriyi OLDUĞU GİBİ göster

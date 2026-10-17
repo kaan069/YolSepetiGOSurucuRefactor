@@ -1,5 +1,6 @@
 import { OrderStatus } from '../../lib/types';
 import type { ServiceGroup } from '../../constants/serviceTypes';
+import type { ScheduleInfo } from '../../utils/schedule';
 
 export interface OrdersJob {
   id: string;
@@ -31,4 +32,6 @@ export interface OrdersJob {
   preferredDate?: string;
   // Aktif iş takibi için backend tokeni (bazı flow'larda prop chain'inde taşınır)
   trackingToken?: string;
+  // Randevulu talep bilgisi (vinç, nakliye, transfer); anlık işte isScheduled false
+  schedule?: ScheduleInfo;
 }

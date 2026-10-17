@@ -35,9 +35,11 @@ import {
   JobEarningsCard,
   JobLocationCard,
   JobSection,
+  JobScheduleCard,
 } from '../../components/job';
 import { StartTripCard } from '../nakliye/components';
 import { colors, getStatusStyle, spacing, text } from '../../theme/design';
+import { getScheduleInfo } from '../../utils/schedule';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferJobDetail'>;
 
@@ -281,6 +283,9 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
     }
   }, [currentLocation, transferRequest]);
 
+  // Randevulu talep (yola çıkış backend'de departedAt ile tutulur)
+  const schedule = getScheduleInfo(transferRequest);
+
   // Yola cik - konum paylasimini baslat + backend'e bildir
   const [departLoading, setDepartLoading] = useState(false);
   const [hasDeparted, setHasDeparted] = useState(false);
@@ -291,7 +296,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
     setDepartLoading(true);
     try {
       // Backend'e yola çıkış bildir (müşteriye SMS gider)
-      if (!hasDeparted) {
+      if (!hasDeparted && !schedule.departedAt) {
         await transferAPI.depart(transferRequest.trackingToken);
         setHasDeparted(true);
       }
@@ -390,8 +395,10 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
     setPaymentCompleted(true);
     setShowPaymentModal(false);
     setTransferRequest((prev) => (prev ? { ...prev, status: 'in_progress' } : prev));
+    // Yola çıkılmamış randevulu iş Devam Eden'de değil Randevulu İşlerim'de; geri dönüş oraya
+    const waitingDeparture = schedule.isScheduled && !schedule.departedAt;
     navigation.reset({
-      index: 1,
+      index: waitingDeparture ? 2 : 1,
       routes: [
         {
           name: 'Tabs',
@@ -400,6 +407,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
             params: { filter: 'in_progress', serviceFilter: 'transfer', timestamp: Date.now() },
           },
         } as any,
+        ...(waitingDeparture ? [{ name: 'ScheduledJobs' } as any] : []),
         { name: 'TransferJobDetail', params: { jobId, paymentJustCompleted: true } } as any,
       ],
     });
@@ -506,6 +514,9 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
             </View>
           </View>
         </FkCard>
+
+        {/* Randevulu iş: tarih/saat + Bugün / Gecikti */}
+        {schedule.isScheduled && !isCompleted && <JobScheduleCard info={schedule} context="job" />}
 
         {/* Yola Çık / Konum Paylaşımı */}
         <StartTripCard

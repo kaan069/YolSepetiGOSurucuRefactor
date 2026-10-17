@@ -188,6 +188,20 @@ class CraneAPI {
     }
   }
 
+  /**
+   * Randevulu vinçte yola çıkış: müşteriye takip SMS'i gider, departedAt dolar ve iş
+   * Randevulu İşlerim'den devam eden listesine geçer. Anlık vinçte 400 DEPART_NOT_SCHEDULED.
+   */
+  async depart(trackingToken: string): Promise<any> {
+    try {
+      const response = await axiosInstance.post(`/requests/crane/${trackingToken}/depart/`);
+      return response.data;
+    } catch (error: any) {
+      logOrdersError('crane.depart', error);
+      throw error;
+    }
+  }
+
   async withdrawOffer(trackingToken: string): Promise<any> {
     try {
       const response = await axiosInstance.delete(`/requests/crane/${trackingToken}/withdraw-offer/`);

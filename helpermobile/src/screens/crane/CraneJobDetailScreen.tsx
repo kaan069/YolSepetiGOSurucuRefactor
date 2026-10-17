@@ -33,7 +33,8 @@ import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModa
 import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import { logger } from '../../utils/logger';
 import { FkEmptyState } from '../../components/fk';
-import { JobActions, JobCompleteCard } from '../../components/job';
+import { JobActions, JobCompleteCard, JobScheduleCard } from '../../components/job';
+import { getScheduleInfo } from '../../utils/schedule';
 import { spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CraneJobDetail'>;
@@ -53,14 +54,19 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
   const [withdrawLoading, setWithdrawLoading] = useState(false);
   // Komisyon ödenince modal/card kalıcı olarak gizlenir. navigation.reset sonrası yeni mount'ta da nav param'dan true gelir.
   const [paymentCompleted, setPaymentCompleted] = useState<boolean>(paymentJustCompleted);
+  const [departing, setDeparting] = useState(false);
 
   const status = craneRequest ? getStatus(craneRequest) : null;
   const requestId = craneRequest ? getRequestId(craneRequest) : null;
   const isAwaitingApproval = status === 'awaiting_approval';
   const isAwaitingPayment = status === 'awaiting_payment';
 
-  // Komisyon ödendikten sonra (artık aktif iş) uyarı popup'ı
-  const bgWarning = useBackgroundAppWarning(jobId, status === 'in_progress');
+  // Randevulu vinç: yola çıkılana kadar canlı konum paylaşılmaz, iş Randevulu İşlerim'de durur
+  const schedule = getScheduleInfo(craneRequest);
+  const awaitingDeparture = status === 'in_progress' && schedule.isScheduled && !schedule.departedAt;
+
+  // Komisyon ödendikten sonra (artık aktif iş) uyarı popup'ı — randevulu işte yola çıkınca
+  const bgWarning = useBackgroundAppWarning(jobId, status === 'in_progress' && !awaitingDeparture);
 
   // İstek detayını getir
   // Earnings ekranından gelen jobId, ServiceRequest ID olabilir (CraneRequestDetails ID değil)
@@ -150,11 +156,59 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
     if (craneRequest && status) {
       if (status === 'completed' || status === 'cancelled') {
         clearActiveJob();
+      } else if (awaitingDeparture) {
+        // Yola çıkılmamış randevulu iş aktif iş sayılmaz (konum gönderilmez)
+        if (useActiveJobStore.getState().activeJobId === jobId) clearActiveJob();
       } else if (status === 'in_progress' && craneRequest.trackingToken) {
         setActiveJob(jobId, craneRequest.trackingToken, 'crane');
       }
     }
-  }, [status, jobId, craneRequest, setActiveJob, clearActiveJob]);
+  }, [status, jobId, craneRequest, awaitingDeparture, setActiveJob, clearActiveJob]);
+
+  // Randevulu vinçte yola çıkış: müşteriye SMS, iş devam eden listesine geçer, canlı konum başlar
+  const handleDepart = () => {
+    const trackingToken = craneRequest?.trackingToken;
+    if (!trackingToken) {
+      Alert.alert('Hata', 'Takip bilgisi bulunamadı. Lütfen sayfayı yenileyip tekrar deneyin.');
+      return;
+    }
+    Alert.alert(
+      'Yola Çık',
+      'Müşteriye yola çıktığınız SMS ile bildirilecek ve konumunuz paylaşılmaya başlayacak. Devam edilsin mi?',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Yola Çık',
+          onPress: async () => {
+            const granted = await ensureForegroundPermission();
+            if (!granted) {
+              Alert.alert('Konum İzni Gerekli', 'Müşteri ile konum paylaşımı için konum izni vermeniz gerekmektedir.');
+              return;
+            }
+            setDeparting(true);
+            try {
+              await requestsAPI.departCrane(trackingToken);
+              // Aktif iş efekti departedAt dolunca canlı konumu başlatır
+              setCraneRequest((prev) => (prev ? { ...prev, departedAt: new Date().toISOString() } : prev));
+              requestsAPI
+                .getCraneRequestDetail(parseInt(jobId))
+                .then((fresh) => setCraneRequest((prev) => ({ ...fresh, departedAt: fresh.departedAt ?? prev?.departedAt })))
+                .catch(() => {});
+              Alert.alert('Yola Çıkış Bildirildi', 'Müşteriye SMS gönderildi ve konum paylaşımı başladı. İyi yolculuklar!');
+            } catch (error: any) {
+              logger.error('orders', 'crane.depart failure', { status: error?.response?.status });
+              Alert.alert(
+                'Yola Çıkış Bildirilemedi',
+                error?.response?.data?.error || 'Lütfen bağlantınızı kontrol edip tekrar deneyin.',
+              );
+            } finally {
+              setDeparting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   // Konum al
   useEffect(() => {
@@ -206,8 +260,10 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
     setPaymentCompleted(true);
     setShowPaymentModal(false);
     setCraneRequest((prev) => (prev ? { ...prev, status: 'in_progress' } : prev));
+    // Yola çıkılmamış randevulu iş Devam Eden'de değil Randevulu İşlerim'de; geri dönüş oraya
+    const waitingDeparture = schedule.isScheduled && !schedule.departedAt;
     navigation.reset({
-      index: 1,
+      index: waitingDeparture ? 2 : 1,
       routes: [
         {
           name: 'Tabs',
@@ -216,6 +272,7 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
             params: { filter: 'in_progress', serviceFilter: 'crane', timestamp: Date.now() },
           },
         } as any,
+        ...(waitingDeparture ? [{ name: 'ScheduledJobs' } as any] : []),
         { name: 'CraneJobDetail', params: { jobId, paymentJustCompleted: true } } as any,
       ],
     });
@@ -292,6 +349,16 @@ export default function CraneJobDetailScreen({ route, navigation }: Props) {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Onay Bekleniyor Banner */}
         {isAwaitingApproval && <StatusBanner type="awaiting_approval" />}
+
+        {/* Randevulu iş: tarih/aralık; devam ediyor ve yola çıkılmadıysa "Yola Çık" */}
+        {!isCompleted && (
+          <JobScheduleCard
+            info={schedule}
+            context="job"
+            onDepart={awaitingDeparture ? handleDepart : undefined}
+            departing={departing}
+          />
+        )}
 
         {/* Komisyon Ödeme Kartı — ödeme bittiyse asla gösterme */}
         {isAwaitingPayment && !paymentCompleted && (

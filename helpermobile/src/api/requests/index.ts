@@ -79,6 +79,7 @@ class RequestsAPI {
     employeeId?: number
   ) => craneAPI.submitOffer(trackingToken, vehicleId, distanceToLocationKm, estimatedDurationHours, offerPrice, employeeId);
   withdrawCraneOffer = (trackingToken: string) => craneAPI.withdrawOffer(trackingToken);
+  departCrane = (trackingToken: string) => craneAPI.depart(trackingToken);
   completeCraneRequest = (id: number) => commonAPI.completeCraneRequest(id);
 
   // ==================== EVDEN EVE NAKLİYE (HOME MOVING) ====================
@@ -134,6 +135,7 @@ class RequestsAPI {
   // ==================== İŞ SAYILARI (JOB COUNTS) ====================
   getAllServicesCounts = () => commonAPI.getAllServicesCounts();
   getServiceCounts = (serviceType: string) => commonAPI.getServiceCounts(serviceType);
+  getScheduledJobs = () => commonAPI.getScheduledJobs();
 
   // ==================== İPTAL (CANCELLATION) ====================
   canCancelJob = (serviceType: ServiceType, trackingToken: string) =>

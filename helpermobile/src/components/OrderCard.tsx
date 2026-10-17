@@ -9,7 +9,8 @@ import { calculateDistance } from '../screens/jobDetail/utils';
 import type { OrderStatus } from '../lib/types';
 import { SERVICE_ICON, SERVICE_LABEL } from '../constants/serviceTypeUI';
 import { FkButton, FkCard, FkIconChip, FkStatusBadge } from './fk';
-import { colors, radius, spacing, text } from '../theme/design';
+import { colors, radius, spacing, text, tint } from '../theme/design';
+import { formatSchedule, getScheduleState, ScheduleState } from '../utils/schedule';
 
 // Kart üzerindeki durum etiketi — "Beklemede" yerine sürücü diliyle "Gelen İş".
 const STATUS_TEXT: Partial<Record<OrderStatus, string>> = {
@@ -18,6 +19,16 @@ const STATUS_TEXT: Partial<Record<OrderStatus, string>> = {
   awaiting_payment: 'Ödeme Bekleniyor',
   in_progress: 'Devam Ediyor',
   completed: 'Tamamlandı',
+};
+
+// Randevu şeridinin rengi: gecikme kırmızı, bugün sarı, yola çıkıldı yeşil, ileri tarih turkuaz
+const SCHEDULE_TINT: Record<ScheduleState, Parameters<typeof tint>[0]> = {
+  late: 'danger',
+  now: 'warning',
+  today: 'warning',
+  departed: 'success',
+  tomorrow: 'primary',
+  upcoming: 'primary',
 };
 
 interface Props {
@@ -116,7 +127,13 @@ export default function OrderCard({ item, onPress }: Props) {
   const fromSplit = splitMaskedAddress(fromMasked);
   const toSplit = splitMaskedAddress(toMasked);
 
-  const dateInfo = formatJobDate(item.preferredDate, item.createdAt);
+  // Randevulu iş: tarih şeritte gösterilir, alttaki tarih rozeti tekrar etmez
+  const schedule = item.schedule?.isScheduled ? item.schedule : null;
+  const scheduleState = schedule ? getScheduleState(schedule) : null;
+  const scheduleTint = tint(SCHEDULE_TINT[scheduleState?.state ?? 'upcoming']);
+  const statusLabel =
+    schedule && !schedule.departedAt && item.status === 'in_progress' ? 'Randevu Bekliyor' : STATUS_TEXT[item.status];
+  const dateInfo = schedule ? null : formatJobDate(item.preferredDate, item.createdAt);
   const showDistance = typeof item.distance === 'number' && item.distance > 0;
   const showPrice = typeof item.estimatedPrice === 'number' && item.estimatedPrice > 0;
   const serviceIcon = SERVICE_ICON[item.serviceType] || 'car';
@@ -184,8 +201,22 @@ export default function OrderCard({ item, onPress }: Props) {
             #{item.id.toString().slice(-2).padStart(2, '0')}
           </Text>
         </View>
-        <FkStatusBadge status={item.status} label={STATUS_TEXT[item.status]} size="sm" />
+        <FkStatusBadge status={item.status} label={statusLabel} size="sm" />
       </View>
+
+      {/* Randevulu talep: tarih/aralık + Bugün / Yarın / Gecikti */}
+      {schedule && (
+        <View style={[styles.scheduleStrip, { backgroundColor: scheduleTint.bg, borderColor: scheduleTint.border }]}>
+          <MaterialCommunityIcons name="calendar-clock" size={16} color={scheduleTint.icon} />
+          <Text style={[styles.scheduleText, { color: scheduleTint.text }]} numberOfLines={1}>
+            <Text style={styles.scheduleLabel}>Randevulu</Text>
+            {`  ${formatSchedule(schedule)}`}
+          </Text>
+          {scheduleState ? (
+            <Text style={[styles.scheduleState, { color: scheduleTint.text }]}>{scheduleState.label}</Text>
+          ) : null}
+        </View>
+      )}
 
       {/* Konum: alış (yeşil) → bırakış (kırmızı) zaman çizelgesi */}
       <View style={styles.route}>
@@ -292,6 +323,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm + 4,
+  },
+  scheduleStrip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm + 4,
+    paddingHorizontal: spacing.sm + 4,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 1,
+  },
+  scheduleText: {
+    flex: 1,
+    fontSize: 13,
+  },
+  scheduleLabel: {
+    fontWeight: '700',
+  },
+  scheduleState: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   headerText: {
     flex: 1,

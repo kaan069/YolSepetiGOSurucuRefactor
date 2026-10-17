@@ -202,8 +202,19 @@ export interface DetailCancelInfo {
     cancelMessage?: string | null;
 }
 
+/**
+ * Randevulu talep alanları (vinç, evden eve, şehirden şehire, transfer).
+ * Listeler/detaylar camelCase, WebSocket new_job snake_case gönderir; utils/schedule ikisini de okur.
+ */
+export interface BookingFields {
+    bookingType?: 'instant' | 'scheduled';
+    scheduledAt?: string | null;        // ISO; saat aralığında aralığın başlangıcı
+    scheduledTimeSlot?: 'morning' | 'afternoon' | 'evening' | null;
+    departedAt?: string | null;         // Sürücü yola çıktığında dolar
+}
+
 // Request Types - Crane Request (Vinç Talebi)
-export interface CraneRequest extends DetailCancelInfo {
+export interface CraneRequest extends DetailCancelInfo, BookingFields {
     id: number;
     request_id: RequestIdInfo;  // Backend'den object olarak geliyor
     requestOwnerNameSurname?: string;    // Müşteri adı soyadı (ana response'da)
@@ -753,7 +764,13 @@ export interface JobCountsResponse {
   awaiting_approval: number;
   awaiting_payment: number;
   in_progress: number;
+  /** Randevulu İşlerim sayısı (in_progress bu işleri saymaz). Eski backend göndermez. */
+  scheduled?: number;
 }
+
+/** GET /requests/scheduled/my-jobs/ öğesi: hizmetin detay nesnesi + serviceType */
+export type ScheduledJobServiceType = 'crane' | 'home_moving' | 'city_moving' | 'transfer';
+export type ScheduledJob = Record<string, any> & BookingFields & { serviceType: ScheduledJobServiceType };
 
 // ==================== İŞ İPTAL TİPLERİ (JOB CANCELLATION) ====================
 
@@ -864,7 +881,7 @@ export interface EmployeeJob {
 export type TransferType = 'organization' | 'vip';
 export type VehiclePreference = 'sedan' | 'vip_car' | 'minibus' | 'midibus' | 'bus';
 
-export interface TransferRequest {
+export interface TransferRequest extends BookingFields {
   id: number;
   request_id: RequestIdInfo;
   requestOwnerNameSurname?: string;
@@ -924,7 +941,7 @@ export interface TransferRequest {
  * her iki formatta da alan gönderebiliyor. `movingType` UI katmanında
  * `useOrdersData` tarafından eklenen ayrık alandır.
  */
-export interface MovingRequest {
+export interface MovingRequest extends BookingFields {
   id: number;
   created_at: string;
   status?: string;

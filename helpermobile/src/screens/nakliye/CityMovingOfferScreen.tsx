@@ -27,6 +27,8 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 import { colors, spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
+import { JobScheduleCard } from '../../components/job';
+import { getScheduleInfo } from '../../utils/schedule';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'CityMovingOffer'>;
 
@@ -231,6 +233,8 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <AgencyAssignmentBanner agency={agency} />
+          {/* Randevulu talep: tarih/aralık + teklif taahhüdü */}
+          <JobScheduleCard info={getScheduleInfo(request)} context="offer" />
           {/* Araç Seçimi */}
           <VehicleSelector
             vehicles={vehicles}

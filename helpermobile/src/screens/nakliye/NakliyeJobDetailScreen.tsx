@@ -39,8 +39,9 @@ import BackgroundAppWarningModal from '../../components/BackgroundAppWarningModa
 import { useBackgroundAppWarning } from '../../hooks/useBackgroundAppWarning';
 import { logger } from '../../utils/logger';
 import { FkEmptyState } from '../../components/fk';
-import { JobActions } from '../../components/job';
+import { JobActions, JobScheduleCard } from '../../components/job';
 import { spacing } from '../../theme/design';
+import { getScheduleInfo } from '../../utils/schedule';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'NakliyeJobDetail'>;
 
@@ -80,6 +81,8 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
       ? request.request_id.id
       : request?.request_id) ?? request?.id ?? null;
   const trackingToken = request?.tracking_token || request?.trackingToken || null;
+  // Randevulu talep (yola çıkış backend'de departedAt ile tutulur)
+  const schedule = getScheduleInfo(request);
 
   // Bu iş için konum paylaşımı aktif mi kontrol et
   const isThisJobLocationSharing = isLocationSharing && activeJobId === jobId;
@@ -103,7 +106,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
     setDepartLoading(true);
     try {
       // Backend'e yola çıkış bildir (müşteriye SMS gider)
-      if (!hasDeparted) {
+      if (!hasDeparted && !schedule.departedAt) {
         const departAPI = isHomeMoving ? homeMovingAPI : cityMovingAPI;
         await departAPI.depart(trackingToken);
         setHasDeparted(true);
@@ -252,8 +255,10 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
     setPaymentCompleted(true);
     setShowPaymentModal(false);
     setRequest((prev) => (prev ? { ...prev, status: 'in_progress' } : prev));
+    // Yola çıkılmamış randevulu iş Devam Eden'de değil Randevulu İşlerim'de; geri dönüş oraya
+    const waitingDeparture = schedule.isScheduled && !schedule.departedAt;
     navigation.reset({
-      index: 1,
+      index: waitingDeparture ? 2 : 1,
       routes: [
         {
           name: 'Tabs',
@@ -262,6 +267,7 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
             params: { filter: 'in_progress', serviceFilter: 'nakliye', timestamp: Date.now() },
           },
         } as any,
+        ...(waitingDeparture ? [{ name: 'ScheduledJobs' } as any] : []),
         { name: 'NakliyeJobDetail', params: { jobId, movingType, paymentJustCompleted: true } } as any,
       ],
     });
@@ -423,12 +429,16 @@ export default function NakliyeJobDetailScreen({ route, navigation }: Props) {
           onStopTrip={handleStopTrip}
         />
 
-        {/* Tercih edilen tarih - Konum bilgisinin üstünde */}
-        <PreferredDateCard
-          preferredDate={request.preferred_date}
-          preferredTimeSlot={request.preferred_time_slot}
-          visible={!isAwaitingPayment}
-        />
+        {/* Randevulu iş: tarih/aralık + Bugün / Gecikti; anlık işte tercih edilen tarih */}
+        {schedule.isScheduled ? (
+          <JobScheduleCard info={schedule} context="job" />
+        ) : (
+          <PreferredDateCard
+            preferredDate={request.preferred_date}
+            preferredTimeSlot={request.preferred_time_slot}
+            visible={!isAwaitingPayment}
+          />
+        )}
 
         <DistanceInfoCard
           distanceToPickup={distanceToPickup}
