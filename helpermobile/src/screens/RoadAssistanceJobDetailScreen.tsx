@@ -19,7 +19,8 @@ import { cancelFromDetail } from '../components/payment/commission/cancelReason'
 import CancelJobModal from '../components/cancellation/CancelJobModal';
 import { useCancellationEventStore } from '../store/useCancellationEventStore';
 import { useJobUpdateEventStore } from '../store/useJobUpdateEventStore';
-import { getServiceTypeLabel, getProblemLabel, getProblemIcon, getVehicleTypeLabel } from './roadAssistance/constants';
+import { getProblemLabel, getProblemIcon, getVehicleTypeLabel } from './roadAssistance/constants';
+import { roadProblemListLabel } from '../constants/backendLabels';
 import PhotosSection from '../components/PhotosSection';
 import DriverPhotoUpload from '../components/DriverPhotoUpload';
 import BackgroundAppWarningModal from '../components/BackgroundAppWarningModal';
@@ -311,7 +312,7 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
               commissionVatAmount: commissionVatAmount,
               commissionTotalWithVat: commissionTotalWithVat,
               customerName: request.requestOwnerNameSurname || request.request_owner_name,
-              description: `Yol Yardım - ${getServiceTypeLabel(request.service_type || request.assistance_type || '')}`,
+              description: `Yol Yardım - ${roadProblemListLabel(request.problem_types)}`,
             }}
             onPayCommission={() => {
               if (paymentCompleted || status !== 'awaiting_payment') return;

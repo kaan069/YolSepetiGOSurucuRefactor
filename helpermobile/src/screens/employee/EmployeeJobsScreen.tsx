@@ -20,22 +20,30 @@ import { useEmployeePanelStore } from '../../store/useEmployeePanelStore';
 import { EmployeeJob } from '../../api/types';
 import { FkCard } from '../../components/fk';
 import { colors as dc } from '../../theme/design';
+import { requestStatusLabel, serviceTypeLabel } from '../../constants/backendLabels';
 
 // ---------------------------------------------------------------------------
 // Config maps
 // ---------------------------------------------------------------------------
 
+// Backend eleman uçları model kodlarını (homeToHomeMoving vb.) gönderir; eski yazımlar da tanınır
 const serviceTypeConfig: Record<string, { label: string; icon: string }> = {
     towTruck: { label: 'Çekici', icon: 'tow-truck' },
     crane: { label: 'Vinç', icon: 'crane' },
+    homeToHomeMoving: { label: 'Evden Eve Nakliye', icon: 'home-group' },
+    cityToCity: { label: 'Şehirler Arası Nakliye', icon: 'truck' },
+    roadAssistance: { label: 'Yol Yardım', icon: 'car-wrench' },
+    transfer: { label: 'Transfer', icon: 'bus' },
     home_moving: { label: 'Evden Eve Nakliye', icon: 'home-group' },
-    city_moving: { label: 'Şehirlerarası Nakliye', icon: 'truck' },
+    city_moving: { label: 'Şehirler Arası Nakliye', icon: 'truck' },
     road_assistance: { label: 'Yol Yardım', icon: 'car-wrench' },
 };
 
 const statusConfig: Record<string, { label: string; color: string }> = {
     in_progress: { label: 'Devam Ediyor', color: dc.info[500] },
     pending: { label: 'Bekliyor', color: dc.warning[500] },
+    awaiting_approval: { label: 'Onay Bekleniyor', color: dc.warning[500] },
+    awaiting_payment: { label: 'Ödeme Bekleniyor', color: dc.warning[500] },
     completed: { label: 'Tamamlandı', color: dc.success[500] },
     cancelled: { label: 'İptal', color: dc.danger[500] },
 };
@@ -69,8 +77,8 @@ interface JobCardProps {
 }
 
 function JobCard({ item, onPress, cardBg, appColors, moderateScale, spacing, isDarkMode }: JobCardProps) {
-    const serviceInfo = serviceTypeConfig[item.service_type] ?? { label: item.service_type, icon: 'briefcase-outline' };
-    const statusInfo = statusConfig[item.status] ?? { label: item.status, color: dc.neutral[400] };
+    const serviceInfo = serviceTypeConfig[item.service_type] ?? { label: serviceTypeLabel(item.service_type), icon: 'briefcase-outline' };
+    const statusInfo = statusConfig[item.status] ?? { label: requestStatusLabel(item.status), color: dc.neutral[400] };
 
     return (
         <TouchableOpacity

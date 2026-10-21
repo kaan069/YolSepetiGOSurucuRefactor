@@ -392,7 +392,7 @@ export default function CreditCardInfoScreen({ navigation }: Props) {
                 />
               </View>
               <View style={styles.cardDetails}>
-                <Text style={styles.cardAlias}>{card.card_alias || 'Kartim'}</Text>
+                <Text style={styles.cardAlias}>{card.card_alias || 'Kartım'}</Text>
                 <Text style={[styles.cardNumber, { color: appColors.text.secondary }]}>{card.masked_number}</Text>
                 <View style={styles.cardMeta}>
                   <Text style={styles.cardBank}>{card.bank_name}</Text>

@@ -10,18 +10,7 @@ import { View, StyleSheet } from 'react-native';
 import { InfoRow, JobSection } from '../../../components/job';
 import { FkInfoBanner, FkPill } from '../../../components/fk';
 import { spacing } from '../../../theme/design';
-
-// Ev tipi çevirisi
-const HOME_TYPE_LABELS: Record<string, string> = {
-  'studio': 'Stüdyo',
-  '1+1': '1+1',
-  '2+1': '2+1',
-  '3+1': '3+1',
-  '4+1': '4+1',
-  '5+1': '5+1 ve üzeri',
-  'villa': 'Villa',
-  'office': 'Ofis',
-};
+import { dateLabel, homeTypeLabel, timeSlotLabel } from '../../../constants/backendLabels';
 
 // Backend sayısal alanları (floor_from, load_weight, width vb.) string olarak
 // da dönebildiği için prop tipleri `number | string` ile gevşetildi. <Text>
@@ -76,11 +65,11 @@ export default function MovingDetailsJobCard({
 }: MovingDetailsJobCardProps) {
   if (!visible) return null;
 
-  const homeTypeLabel = homeType ? (HOME_TYPE_LABELS[homeType] || homeType) : null;
+  const homeTypeText = homeType ? homeTypeLabel(homeType) : null;
   const rows: { icon: string; label: string; value: string }[] = [];
 
   if (isHomeMoving) {
-    if (homeTypeLabel) rows.push({ icon: 'home-outline', label: 'Ev Tipi', value: homeTypeLabel });
+    if (homeTypeText) rows.push({ icon: 'home-outline', label: 'Ev Tipi', value: homeTypeText });
     if (floorFrom !== undefined && floorFrom !== null) {
       rows.push({
         icon: 'stairs-up',
@@ -102,8 +91,8 @@ export default function MovingDetailsJobCard({
       rows.push({ icon: 'ruler-square', label: 'Boyutlar', value: `${width || '-'} x ${length || '-'} x ${height || '-'} cm` });
     }
   }
-  if (preferredDate) rows.push({ icon: 'calendar-outline', label: 'Tercih Edilen Tarih', value: preferredDate });
-  if (preferredTimeSlot) rows.push({ icon: 'clock-outline', label: 'Tercih Edilen Saat', value: preferredTimeSlot });
+  if (preferredDate) rows.push({ icon: 'calendar-outline', label: 'Tercih Edilen Tarih', value: dateLabel(preferredDate) });
+  if (preferredTimeSlot) rows.push({ icon: 'clock-outline', label: 'Tercih Edilen Saat', value: timeSlotLabel(preferredTimeSlot) });
 
   const pills = isHomeMoving
     ? [

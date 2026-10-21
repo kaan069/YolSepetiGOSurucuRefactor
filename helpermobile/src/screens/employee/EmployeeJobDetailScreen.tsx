@@ -24,22 +24,38 @@ import { logger } from '../../utils/logger';
 import { colors } from '../../theme/design';
 import { FkButton } from '../../components/fk';
 import { JobSection } from '../../components/job';
+import {
+    dateLabel,
+    homeTypeLabel,
+    requestStatusLabel,
+    roadProblemListLabel,
+    serviceTypeLabel,
+    timeSlotLabel,
+    vehicleTypeLabel,
+} from '../../constants/backendLabels';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'EmployeeJobDetail'>;
 
 // ─── Config maps ─────────────────────────────────────────────────────────────
 
+// Backend eleman uçları model kodlarını (homeToHomeMoving vb.) gönderir; eski yazımlar da tanınır
 const serviceTypeConfig: Record<string, { label: string; icon: string }> = {
     towTruck: { label: 'Çekici', icon: 'tow-truck' },
     crane: { label: 'Vinç', icon: 'crane' },
+    homeToHomeMoving: { label: 'Evden Eve Nakliye', icon: 'home-group' },
+    cityToCity: { label: 'Şehirler Arası Nakliye', icon: 'truck' },
+    roadAssistance: { label: 'Yol Yardım', icon: 'car-wrench' },
+    transfer: { label: 'Transfer', icon: 'bus' },
     home_moving: { label: 'Evden Eve Nakliye', icon: 'home-group' },
-    city_moving: { label: 'Şehirlerarası Nakliye', icon: 'truck' },
+    city_moving: { label: 'Şehirler Arası Nakliye', icon: 'truck' },
     road_assistance: { label: 'Yol Yardım', icon: 'car-wrench' },
 };
 
 const statusConfig: Record<string, { label: string; color: string }> = {
     in_progress: { label: 'Devam Ediyor', color: colors.info[500] },
     pending: { label: 'Bekliyor', color: colors.warning[500] },
+    awaiting_approval: { label: 'Onay Bekleniyor', color: colors.warning[500] },
+    awaiting_payment: { label: 'Ödeme Bekleniyor', color: colors.warning[500] },
     completed: { label: 'Tamamlandı', color: colors.success[500] },
     cancelled: { label: 'İptal', color: colors.danger[500] },
 };
@@ -149,14 +165,14 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
     // ── Derived display values ──
     const serviceInfo = jobDetail
         ? serviceTypeConfig[jobDetail.service_type] ?? {
-              label: jobDetail.service_type,
+              label: serviceTypeLabel(jobDetail.service_type),
               icon: 'briefcase-outline',
           }
         : null;
 
     const statusInfo = jobDetail
         ? statusConfig[jobDetail.status] ?? {
-              label: jobDetail.status,
+              label: requestStatusLabel(jobDetail.status),
               color: colors.neutral[400],
           }
         : null;
@@ -366,7 +382,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                             {jobDetail.service_type === 'towTruck' && (
                                 <>
                                     {!!jobDetail.service_details.vehicle_type && (
-                                        <InfoRow icon="car-side" label="Araç Tipi" value={jobDetail.service_details.vehicle_type} />
+                                        <InfoRow icon="car-side" label="Araç Tipi" value={vehicleTypeLabel(jobDetail.service_details.vehicle_type)} />
                                     )}
                                     {!!jobDetail.service_details.estimated_km && (
                                         <InfoRow icon="map-marker-distance" label="Tahmini Mesafe" value={`${jobDetail.service_details.estimated_km.toFixed(1)} km`} />
@@ -402,10 +418,10 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                             {jobDetail.service_type === 'roadAssistance' && (
                                 <>
                                     {!!jobDetail.service_details.vehicle_type && (
-                                        <InfoRow icon="car-side" label="Araç Tipi" value={jobDetail.service_details.vehicle_type} />
+                                        <InfoRow icon="car-side" label="Araç Tipi" value={vehicleTypeLabel(jobDetail.service_details.vehicle_type)} />
                                     )}
                                     {jobDetail.service_details.problem_types && jobDetail.service_details.problem_types.length > 0 && (
-                                        <InfoRow icon="wrench" label="Arıza Tipleri" value={jobDetail.service_details.problem_types.join(', ')} iconColor={colors.warning[500]} />
+                                        <InfoRow icon="wrench" label="Arıza Tipleri" value={roadProblemListLabel(jobDetail.service_details.problem_types)} iconColor={colors.warning[500]} />
                                     )}
                                     {!!jobDetail.service_details.problem_description && (
                                         <InfoRow icon="text-box-outline" label="Arıza Açıklaması" value={jobDetail.service_details.problem_description} />
@@ -420,7 +436,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                             {jobDetail.service_type === 'homeToHomeMoving' && (
                                 <>
                                     {!!jobDetail.service_details.home_type && (
-                                        <InfoRow icon="home-outline" label="Ev Tipi" value={jobDetail.service_details.home_type} />
+                                        <InfoRow icon="home-outline" label="Ev Tipi" value={homeTypeLabel(jobDetail.service_details.home_type)} />
                                     )}
                                     {jobDetail.service_details.floor_from !== undefined && (
                                         <InfoRow
@@ -447,7 +463,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                         <InfoRow icon="hammer-screwdriver" label="Söküm/Montaj" value="İsteniyor" iconColor={colors.info[500]} />
                                     )}
                                     {!!jobDetail.service_details.preferred_date && (
-                                        <InfoRow icon="calendar" label="Tercih Edilen Tarih" value={`${jobDetail.service_details.preferred_date}${jobDetail.service_details.preferred_time_slot ? ' - ' + jobDetail.service_details.preferred_time_slot : ''}`} />
+                                        <InfoRow icon="calendar" label="Tercih Edilen Tarih" value={`${dateLabel(jobDetail.service_details.preferred_date)}${jobDetail.service_details.preferred_time_slot ? ' · ' + timeSlotLabel(jobDetail.service_details.preferred_time_slot) : ''}`} />
                                     )}
                                     {!!jobDetail.service_details.additional_notes && (
                                         <InfoRow icon="note-text-outline" label="Ek Notlar" value={jobDetail.service_details.additional_notes} />
@@ -472,7 +488,7 @@ export default function EmployeeJobDetailScreen({ route, navigation }: Props) {
                                         />
                                     )}
                                     {!!jobDetail.service_details.preferred_date && (
-                                        <InfoRow icon="calendar" label="Tercih Edilen Tarih" value={`${jobDetail.service_details.preferred_date}${jobDetail.service_details.preferred_time_slot ? ' - ' + jobDetail.service_details.preferred_time_slot : ''}`} />
+                                        <InfoRow icon="calendar" label="Tercih Edilen Tarih" value={`${dateLabel(jobDetail.service_details.preferred_date)}${jobDetail.service_details.preferred_time_slot ? ' · ' + timeSlotLabel(jobDetail.service_details.preferred_time_slot) : ''}`} />
                                     )}
                                     {!!jobDetail.service_details.additional_notes && (
                                         <InfoRow icon="note-text-outline" label="Ek Notlar" value={jobDetail.service_details.additional_notes} />

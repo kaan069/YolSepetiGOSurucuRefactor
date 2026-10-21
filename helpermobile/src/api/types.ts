@@ -997,6 +997,8 @@ export interface MovingRequest extends BookingFields {
 export interface RoadAssistanceRequest {
   id: number;
   created_at: string;
+  /** Müşterinin seçtiği sorun kodları (ör. battery_jump, tire_change) — constants/backendLabels */
+  problem_types?: string[];
   status?: string;
   trackingToken?: string;
   tracking_token?: string;

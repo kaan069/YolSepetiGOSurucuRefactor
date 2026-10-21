@@ -9,6 +9,7 @@ import { OrdersJob } from '../types';
 import { craneRequestToJob, nakliyeRequestToJob, transferRequestToJob } from '../jobMappers';
 import type { ServiceType } from '../../../constants/serviceTypes';
 import { logger } from '../../../utils/logger';
+import { roadProblemListLabel, vehicleTypeLabel } from '../../../constants/backendLabels';
 
 // Service filter types - artık yol yardım ve nakliye de destekleniyor
 // nakliye = evden eve + şehirler arası (birleşik olarak gösterilir)
@@ -477,7 +478,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
         return {
           id: request.id.toString(),
           serviceType: 'towTruck',
-          vehicleType: `Çekici - ${request.vehicle_type}`,
+          vehicleType: `Çekici - ${vehicleTypeLabel(request.vehicle_type)}`,
           from: {
             lat: parseFloat(request.pickup_latitude || '0'),
             lng: parseFloat(request.pickup_longitude || '0'),
@@ -513,8 +514,10 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
       const lat = parseFloat(request.latitude || request.location_latitude || '0');
       const lng = parseFloat(request.longitude || request.location_longitude || '0');
 
-      // Yol yardım tipi
-      const serviceTypeLabel = request.service_type || request.assistance_type || 'Yol Yardım';
+      // Yol yardım: müşterinin seçtiği sorunlar (kodlar backendLabels ile Türkçeleşir)
+      const serviceTypeLabel = request.problem_types?.length
+        ? roadProblemListLabel(request.problem_types)
+        : 'Yol Yardım';
 
       return {
         id: request.id.toString(),

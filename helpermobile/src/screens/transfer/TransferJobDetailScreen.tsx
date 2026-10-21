@@ -40,6 +40,7 @@ import {
 import { StartTripCard } from '../nakliye/components';
 import { colors, getStatusStyle, spacing, text } from '../../theme/design';
 import { getScheduleInfo } from '../../utils/schedule';
+import { transferTypeLabel, transferVehicleLabel } from '../../constants/backendLabels';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferJobDetail'>;
 
@@ -72,21 +73,6 @@ const getStatus = (request: TransferRequest): string => {
     return (request.request_id as any).status || 'unknown';
   }
   return 'unknown';
-};
-
-// Transfer tipi etiketleri
-const TRANSFER_TYPE_LABELS: Record<string, string> = {
-  organization: 'Organizasyon Transferi',
-  vip: 'VIP Transfer',
-};
-
-// Araç tercihi etiketleri
-const VEHICLE_PREFERENCE_LABELS: Record<string, string> = {
-  sedan: 'Sedan',
-  vip_car: 'VIP Araç',
-  minibus: 'Minibüs',
-  midibus: 'Midibüs',
-  bus: 'Otobüs',
 };
 
 // Tarih formatlama
@@ -459,9 +445,9 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
   const heroConfig = getHeroConfig(status || 'unknown');
   const heroStatus = getStatusStyle(status);
   const isVip = transferRequest.transfer_type === 'vip';
-  const transferTypeLabel = TRANSFER_TYPE_LABELS[transferRequest.transfer_type] || transferRequest.transfer_type;
+  const transferTypeText = transferTypeLabel(transferRequest.transfer_type);
   const vehiclePrefLabel = transferRequest.vehicle_preference
-    ? VEHICLE_PREFERENCE_LABELS[transferRequest.vehicle_preference] || transferRequest.vehicle_preference
+    ? transferVehicleLabel(transferRequest.vehicle_preference)
     : null;
 
   // Kazanc bilgisini my_offer'dan al
@@ -540,7 +526,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
               commissionVatAmount: commissionVatAmount,
               commissionTotalWithVat: commissionTotalWithVat,
               customerName: transferRequest.requestOwnerNameSurname,
-              description: `Transfer Hizmeti - ${transferTypeLabel}`,
+              description: `Transfer Hizmeti - ${transferTypeText}`,
             }}
             onPayCommission={() => {
               if (paymentCompleted || status !== 'awaiting_payment') return;
@@ -587,7 +573,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
           <JobSection
             title="Transfer Detayları"
             icon="car-connected"
-            right={<FkPill label={transferTypeLabel} color={isVip ? 'secondary' : 'success'} size="sm" />}
+            right={<FkPill label={transferTypeText} color={isVip ? 'secondary' : 'success'} size="sm" />}
           >
             {transferRequest.transfer_type === 'organization' && transferRequest.passenger_count ? (
               <InfoRow icon="account-multiple-outline" label="Kişi Sayısı" value={`${transferRequest.passenger_count} kişi`} divider />

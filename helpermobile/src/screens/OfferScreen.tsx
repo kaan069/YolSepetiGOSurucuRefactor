@@ -21,6 +21,7 @@ import { FkCard, FkButton } from '../components/fk';
 import { JobSection } from '../components/job';
 import { useAgencyAssignment } from '../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../components/AgencyAssignmentBanner';
+import { vehicleTypeLabel } from '../constants/backendLabels';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Offer'>;
 
@@ -319,7 +320,7 @@ export default function OfferScreen({ route, navigation }: Props) {
               <Divider style={styles.divider} />
 
               <Text style={styles.label}>Araç Tipi:</Text>
-              <Text>{towTruckRequest.vehicle_type}</Text>
+              <Text>{vehicleTypeLabel(towTruckRequest.vehicle_type)}</Text>
               <Divider style={styles.divider} />
 
               <Text style={styles.label}>Mesafe & Süre:</Text>

@@ -6,6 +6,7 @@ import type { CraneRequest, MovingRequest, ScheduledJob, TransferRequest } from 
 import { OrderStatus } from '../../lib/types';
 import { getScheduleInfo } from '../../utils/schedule';
 import { OrdersJob } from './types';
+import { dateLabel, transferTypeLabel, transferVehicleLabel } from '../../constants/backendLabels';
 
 export function craneRequestToJob(request: CraneRequest, status: OrderStatus): OrdersJob {
   const price = request.final_price || 0;
@@ -86,18 +87,21 @@ export function transferRequestToJob(request: TransferRequest, status: OrderStat
   const lat = parseFloat(request.pickup_latitude || request.latitude || '0');
   const lng = parseFloat(request.pickup_longitude || request.longitude || '0');
 
-  // Transfer tipi ve yolcu bilgisi
-  const transferTypeLabel = request.transfer_type || 'Transfer';
+  // Transfer tipi, araç tercihi, yolcu ve tarih bilgisi (kodlar backendLabels ile Türkçeleşir)
+  const typeLabel = transferTypeLabel(request.transfer_type);
+  const vehicleInfo = request.vehicle_preference ? transferVehicleLabel(request.vehicle_preference) : '';
   const passengerInfo = request.passenger_count ? `${request.passenger_count} yolcu` : '';
-  const scheduleInfo = request.scheduled_date ? `${request.scheduled_date}${request.scheduled_time ? ' ' + request.scheduled_time : ''}` : '';
+  const scheduleInfo = request.scheduled_date
+    ? `${dateLabel(request.scheduled_date)}${request.scheduled_time ? ' ' + String(request.scheduled_time).slice(0, 5) : ''}`
+    : '';
 
-  const descriptionParts = [transferTypeLabel, passengerInfo, scheduleInfo].filter(Boolean);
+  const descriptionParts = [vehicleInfo, passengerInfo, scheduleInfo].filter(Boolean);
   const description = descriptionParts.join(' | ') || 'Transfer talebi';
 
   return {
     id: request.id.toString(),
     serviceType: 'transfer',
-    vehicleType: `Transfer - ${transferTypeLabel}`,
+    vehicleType: typeLabel,
     from: {
       lat,
       lng,

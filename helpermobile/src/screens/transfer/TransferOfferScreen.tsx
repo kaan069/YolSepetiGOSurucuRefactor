@@ -36,6 +36,7 @@ import { colors, spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
 import { getScheduleInfo } from '../../utils/schedule';
+import { transferTypeLabel, transferVehicleLabel } from '../../constants/backendLabels';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TransferOffer'>;
 
@@ -50,21 +51,6 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
     Math.sin(dLon / 2) * Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return Math.round(R * c * 10) / 10;
-};
-
-// Transfer tipi etiketleri
-const TRANSFER_TYPE_LABELS: Record<string, string> = {
-  organization: 'Organizasyon Transferi',
-  vip: 'VIP Transfer',
-};
-
-// Araç tercihi etiketleri
-const VEHICLE_PREFERENCE_LABELS: Record<string, string> = {
-  sedan: 'Sedan',
-  vip_car: 'VIP Araç',
-  minibus: 'Minibüs',
-  midibus: 'Midibüs',
-  bus: 'Otobüs',
 };
 
 export default function TransferOfferScreen({ route, navigation }: Props) {
@@ -320,9 +306,9 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
   }
 
   const hasValidPrice = offerPrice.trim() !== '' && parseFloat(offerPrice) > 0;
-  const transferTypeLabel = TRANSFER_TYPE_LABELS[transferRequest.transfer_type] || transferRequest.transfer_type;
+  const transferTypeText = transferTypeLabel(transferRequest.transfer_type);
   const vehiclePrefLabel = transferRequest.vehicle_preference
-    ? VEHICLE_PREFERENCE_LABELS[transferRequest.vehicle_preference] || transferRequest.vehicle_preference
+    ? transferVehicleLabel(transferRequest.vehicle_preference)
     : null;
   const isVip = transferRequest.transfer_type === 'vip';
 
@@ -375,7 +361,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
           <JobSection
             title="Transfer Detayları"
             icon={isVip ? 'star-circle-outline' : 'account-group-outline'}
-            right={<FkPill label={transferTypeLabel} color={isVip ? 'secondary' : 'success'} size="sm" />}
+            right={<FkPill label={transferTypeText} color={isVip ? 'secondary' : 'success'} size="sm" />}
           >
             {transferRequest.transfer_type === 'organization' && transferRequest.passenger_count ? (
               <InfoRow icon="account-multiple-outline" label="Kişi Sayısı" value={`${transferRequest.passenger_count} kişi`} divider />

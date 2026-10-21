@@ -8,6 +8,7 @@ import {
 import { useVehicleStore } from '../store/useVehicleStore';
 import { File as ExpoFile, Paths } from 'expo-file-system';
 import { logger } from '../utils/logger';
+import { roadServiceLabel } from '../constants/backendLabels';
 
 // Vehicles katmanı için güvenli error sanitizer.
 // Backend error response body'sini ASLA loglamaz (plaka, marka, model, araç
@@ -680,15 +681,6 @@ class VehiclesAPI {
                 const store = useVehicleStore.getState();
                 const existingIndex = store.roadAssistance.findIndex(v => v.id === vehicle.id?.toString());
 
-                // Backend'deki service key'lerini Türkçe'ye çevir
-                const serviceLabels: Record<string, string> = {
-                    'tire_change': 'Lastik Değişimi',
-                    'battery_boost': 'Akü Takviyesi',
-                    'fuel_delivery': 'Yakıt İkmali',
-                    'lockout': 'Araç Kilit Açma',
-                    'minor_repair': 'Küçük Tamirat'
-                };
-
                 const roadAssistanceData = {
                     id: vehicle.id?.toString() || Date.now().toString(),
                     // Araç bilgileri (Backend'den gelen)
@@ -697,7 +689,7 @@ class VehiclesAPI {
                     model: vehicle.model || '',
                     year: vehicle.year?.toString() || '',
                     // Hizmet bilgileri
-                    services: (vehicle.available_services || []).map((s: string) => serviceLabels[s] || s),
+                    services: (vehicle.available_services || []).map((s: string) => roadServiceLabel(s)),
                     pricePerService: '',
                     pricePerKm: '',
                     workingAreas: [],

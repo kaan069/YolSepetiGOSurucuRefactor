@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { InfoRow, JobSection } from '../../../components/job';
 import { FkInfoBanner, FkPill } from '../../../components/fk';
 import { spacing } from '../../../theme/design';
+import { dateLabel, homeTypeLabel, timeSlotLabel } from '../../../constants/backendLabels';
 
 interface MovingDetailsCardProps {
   // Backend alanları
@@ -22,26 +23,6 @@ interface MovingDetailsCardProps {
   distanceToPickup?: number | null;
 }
 
-// Saat dilimi çevirisi
-const TIME_SLOT_LABELS: Record<string, string> = {
-  'morning': 'Sabah (07:00 - 12:00)',
-  'afternoon': 'Öğleden Sonra (12:00 - 17:00)',
-  'evening': 'Akşam (17:00 - 21:00)',
-  'flexible': 'Esnek',
-};
-
-// Ev tipi çevirisi
-const HOME_TYPE_LABELS: Record<string, string> = {
-  'studio': 'Stüdyo',
-  '1+1': '1+1',
-  '2+1': '2+1',
-  '3+1': '3+1',
-  '4+1': '4+1',
-  '5+1': '5+1 ve üzeri',
-  'villa': 'Villa',
-  'office': 'Ofis',
-};
-
 export default function MovingDetailsCard({
   homeType,
   hasLargeItems,
@@ -54,15 +35,15 @@ export default function MovingDetailsCard({
   additionalNotes,
   distanceToPickup,
 }: MovingDetailsCardProps) {
-  const homeTypeLabel = homeType ? (HOME_TYPE_LABELS[homeType] || homeType) : null;
+  const homeTypeText = homeType ? homeTypeLabel(homeType) : null;
   const rows: { icon: string; label: string; value: string }[] = [];
-  if (homeTypeLabel) rows.push({ icon: 'home-outline', label: 'Ev Tipi', value: homeTypeLabel });
-  if (preferredDate) rows.push({ icon: 'calendar-outline', label: 'Tercih Edilen Tarih', value: preferredDate });
+  if (homeTypeText) rows.push({ icon: 'home-outline', label: 'Ev Tipi', value: homeTypeText });
+  if (preferredDate) rows.push({ icon: 'calendar-outline', label: 'Tercih Edilen Tarih', value: dateLabel(preferredDate) });
   if (preferredTimeSlot) {
     rows.push({
       icon: 'clock-outline',
       label: 'Tercih Edilen Saat',
-      value: TIME_SLOT_LABELS[preferredTimeSlot] || preferredTimeSlot,
+      value: timeSlotLabel(preferredTimeSlot),
     });
   }
   if (distanceToPickup !== null && distanceToPickup !== undefined) {

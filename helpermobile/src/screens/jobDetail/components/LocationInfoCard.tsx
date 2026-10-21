@@ -1,6 +1,7 @@
 import React from 'react';
 import { TowTruckRequestDetail } from '../../../api';
 import { JobLocationCard } from '../../../components/job';
+import { vehicleTypeLabel } from '../../../constants/backendLabels';
 
 interface LocationInfoCardProps {
   towTruckRequest: TowTruckRequestDetail;
@@ -15,7 +16,7 @@ export default function LocationInfoCard({ towTruckRequest }: LocationInfoCardPr
           type: 'pickup',
           label: 'Alış Noktası',
           address: towTruckRequest.pickup_address,
-          detail: towTruckRequest.vehicle_type ? `Araç: ${towTruckRequest.vehicle_type}` : undefined,
+          detail: towTruckRequest.vehicle_type ? `Araç: ${vehicleTypeLabel(towTruckRequest.vehicle_type)}` : undefined,
         },
         {
           type: 'dropoff',

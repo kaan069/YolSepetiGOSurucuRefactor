@@ -5,6 +5,7 @@ import { JobSection } from '../../../components/job';
 import { FkIconChip, FkPill } from '../../../components/fk';
 import { useAppTheme } from '../../../hooks/useAppTheme';
 import { ColorScale, spacing, text } from '../../../theme/design';
+import { timeSlotLabel } from '../../../constants/backendLabels';
 
 interface PreferredDateCardProps {
   preferredDate: string | null | undefined;
@@ -38,19 +39,8 @@ const formatDate = (dateString: string): string => {
   return date.toLocaleDateString('tr-TR', options);
 };
 
-// Zaman dilimini Türkçeye çevir
-const formatTimeSlot = (timeSlot: string | null | undefined): string => {
-  if (!timeSlot) return '';
-
-  const timeSlotMap: Record<string, string> = {
-    'morning': 'Sabah (08:00 - 12:00)',
-    'afternoon': 'Öğleden Sonra (12:00 - 17:00)',
-    'evening': 'Akşam (17:00 - 21:00)',
-    'flexible': 'Esnek',
-  };
-
-  return timeSlotMap[timeSlot] || timeSlot;
-};
+// Zaman dilimi (çeviriler: constants/backendLabels)
+const formatTimeSlot = (timeSlot: string | null | undefined): string => (timeSlot ? timeSlotLabel(timeSlot) : '');
 
 export default function PreferredDateCard({ preferredDate, preferredTimeSlot, visible = true }: PreferredDateCardProps) {
   const { appColors } = useAppTheme();
