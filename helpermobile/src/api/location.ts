@@ -9,13 +9,19 @@ class LocationAPI {
      * POST /vehicles/location/app-ping/ → 200 { status: 'ok', updated_at }
      * 429 (hız sınırı) ve 403 (sürücü olmayan hesap) sessizce yok sayılır.
      */
-    async appPing(latitude: number, longitude: number, trigger: AppPingTrigger, accuracy?: number): Promise<void> {
-        await axiosInstance.post('/vehicles/location/app-ping/', {
+    async appPing(
+        latitude: number,
+        longitude: number,
+        trigger: AppPingTrigger,
+        accuracy?: number,
+    ): Promise<{ status?: string; updated_at?: string }> {
+        const response = await axiosInstance.post<{ status?: string; updated_at?: string }>('/vehicles/location/app-ping/', {
             latitude,
             longitude,
             trigger,
             ...(accuracy != null ? { accuracy } : {}),
         });
+        return response.data ?? {};
     }
 }
 

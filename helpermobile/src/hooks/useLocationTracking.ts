@@ -19,7 +19,7 @@ import { useActiveJobStore } from '../store/useActiveJobStore';
 import { useNakliyeLocationStore } from '../store/useNakliyeLocationStore';
 import { requestLocationPermissions } from '../utils/locationPermission';
 import { logger } from '../utils/logger';
-import { getSharedPosition } from '../services/appLocationPing';
+import { getSharedPosition, msSinceLastPing, sendAppPing } from '../services/appLocationPing';
 
 export function useLocationTracking() {
   const setCurrentLocation = useDriverStore((state) => state.setCurrentLocation);
@@ -44,7 +44,12 @@ export function useLocationTracking() {
       // aynı anda iki konum isteği yapılmaz.
       try {
         const location = await getSharedPosition();
-        if (location) setCurrentLocation(location);
+        if (location) {
+          setCurrentLocation(location);
+          // İlk açılışta app_open ping'i izin penceresinden önce çalışıp atlanır;
+          // izin verilip konum alındıysa ve bu oturumda hiç denenmediyse şimdi gönder
+          if (msSinceLastPing() === Infinity) sendAppPing('app_open');
+        }
       } catch (error) {
         logger.error('location', 'useLocationTracking.initialPosition failed');
       }

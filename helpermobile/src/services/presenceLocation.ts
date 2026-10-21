@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 import locationAPI from '../api/location';
-import { LAST_PING_AT_KEY } from './appLocationPing';
+import { describePingError, LAST_PING_AT_KEY } from './appLocationPing';
 import { logger } from '../utils/logger';
 
 export const PRESENCE_LOCATION_TASK = 'driver-presence-location';
@@ -107,20 +107,32 @@ export async function pingFromBackground(
     const entries = Object.fromEntries(
       await AsyncStorage.multiGet([PRESENCE_ENABLED_KEY, ACTIVE_JOB_KEY, LAST_PING_AT_KEY]),
     );
-    if (entries[PRESENCE_ENABLED_KEY] !== '1') return 'disabled';
+    if (entries[PRESENCE_ENABLED_KEY] !== '1') {
+      logger.info('location', 'appPing (background) skipped: not online');
+      return 'disabled';
+    }
 
     const activeJob = entries[ACTIVE_JOB_KEY] ? JSON.parse(entries[ACTIVE_JOB_KEY] as string) : null;
-    if (activeJob?.state?.trackingToken) return 'skipped';
+    if (activeJob?.state?.trackingToken) {
+      logger.info('location', 'appPing (background) skipped: active job');
+      return 'skipped';
+    }
 
     const lastPingAt = Number(entries[LAST_PING_AT_KEY]) || 0;
-    if (Date.now() - lastPingAt < minGapMs) return 'skipped';
+    if (Date.now() - lastPingAt < minGapMs) {
+      logger.info('location', 'appPing (background) skipped: recently sent', {
+        minutesAgo: Math.round((Date.now() - lastPingAt) / 60000),
+      });
+      return 'skipped';
+    }
 
     await AsyncStorage.setItem(LAST_PING_AT_KEY, String(Date.now()));
-    await locationAPI.appPing(coords.latitude, coords.longitude, 'background', coords.accuracy ?? undefined);
+    const result = await locationAPI.appPing(coords.latitude, coords.longitude, 'background', coords.accuracy ?? undefined);
+    logger.info('location', 'appPing ok', { trigger: 'background', updatedAt: result.updated_at ?? null });
     return 'sent';
   } catch (error: any) {
-    // 401 (çıkış), 403 (sürücü değil), 429, ağ: sessizce sonraki tur
-    logger.debug('location', 'presence.ping failed', { status: error?.response?.status });
+    // 401 (çıkış), 403 (sürücü değil), 429, ağ: sonraki tur; yayındaki build'de de görünsün
+    logger.warn('location', 'appPing failed', { trigger: 'background', ...describePingError(error) });
     return 'failed';
   }
 }
@@ -155,6 +167,6 @@ export async function handleLocationRequestPush(): Promise<void> {
     if (!position) return;
     await pingFromBackground(position.coords, PUSH_MIN_GAP_MS);
   } catch (error: any) {
-    logger.debug('location', 'presence.push failed', { message: error?.message });
+    logger.warn('location', 'appPing (push) failed', { trigger: 'background', message: error?.message });
   }
 }

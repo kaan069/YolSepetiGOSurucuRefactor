@@ -18,6 +18,7 @@ import { RootStackParamList } from '../navigation';
 import authAPI from '../api/auth';
 import { logger } from '../utils/logger';
 import { rememberPosition } from '../services/appLocationPing';
+import { ensureLocationForOnline } from '../utils/locationPermission';
 import { FkButton, FkInfoBanner } from '../components/fk';
 import { colors, radius, shadows, spacing as ds, text } from '../theme/design';
 
@@ -60,6 +61,9 @@ export default function HomeScreen() {
 
   // Online/offline durumunu değiştir
   const handleAvailabilityChange = async (value: boolean) => {
+    // Çevrimiçi olmadan önce konum izni (acente haritasında güncel konumla görünmek için);
+    // izin verilmese de çevrimiçi olunur, "online" app-ping'i izin varsa gider
+    if (value) await ensureLocationForOnline();
     await updateOnlineStatus(value);
   };
 

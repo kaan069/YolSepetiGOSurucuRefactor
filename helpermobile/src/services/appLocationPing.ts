@@ -9,8 +9,11 @@
  * - periodic:   uygulama açık ve sürücü çevrimiçiyken 30 dk'da bir
  * Uygulama arka plandayken: services/presenceLocation (trigger: background).
  *
- * Konum izni yoksa hiçbir şey gönderilmez (izin istenmez). Hatalar sessizce yutulur;
- * bir sonraki tetiklemede tekrar denenir, kuyruk yok.
+ * Konum izni yoksa gönderilmez (izin burada istenmez; çevrimiçi olurken istenir).
+ * Hata kuyruğa alınmaz, bir sonraki tetiklemede tekrar denenir. Atlanan ve başarısız
+ * gönderimler yayındaki build'de de görünsün diye warn ile yazılır (durum kodu + tetikleyici;
+ * koordinat yazılmaz): 401 oturum, 403 sürücü değil, 400 koordinat, 429 hız sınırı,
+ * status null = ağ hatası / zaman aşımı.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
@@ -77,23 +80,44 @@ export async function getSharedPosition(): Promise<LocationObject | null> {
   return positionInFlight;
 }
 
+/** Hata kaydı için özet: HTTP durumu, backend hata kodu, axios hata kodu (ağ / zaman aşımı) */
+export function describePingError(error: any) {
+  return {
+    status: error?.response?.status ?? null,
+    errorCode: error?.response?.data?.errorCode ?? error?.response?.data?.error_code ?? null,
+    code: error?.code ?? null,
+  };
+}
+
 /** Konumu gönderir. Gönderim sürüyorsa yeni tetikleme atlanır (aynı konum zaten gidiyor). */
 export function sendAppPing(trigger: AppPingTrigger): Promise<void> {
   if (sendInFlight) return sendInFlight;
   sendInFlight = (async () => {
     try {
       const { status } = await Location.getForegroundPermissionsAsync();
-      if (status !== 'granted') return;
+      if (status !== 'granted') {
+        logger.warn('location', 'appPing skipped: no location permission', { trigger, permission: status });
+        return;
+      }
 
       const position = await getSharedPosition();
-      if (!position) return;
+      if (!position) {
+        logger.warn('location', 'appPing skipped: position unavailable', { trigger });
+        return;
+      }
 
       const { latitude, longitude, accuracy } = position.coords;
       lastAttemptAt = Date.now();
-      await locationAPI.appPing(latitude, longitude, trigger, accuracy ?? undefined);
+      logger.info('location', 'appPing sending', {
+        trigger,
+        accuracyM: accuracy != null ? Math.round(accuracy) : null,
+      });
+      const result = await locationAPI.appPing(latitude, longitude, trigger, accuracy ?? undefined);
       await AsyncStorage.setItem(LAST_PING_AT_KEY, String(Date.now())).catch(() => {});
+      // updatedAt: backend'deki kayıt saati (sunucuda kontrol için)
+      logger.info('location', 'appPing ok', { trigger, updatedAt: result.updated_at ?? null });
     } catch (error: any) {
-      logger.debug('location', 'appPing failed', { trigger, status: error?.response?.status });
+      logger.warn('location', 'appPing failed', { trigger, ...describePingError(error) });
     } finally {
       sendInFlight = null;
     }
