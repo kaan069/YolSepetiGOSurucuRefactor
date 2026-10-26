@@ -49,7 +49,9 @@ export async function registerForPushNotificationsAsync(): Promise<string | unde
   }
 
   if (finalStatus !== 'granted') {
-    alert('Failed to get push token for push notification!');
+    // Sürücüye ana ekrandaki "Bildirimler kapalı" bandı gösterilir; izin sonradan
+    // verilince useNotifications token'ı alıp backend'e gönderir
+    logger.warn('fcm', 'notifications.permission not granted');
     return;
   }
 

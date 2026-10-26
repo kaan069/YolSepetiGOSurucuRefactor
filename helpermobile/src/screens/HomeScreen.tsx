@@ -1,11 +1,12 @@
 // This is the main screen of the application for the driver.
 // Bu, sürücü için uygulamanın ana ekranıdır.
 //
-// Düzen (yukarıdan aşağı): çevrimiçi şeridi → duyuru panosu → butonlar → iş kutusu.
+// Düzen (yukarıdan aşağı): çevrimiçi şeridi → uyarılar (hizmet şehri, bildirim izni) →
+// duyuru panosu → butonlar → iş kutusu → talep özeti → kazanç özeti.
 // Pano ve butonlar backend'den gelir (yoksa gizlenir); iş kutusu her zaman görünür.
 // Duyuru ve iş kartları 16:9 ve aynı boyda (duyuru görseli detay sayfasındaki gibi tam görünür).
 // Harita şimdilik kaldırıldı (kodu aşağıda yorum satırında).
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { Switch, Text } from 'react-native-paper';
 // import { TouchableOpacity } from 'react-native';
@@ -30,6 +31,12 @@ import { FkButton, FkInfoBanner } from '../components/fk';
 import DriverBoard from '../components/home/DriverBoard';
 import BoardButtons from '../components/home/BoardButtons';
 import ActiveJobsBox from '../components/home/ActiveJobsBox';
+import RequestSummary from '../components/home/RequestSummary';
+import EarningsSummaryCard from '../components/home/EarningsSummaryCard';
+import { useHomeEarnings } from '../hooks/useHomeEarnings';
+import { usePushPermissionStore } from '../store/usePushPermissionStore';
+import { userServiceTypesOf } from './orders/hooks/useUserServiceTypes';
+import type { ServiceFilterType } from './orders/hooks/useOrdersData';
 import driverBoardAPI, { BoardClickSource } from '../api/driverBoard';
 import { useDriverBoard, useDriverBoardStore } from '../store/useDriverBoardStore';
 import type { HomeJob } from '../services/homeJobs';
@@ -58,9 +65,16 @@ export default function HomeScreen() {
   const hasBoard = board.items.length > 0;
   const hasButtons = board.buttons.length > 0;
 
-  // Sürücünün üzerindeki işler (devam eden, ödeme bekleyen, randevulu)
+  // Sürücünün üzerindeki işler (devam eden, ödeme bekleyen, randevulu); talep özetinin
+  // sayıları da bu yenilemeyle gelir
   const homeJobs = useHomeJobs();
+  const homeEarnings = useHomeEarnings();
+  const userServices = useMemo(() => userServiceTypesOf(currentUser?.user_type), [currentUser?.user_type]);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Bildirim izni kapalıysa yeni talep bildirimleri gelmez (durum useNotifications'ta güncellenir)
+  const pushGranted = usePushPermissionStore((s) => s.granted);
+  const canPromptPush = usePushPermissionStore((s) => s.canAskAgain && !s.asked);
 
   useFocusEffect(
     useCallback(() => {
@@ -70,9 +84,20 @@ export default function HomeScreen() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([useDriverBoardStore.getState().refresh({ force: true }), homeJobs.refresh(true)]);
+    await Promise.all([
+      useDriverBoardStore.getState().refresh({ force: true }),
+      homeJobs.refresh(true),
+      homeEarnings.refresh(true),
+    ]);
     setRefreshing(false);
-  }, [homeJobs]);
+  }, [homeJobs, homeEarnings]);
+
+  const openOrders = useCallback(
+    (serviceFilter: ServiceFilterType, filter: 'pending' | 'awaiting_approval') => {
+      navigation.navigate('Tabs', { screen: 'OrdersTab', params: { serviceFilter, filter, timestamp: Date.now() } });
+    },
+    [navigation],
+  );
 
   const openBoardItem = useCallback(
     (itemId: number, source: BoardClickSource) => {
@@ -262,15 +287,34 @@ export default function HomeScreen() {
             icon="map-marker-alert-outline"
             title="Hizmet şehri seçilmedi"
             message="Yeni iş bildirimleri için hizmet şehirlerinizi seçin. Aksi takdirde talepler size ulaşmaz."
-            style={styles.serviceCityBanner}
+            style={styles.banner}
           >
             <FkButton
               size="sm"
               onPress={() => navigation.navigate('ServiceCity')}
-              style={styles.serviceCityButton}
+              style={styles.bannerButton}
               icon="map-marker-plus-outline"
             >
               Şehir Seç
+            </FkButton>
+          </FkInfoBanner>
+        )}
+
+        {pushGranted === false && (
+          <FkInfoBanner
+            type="warning"
+            icon="bell-off-outline"
+            title="Bildirimler kapalı"
+            message="Yeni iş talepleri bildirim olarak sana ulaşmaz. Talepleri kaçırmamak için bildirimleri aç."
+            style={styles.banner}
+          >
+            <FkButton
+              size="sm"
+              onPress={() => usePushPermissionStore.getState().enable()}
+              style={styles.bannerButton}
+              icon="bell-ring-outline"
+            >
+              {canPromptPush ? 'Bildirimleri Aç' : 'Ayarları Aç'}
             </FkButton>
           </FkInfoBanner>
         )}
@@ -288,6 +332,20 @@ export default function HomeScreen() {
           status={homeJobs.status}
           onOpen={openJob}
           onRetry={() => homeJobs.refresh(true)}
+        />
+
+        <RequestSummary
+          services={userServices}
+          ready={homeJobs.status === 'ready'}
+          onOpenOrders={openOrders}
+          onOpenScheduled={() => navigation.navigate('ScheduledJobs')}
+        />
+
+        <EarningsSummaryCard
+          today={homeEarnings.today}
+          week={homeEarnings.week}
+          status={homeEarnings.status}
+          onPress={() => navigation.navigate('Tabs', { screen: 'EarningsTab' })}
         />
       </ScrollView>
     </View>
@@ -337,13 +395,13 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    paddingBottom: ds.sm,
+    paddingBottom: ds.md,
   },
-  serviceCityBanner: {
+  banner: {
     marginHorizontal: ds.md,
     marginTop: ds.sm + 4,
   },
-  serviceCityButton: {
+  bannerButton: {
     alignSelf: 'flex-start',
     marginTop: ds.sm,
   },

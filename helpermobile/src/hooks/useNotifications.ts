@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Platform } from "react-native";
+import { AppState, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import messaging from "@react-native-firebase/messaging";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -11,6 +11,7 @@ import {
 } from "../lib/notifications";
 import { useAuthStore } from "../store/authStore";
 import { useNotificationStore } from "../store/notificationStore";
+import { usePushPermissionStore } from "../store/usePushPermissionStore";
 import authAPI from "../api/auth";
 import { navigateByRequestStatus, isStaleNotification } from "../utils/notificationNavigation";
 import {
@@ -48,6 +49,22 @@ export function useNotifications(navigationRef?: any) {
     const { currentUser, isAuthenticated } = useAuthStore();
     const { setFcmToken, addNotification } = useNotificationStore();
     const [isTokenSent, setIsTokenSent] = useState(false);
+    // İzin penceresi oturumda bir kez açılır; izin sonradan (ayarlardan / ana ekrandaki banttan)
+    // verilirse pushGranted değişir ve token o an alınıp gönderilir
+    const promptedRef = useRef(false);
+    const pushGranted = usePushPermissionStore((s) => s.granted);
+    // Yalnızca reddedilmiş izin sonradan açılınca true olur (normal açılışta ek tur yok)
+    const grantedAfterDenial = pushGranted === true && promptedRef.current;
+
+    // Bildirim izni durumu: açılışta ve ön plana her gelişte (ayarlardan dönüş)
+    useEffect(() => {
+        const { refresh } = usePushPermissionStore.getState();
+        refresh();
+        const subscription = AppState.addEventListener("change", (state) => {
+            if (state === "active") refresh();
+        });
+        return () => subscription.remove();
+    }, []);
 
     // Kullanıcı giriş yaptığında FCM token'ı al ve gönder
     useEffect(() => {
@@ -66,7 +83,10 @@ export function useNotifications(navigationRef?: any) {
                 const { status } = await Notifications.getPermissionsAsync();
 
                 if (status !== 'granted') {
+                    if (promptedRef.current) return;
+                    promptedRef.current = true;
                     const token = await registerForPushNotificationsAsync();
+                    usePushPermissionStore.getState().refresh();
 
                     if (token) {
                         await AsyncStorage.setItem(FCM_TOKEN_KEY, token);
@@ -120,7 +140,7 @@ export function useNotifications(navigationRef?: any) {
         };
 
         initializeNotifications();
-    }, [isAuthenticated, currentUser?.id, isTokenSent, setFcmToken]);
+    }, [isAuthenticated, currentUser?.id, isTokenSent, setFcmToken, grantedAfterDenial]);
 
     // Firebase foreground bildirim dinleyicisini aktif tut
     // Bu her zaman çalışmalı (authentication'dan bağımsız)

@@ -33,6 +33,7 @@ export interface AuthUser {
   nationalId?: string;    // T.C. kimlik
   workAddress?: string;
   service_cities?: string[];  // Sürücünün iş aldığı şehirler (çoklu) — boşsa hiçbir talep listelenmez/bildirilmez
+  user_type?: string[];       // Verdiği hizmetler (backend profili, ör. ['towTruck', 'crane'])
   role?: HelperRole;
   provider_type?: string;
   vehicles?: ProviderVehicle[]; // List of the provider's tow trucks. // Sağlayıcının çekicilerinin listesi.

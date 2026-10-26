@@ -9,6 +9,7 @@
  * - Navigation'da: hasActiveJobs selector ile kontrol et
  */
 import { create } from 'zustand';
+import type { JobCountsResponse } from '../api/types';
 
 interface JobCounts {
   pending: number;
@@ -41,6 +42,8 @@ interface JobCountsState {
   /** Randevulu İşlerim listesinden hizmet başına sayı (diğer sayılara dokunmaz) */
   setScheduledCounts: (counts: Partial<Record<keyof ServiceJobCounts, number>>) => void;
   markScheduledSupported: () => void;
+  /** GET /requests/all-counts/ yanıtı (backend anahtarları: tow-truck, home-moving …) → tüm hizmetler */
+  applyAllServicesCounts: (allCounts: Record<string, JobCountsResponse>) => void;
 
   // Computed - aktif iş var mı? (awaiting_approval + awaiting_payment + in_progress > 0)
   hasActiveJobs: () => boolean;
@@ -113,6 +116,31 @@ export const useJobCountsStore = create<JobCountsState>((set, get) => ({
   },
 
   markScheduledSupported: () => set({ scheduledSupported: true }),
+
+  applyAllServicesCounts: (allCounts) => {
+    const { updateServiceCounts, markScheduledSupported } = get();
+    // Yeni backend sayaçlarda randevulu iş sayısını (scheduled) döner → Randevu butonu açılır
+    if (Object.values(allCounts).some((c) => typeof c?.scheduled === 'number')) {
+      markScheduledSupported();
+    }
+
+    updateServiceCounts('tow', allCounts['tow-truck'] || initialCounts);
+    updateServiceCounts('crane', allCounts['crane'] || initialCounts);
+
+    // Nakliye = home-moving + city-moving birleşik
+    const homeCounts = allCounts['home-moving'] || initialCounts;
+    const cityCounts = allCounts['city-moving'] || initialCounts;
+    updateServiceCounts('nakliye', {
+      pending: homeCounts.pending + cityCounts.pending,
+      awaiting_approval: homeCounts.awaiting_approval + cityCounts.awaiting_approval,
+      awaiting_payment: homeCounts.awaiting_payment + cityCounts.awaiting_payment,
+      in_progress: homeCounts.in_progress + cityCounts.in_progress,
+      scheduled: (homeCounts.scheduled ?? 0) + (cityCounts.scheduled ?? 0),
+    });
+
+    updateServiceCounts('roadAssistance', allCounts['road-assistance'] || initialCounts);
+    updateServiceCounts('transfer', allCounts['transfer'] || initialCounts);
+  },
 
   resetAllCounts: () => {
     set({

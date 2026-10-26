@@ -26,7 +26,6 @@ import { useOrdersFilters } from './hooks/useOrdersFilters';
 import { useOrdersData, ServiceFilterType } from './hooks/useOrdersData';
 
 // Randevulu talep alan hizmetler (çekici ve yol yardımda randevu yok)
-const SCHEDULABLE_SERVICES: ServiceFilterType[] = ['crane', 'nakliye', 'transfer'];
 
 // Canonical ServiceType -> Screen service filter mapping
 const wsServiceToFilter: Record<ServiceType, ServiceFilterType> = {
@@ -61,7 +60,7 @@ const getTabAndFilterForStatus = (status?: string): { mainTab: 'incoming' | 'my_
 
 const validCountStatuses = ['pending', 'awaiting_approval', 'awaiting_payment', 'in_progress'];
 
-import { useUserServiceTypes } from './hooks/useUserServiceTypes';
+import { SCHEDULABLE_SERVICES, useUserServiceTypes } from './hooks/useUserServiceTypes';
 import { useOrdersNavigation } from './hooks/useOrdersNavigation';
 
 type RouteType = NativeStackScreenProps<RootStackParamList, 'Orders'>['route'];

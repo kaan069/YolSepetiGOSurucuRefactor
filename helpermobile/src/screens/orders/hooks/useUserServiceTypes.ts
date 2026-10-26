@@ -5,6 +5,29 @@ import { logger } from '../../../utils/logger';
 
 const SERVICE_ORDER: ServiceFilterType[] = ['tow', 'crane', 'nakliye', 'roadAssistance', 'transfer'];
 
+/** Randevulu talep alabilen hizmetler (Randevu butonu ve ana ekrandaki randevulu iş sayısı) */
+export const SCHEDULABLE_SERVICES: ServiceFilterType[] = ['crane', 'nakliye', 'transfer'];
+
+const USER_TYPE_TO_SERVICE: Record<string, ServiceFilterType> = {
+  towTruck: 'tow',
+  crane: 'crane',
+  roadAssistance: 'roadAssistance',
+  homeToHomeMoving: 'nakliye',
+  cityToCity: 'nakliye',
+  transfer: 'transfer',
+};
+
+/** user.user_type (ör. ['towTruck', 'cityToCity']) → İşler sekmesindeki hizmetler, sıralı ve tekil */
+export function userServiceTypesOf(userTypes: unknown): ServiceFilterType[] {
+  if (!Array.isArray(userTypes)) return [];
+  const mapped = new Set<ServiceFilterType>();
+  userTypes.forEach((type) => {
+    const service = USER_TYPE_TO_SERVICE[type as string];
+    if (service) mapped.add(service);
+  });
+  return SERVICE_ORDER.filter((service) => mapped.has(service));
+}
+
 export function useUserServiceTypes(onServiceTypeChange?: (type: ServiceFilterType) => void) {
   const [userServiceTypes, setUserServiceTypes] = useState<ServiceFilterType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -15,26 +38,7 @@ export function useUserServiceTypes(onServiceTypeChange?: (type: ServiceFilterTy
       const user = await authAPI.getUser();
 
       if (user && user.user_type && Array.isArray(user.user_type)) {
-        const mappedTypes: ServiceFilterType[] = [];
-
-        user.user_type.forEach((type: string) => {
-          if (type === 'towTruck') {
-            if (!mappedTypes.includes('tow')) mappedTypes.push('tow');
-          } else if (type === 'crane') {
-            if (!mappedTypes.includes('crane')) mappedTypes.push('crane');
-          } else if (type === 'roadAssistance') {
-            if (!mappedTypes.includes('roadAssistance')) mappedTypes.push('roadAssistance');
-          } else if (type === 'homeToHomeMoving' || type === 'cityToCity') {
-            if (!mappedTypes.includes('nakliye')) mappedTypes.push('nakliye');
-          } else if (type === 'transfer') {
-            if (!mappedTypes.includes('transfer')) mappedTypes.push('transfer');
-          }
-        });
-
-        // Sort by predefined order
-        const sortedTypes = mappedTypes.sort((a, b) => {
-          return SERVICE_ORDER.indexOf(a) - SERVICE_ORDER.indexOf(b);
-        });
+        const sortedTypes = userServiceTypesOf(user.user_type);
 
         setUserServiceTypes(sortedTypes);
 

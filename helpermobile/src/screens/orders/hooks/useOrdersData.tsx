@@ -41,8 +41,6 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
   // Aktif iş store'u - WebSocket konum paylaşımı için
   const setActiveJob = useActiveJobStore((state) => state.setActiveJob);
 
-  // Global job counts store - İşler sekmesi yanıp sönmesi için
-  const updateServiceCounts = useJobCountsStore((state) => state.updateServiceCounts);
 
 
   // Helper function to reverse geocode coordinates to address
@@ -262,33 +260,12 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
   const fetchAllServicesJobCounts = useCallback(async () => {
     try {
       const allCounts = await requestsAPI.getAllServicesCounts();
-      // Yeni backend sayaçlarda randevulu iş sayısını (scheduled) döner → Randevu butonu açılır
-      if (Object.values(allCounts).some((c) => typeof c?.scheduled === 'number')) {
-        useJobCountsStore.getState().markScheduledSupported();
-      }
-      const zeroCounts = { pending: 0, awaiting_approval: 0, awaiting_payment: 0, in_progress: 0 };
-
-      // Backend key'lerini store key'lerine map et
-      updateServiceCounts('tow', allCounts['tow-truck'] || zeroCounts);
-      updateServiceCounts('crane', allCounts['crane'] || zeroCounts);
-
-      // Nakliye = home-moving + city-moving birleşik
-      const homeCounts = allCounts['home-moving'] || zeroCounts;
-      const cityCounts = allCounts['city-moving'] || zeroCounts;
-      updateServiceCounts('nakliye', {
-        pending: homeCounts.pending + cityCounts.pending,
-        awaiting_approval: homeCounts.awaiting_approval + cityCounts.awaiting_approval,
-        awaiting_payment: homeCounts.awaiting_payment + cityCounts.awaiting_payment,
-        in_progress: homeCounts.in_progress + cityCounts.in_progress,
-        scheduled: (homeCounts.scheduled ?? 0) + (cityCounts.scheduled ?? 0),
-      });
-
-      updateServiceCounts('roadAssistance', allCounts['road-assistance'] || zeroCounts);
-      updateServiceCounts('transfer', allCounts['transfer'] || zeroCounts);
+      // Global job counts store - İşler sekmesi yanıp sönmesi için
+      useJobCountsStore.getState().applyAllServicesCounts(allCounts);
     } catch (error) {
       logger.error('orders', 'Tm servislerin i saylar alnamad');
     }
-  }, [updateServiceCounts]);
+  }, []);
 
   // İlk yüklemede tüm servislerin sayılarını çek
   useEffect(() => {

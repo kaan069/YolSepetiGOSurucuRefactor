@@ -2,14 +2,15 @@
  * Ana ekrandaki iş kısayolu için sürücünün üzerindeki işler:
  * devam eden, ödeme bekleyen ve yola çıkılmamış randevulu işler (bütün hizmetler).
  *
- * Önce tek çağrıyla sayılar alınır (/requests/all-counts/); yalnızca işi olan hizmetin
- * listesi çekilir. Kimlikler ve detay yönlendirmesi Siparişler / Randevulu İşlerim ile aynıdır.
+ * Önce tek çağrıyla sayılar alınır (/requests/all-counts/, useJobCountsStore'a da yazılır);
+ * yalnızca işi olan hizmetin listesi çekilir. Kimlikler ve detay yönlendirmesi Siparişler / Randevulu İşlerim ile aynıdır.
  */
 import { requestsAPI } from '../api';
 import type { ScheduledJob, ScheduledJobServiceType } from '../api/types';
 import type { ServiceGroup } from '../constants/serviceTypes';
 import { getScheduleInfo, ScheduleInfo } from '../utils/schedule';
 import { scheduledJobRequestId } from '../screens/orders/jobMappers';
+import { useJobCountsStore } from '../store/useJobCountsStore';
 
 export type HomeJobService = Exclude<ServiceGroup, 'nakliye'>;
 export type HomeJobKind = 'in_progress' | 'awaiting_payment' | 'scheduled';
@@ -177,6 +178,8 @@ function compareJobs(a: HomeJob, b: HomeJob): number {
  */
 export async function fetchHomeJobs(): Promise<HomeJob[]> {
   const counts = await requestsAPI.getAllServicesCounts();
+  // Ana ekrandaki talep özeti ve İşler sekmesinin yanıp sönmesi aynı sayıları kullanır
+  useJobCountsStore.getState().applyAllServicesCounts(counts ?? {});
 
   const tasks: Promise<HomeJob[]>[] = [];
   (Object.keys(SERVICES) as HomeJobService[]).forEach((service) => {
