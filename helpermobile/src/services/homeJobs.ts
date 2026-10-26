@@ -29,8 +29,15 @@ export interface HomeJob {
   jobId: string;
   kind: HomeJobKind;
   customerName: string | null;
-  /** Backend yalnızca işi alan sürücüye gönderir; yoksa null */
+  /** Backend yalnızca iş devam ederken / tamamlanınca gönderir; gizliyken null */
   customerPhone: string | null;
+  /** Gizliyken gösterim için '+905*****' */
+  customerPhoneMasked: string | null;
+  /**
+   * Ad, telefon, açık adres ve tam konum açık mı (iş devam ediyor). Ödeme bekleyen işte
+   * backend adresi "İlçe, İl"e, koordinatı ~100 m'ye yuvarlar: konum butonları gösterilmez.
+   */
+  contactsVisible: boolean;
   pickup: HomeJobPlace | null;
   /** Tek konumlu hizmetlerde (vinç, yol yardım) null */
   dropoff: HomeJobPlace | null;
@@ -131,6 +138,8 @@ function places(service: HomeJobService, r: any): { pickup: HomeJobPlace | null;
 
 function toHomeJob(service: HomeJobService, kind: HomeJobKind, raw: any, jobId: string): HomeJob {
   const owner = raw.request_id && typeof raw.request_id === 'object' ? raw.request_id : {};
+  // Randevulu liste hem ödeme bekleyen hem devam eden işleri döner
+  const status = kind === 'scheduled' ? raw.status ?? owner.status : kind;
   return {
     // Randevulu liste detay nesnesi döner; tekilleştirme talep kimliğiyle
     key: `${service}-${scheduledJobRequestId(raw)}`,
@@ -145,6 +154,8 @@ function toHomeJob(service: HomeJobService, kind: HomeJobKind, raw: any, jobId: 
       owner.request_owner_name_surname,
     ),
     customerPhone: text(raw.requestOwnerPhone, raw.request_owner_phone, owner.request_owner_phone),
+    customerPhoneMasked: text(raw.requestOwnerPhoneMasked, owner.requestOwnerPhoneMasked),
+    contactsVisible: status === 'in_progress',
     ...places(service, raw),
     schedule: getScheduleInfo(raw),
     createdAt: new Date(raw.created_at).getTime() || 0,

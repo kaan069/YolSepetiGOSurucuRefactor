@@ -874,6 +874,8 @@ export interface EmployeeJob {
     created_at: string;
     updated_at: string;
     customer_info: { name: string; phone: string } | null;
+    /** customer_info gizliyken gösterim için maskeli ad/telefon ('A**** Y****', '+905*****'); açıkken null */
+    customer_info_masked?: { name: string; phone: string } | null;
 }
 
 // ==================== TRANSFER TYPES ====================
@@ -1285,5 +1287,7 @@ export interface EmployeeJobDetail {
     created_at: string;
     updated_at: string;
     customer_info: { name: string; phone: string } | null;
+    /** customer_info gizliyken gösterim için maskeli ad/telefon ('A**** Y****', '+905*****'); açıkken null */
+    customer_info_masked?: { name: string; phone: string } | null;
 }
 

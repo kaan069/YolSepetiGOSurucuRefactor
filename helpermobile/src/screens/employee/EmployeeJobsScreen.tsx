@@ -103,10 +103,10 @@ function JobCard({ item, onPress, cardBg, appColors, moderateScale, spacing, isD
                             {serviceInfo.label}
                         </Text>
 
-                        {/* Customer name (only when available) */}
-                        {item.customer_info !== null && (
+                        {/* Müşteri adı: iş devam ederken tam, bekleyen işte maskeli ('A**** Y****') */}
+                        {!!(item.customer_info?.name || item.customer_info_masked?.name) && (
                             <Text variant="bodySmall" style={{ color: appColors.text.secondary, marginBottom: 2 }}>
-                                {item.customer_info.name}
+                                {item.customer_info?.name || item.customer_info_masked?.name}
                             </Text>
                         )}
 

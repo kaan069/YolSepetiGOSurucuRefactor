@@ -1,9 +1,12 @@
 /**
  * Ana ekranda sürücünün üzerindeki bir iş: hizmet, durum (sağ üst), müşteri adı ve numarası,
  * arama, alış / bırakış konumu butonları. Karta basınca işin detayı açılır.
+ * Ödeme bekleyen işte backend müşteri bilgisini maskeler: numara '+905*****', arama ve konum
+ * butonları yerine ödeme sonrası açılacağı yazılır.
  */
 import React from 'react';
 import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { FkButton, FkIconChip } from '../fk';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import type { HomeJob } from '../../services/homeJobs';
@@ -73,7 +76,7 @@ export default function JobShortcutCard({ job, onOpen, style }: Props) {
             {job.customerName || 'Müşteri'}
           </Text>
           <Text style={[styles.phone, { color: tokens.colors.textSecondary }]} numberOfLines={1}>
-            {job.customerPhone || 'Numara henüz paylaşılmadı'}
+            {job.customerPhone || job.customerPhoneMasked || 'Numara henüz paylaşılmadı'}
           </Text>
         </View>
         {!!job.customerPhone && (
@@ -83,7 +86,14 @@ export default function JobShortcutCard({ job, onOpen, style }: Props) {
         )}
       </View>
 
-      {(job.pickup || job.dropoff) && (
+      {!job.contactsVisible ? (
+        <View style={styles.hiddenNote}>
+          <MaterialCommunityIcons name="lock-outline" size={16} color={tokens.colors.textSecondary} />
+          <Text style={[styles.hiddenText, { color: tokens.colors.textSecondary }]} numberOfLines={2}>
+            Müşteri ödemeyi yapınca tam adres ve numara açılır.
+          </Text>
+        </View>
+      ) : (job.pickup || job.dropoff) && (
         <View style={styles.actions}>
           {job.pickup && (
             <FkButton
@@ -168,6 +178,17 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   action: {
+    flex: 1,
+  },
+  hiddenNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 2,
+    marginTop: 'auto',
+    paddingTop: spacing.sm,
+  },
+  hiddenText: {
+    ...text.caption,
     flex: 1,
   },
 });
