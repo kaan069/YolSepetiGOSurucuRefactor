@@ -14,6 +14,7 @@ import {
   Linking,
   Platform,
   AppState,
+  ScrollView,
 } from 'react-native';
 import { Text } from 'react-native-paper';
 import * as Location from 'expo-location';
@@ -165,12 +166,17 @@ export default function BackgroundPermissionGate() {
               : 'Pil Optimizasyonu Kapatılmalı'}
           </Text>
 
-          {/* Aciklama */}
-          <Text style={styles.description}>
-            {isBackgroundLocation
-              ? 'Bu konum ve takip bilgisi iptal olan taleplerde ücret iadesi için gereklidir. Konum izni vermediğiniz durumda ücret iadesi alamayabilirsiniz.\n\nAksi takdirde uygulamayı kullanamazsınız.'
-              : 'Uygulamanın arka planda düzgün çalışması ve konum takibinin kesintisiz devam etmesi için pil optimizasyonunu kapatmanız gerekmektedir.\n\nBu konum ve takip bilgisi iptal olan taleplerde ücret iadesi için gereklidir. Konum izni vermediğiniz durumda ücret iadesi alamayabilirsiniz.'}
-          </Text>
+          {/* Aciklama — Google Play "belirgin açıklama" (prominent disclosure): arka plan
+              konumunun hangi özellikler için ve uygulama kapalıyken de toplandığı yazılmalı.
+              Play Console'daki konum izni beyanıyla aynı kullanımları anlatır. */}
+          {/* Küçük ekranda pencere taşmasın: yalnızca açıklama kaydırılır */}
+          <ScrollView style={styles.descriptionScroll} bounces={false}>
+            <Text style={[styles.description, isBackgroundLocation && styles.descriptionLeft]}>
+              {isBackgroundLocation
+                ? 'Yol SepetiGo Sürücü, uygulama kapalıyken veya kullanılmıyorken de konumunuzu toplar. Konumunuz şunlar için kullanılır:\n\n• Çevrimiçiyken acente haritasında bulunduğunuz yerde görünmeniz ve size iş atanabilmesi\n• Aktif iş sırasında konumunuzun müşteriyle paylaşılması\n• İptal olan taleplerde ücret iadesi için iş takibinin doğrulanması\n\nÇevrimdışıyken ve aktif işiniz yokken arka planda konum toplanmaz. Devam etmek için konum iznini "Her zaman" olarak verin.'
+                : 'Çevrimiçiyken ve aktif iş sırasında konumunuzun arka planda kesintisiz gönderilebilmesi için bu uygulamada pil optimizasyonunu kapatmanız gerekir. Aksi halde telefon, uygulamayı arka planda durdurabilir.'}
+            </Text>
+          </ScrollView>
 
           {/* Ayarlara Git Butonu */}
           <TouchableOpacity
@@ -255,6 +261,7 @@ const styles = StyleSheet.create({
     padding: 24,
     width: '100%',
     maxWidth: 340,
+    maxHeight: '100%',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
@@ -289,6 +296,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 20,
+  },
+  descriptionLeft: {
+    textAlign: 'left',
+  },
+  descriptionScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+    alignSelf: 'stretch',
   },
   settingsButton: {
     flexDirection: 'row',
