@@ -1,6 +1,6 @@
 /**
- * Ana ekranın kayan duyuru / reklam panosu (HomeCarousel üzerinde, kendiliğinden kayar).
- * Görselli içerik tam görsel kart, görselsiz içerik bülten kartı olarak çizilir.
+ * Ana ekranın kayan duyuru / reklam panosu (HomeCarousel üzerinde, 16:9, kendiliğinden kayar).
+ * Görselli içerik yalnızca görsel (detaydaki gibi tam), görselsiz içerik bülten kartı olarak çizilir.
  */
 import React, { useCallback } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -23,6 +23,7 @@ export default function DriverBoard({ items, onPress }: Props) {
     (item: BoardItem, size: CarouselCardSize) => {
       const cardStyle = [styles.card, size];
 
+      // Görsel, detay sayfasındaki gibi tam ve üzerine yazı binmeden (mesaj görselin içinde)
       if (item.image_url) {
         return (
           <TouchableOpacity
@@ -33,16 +34,6 @@ export default function DriverBoard({ items, onPress }: Props) {
             accessibilityLabel={item.title}
           >
             <Image source={{ uri: item.image_url }} style={styles.image} resizeMode="cover" />
-            <View style={styles.imageCaption}>
-              <Text style={styles.imageTitle} numberOfLines={1}>
-                {item.title}
-              </Text>
-              {!!item.summary && (
-                <Text style={styles.imageSummary} numberOfLines={2}>
-                  {item.summary}
-                </Text>
-              )}
-            </View>
           </TouchableOpacity>
         );
       }
@@ -78,7 +69,7 @@ export default function DriverBoard({ items, onPress }: Props) {
             {item.title}
           </Text>
           {!!item.summary && (
-            <Text style={[styles.bulletinSummary, { color: tokens.colors.textSecondary }]} numberOfLines={3}>
+            <Text style={[styles.bulletinSummary, { color: tokens.colors.textSecondary }]} numberOfLines={2}>
               {item.summary}
             </Text>
           )}
@@ -105,24 +96,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     width: '100%',
     height: '100%',
-  },
-  imageCaption: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm + 2,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
-  imageTitle: {
-    ...text.cardTitle,
-    color: colors.white,
-  },
-  imageSummary: {
-    ...text.meta,
-    color: 'rgba(255,255,255,0.88)',
-    marginTop: 2,
   },
   bulletin: {
     borderWidth: 1,

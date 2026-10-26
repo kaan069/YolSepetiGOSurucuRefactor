@@ -2,8 +2,9 @@
 // Bu, sürücü için uygulamanın ana ekranıdır.
 //
 // Düzen (yukarıdan aşağı): çevrimiçi şeridi → duyuru panosu → butonlar → iş kutusu.
-// Pano ve butonlar backend'den gelir (yoksa gizlenir); iş kutusu her zaman görünür ve
-// duyuru panosuyla aynı boydadır. Harita şimdilik kaldırıldı (kodu aşağıda yorum satırında).
+// Pano ve butonlar backend'den gelir (yoksa gizlenir); iş kutusu her zaman görünür.
+// Duyuru ve iş kartları 16:9 ve aynı boyda (duyuru görseli detay sayfasındaki gibi tam görünür).
+// Harita şimdilik kaldırıldı (kodu aşağıda yorum satırında).
 import React, { useCallback, useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { Switch, Text } from 'react-native-paper';
@@ -34,16 +35,8 @@ import { useDriverBoard, useDriverBoardStore } from '../store/useDriverBoardStor
 import type { HomeJob } from '../services/homeJobs';
 import { colors, spacing as ds, text } from '../theme/design';
 
-/**
- * Bölüm payları: pano ve iş kutusu eşit, butonlar dar şerit. Küçük ekranda (ör. hizmet
- * şehri uyarısı da açıkken) alt sınırların altına inilmez, sayfa kaydırılır.
- */
-const BOARD_FLEX = 40;
-const BUTTONS_FLEX = 15;
-const JOBS_FLEX = 40;
-const BOARD_MIN_HEIGHT = 190;
-const BUTTONS_MIN_HEIGHT = 76;
-const JOBS_MIN_HEIGHT = 210;
+/** Duyuru butonları şeridinin yüksekliği (kart boyları HomeCarousel'de genişlikten hesaplanır) */
+const BUTTONS_HEIGHT = 84;
 
 export default function HomeScreen() {
   // Get state and actions from global stores.
@@ -282,26 +275,20 @@ export default function HomeScreen() {
           </FkInfoBanner>
         )}
 
-        {hasBoard && (
-          <View style={{ flex: BOARD_FLEX, minHeight: BOARD_MIN_HEIGHT }}>
-            <DriverBoard items={board.items} onPress={(item) => openBoardItem(item.id, 'board')} />
-          </View>
-        )}
+        {hasBoard && <DriverBoard items={board.items} onPress={(item) => openBoardItem(item.id, 'board')} />}
 
         {hasButtons && (
-          <View style={{ flex: BUTTONS_FLEX, minHeight: BUTTONS_MIN_HEIGHT }}>
+          <View style={{ height: BUTTONS_HEIGHT }}>
             <BoardButtons buttons={board.buttons} onPress={(button) => openBoardItem(button.item_id, 'button')} />
           </View>
         )}
 
-        <View style={{ flex: JOBS_FLEX, minHeight: JOBS_MIN_HEIGHT }}>
-          <ActiveJobsBox
-            jobs={homeJobs.jobs}
-            status={homeJobs.status}
-            onOpen={openJob}
-            onRetry={() => homeJobs.refresh(true)}
-          />
-        </View>
+        <ActiveJobsBox
+          jobs={homeJobs.jobs}
+          status={homeJobs.status}
+          onOpen={openJob}
+          onRetry={() => homeJobs.refresh(true)}
+        />
       </ScrollView>
     </View>
   );

@@ -1,5 +1,5 @@
 /**
- * Ana ekranın iş kutusu (duyuru panosuyla aynı boyda): sürücünün üzerindeki işler yana
+ * Ana ekranın iş kutusu (duyuru kartıyla aynı 16:9 boyda): sürücünün üzerindeki işler yana
  * kaydırmalı kartlar olarak; iş yoksa bildirim ve konumu açık tutma hatırlatması.
  */
 import React, { useCallback } from 'react';
@@ -9,7 +9,12 @@ import { useFkTokens } from '../../hooks/useFkTokens';
 import type { HomeJob } from '../../services/homeJobs';
 import type { HomeJobsStatus } from '../../hooks/useHomeJobs';
 import { colors, radius, spacing, text } from '../../theme/design';
-import HomeCarousel, { CarouselCardSize } from './HomeCarousel';
+import HomeCarousel, {
+  CAROUSEL_PADDING_BOTTOM,
+  CAROUSEL_PADDING_TOP,
+  CarouselCardSize,
+  useCarouselCardSize,
+} from './HomeCarousel';
 import JobShortcutCard from './JobShortcutCard';
 
 interface Props {
@@ -21,6 +26,7 @@ interface Props {
 
 export default function ActiveJobsBox({ jobs, status, onOpen, onRetry }: Props) {
   const { tokens } = useFkTokens();
+  const cardSize = useCarouselCardSize();
 
   const renderCard = useCallback(
     (job: HomeJob, size: CarouselCardSize) => <JobShortcutCard job={job} onOpen={onOpen} style={size} />,
@@ -33,7 +39,12 @@ export default function ActiveJobsBox({ jobs, status, onOpen, onRetry }: Props) 
 
   return (
     <View style={styles.container}>
-      <View style={[styles.placeholder, { backgroundColor: tokens.colors.cardBg, borderColor: tokens.colors.border }]}>
+      <View
+        style={[
+          styles.placeholder,
+          { height: cardSize.height, backgroundColor: tokens.colors.cardBg, borderColor: tokens.colors.border },
+        ]}
+      >
         {status === 'loading' ? (
           <ActivityIndicator color={colors.primary[500]} />
         ) : status === 'error' ? (
@@ -60,13 +71,11 @@ export default function ActiveJobsBox({ jobs, status, onOpen, onRetry }: Props) 
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
+    paddingTop: CAROUSEL_PADDING_TOP,
+    paddingBottom: CAROUSEL_PADDING_BOTTOM,
   },
   placeholder: {
-    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radius.lg,

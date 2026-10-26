@@ -1,15 +1,16 @@
 /**
  * Ana ekrandaki yana kaydırmalı kart alanı (duyuru panosu ve iş kısayolu).
- * Müşteri uygulamasındaki CampaignSlider kalıbı: kart boyu bulunduğu alana göre ölçülür,
- * birden fazla kartta noktalar çıkar; istenirse kendiliğinden kayar.
+ * Müşteri uygulamasındaki CampaignSlider kalıbı: kartlar 16:9 (duyuru görseli detay
+ * sayfasındaki gibi kırpılmadan görünür), birden fazla kartta noktalar çıkar;
+ * istenirse kendiliğinden kayar.
  */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
-  LayoutChangeEvent,
   NativeScrollEvent,
   NativeSyntheticEvent,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { useIsFocused } from '@react-navigation/native';
@@ -17,13 +18,23 @@ import { useFkTokens } from '../../hooks/useFkTokens';
 import { colors, spacing } from '../../theme/design';
 
 const CARD_GAP = spacing.sm;
+const CARD_ASPECT = 16 / 9;
 const DOTS_HEIGHT = 20;
-const PADDING_TOP = spacing.sm;
+export const CAROUSEL_PADDING_TOP = spacing.sm;
+/** Tek kartta noktalar yerine alttaki boşluk */
+export const CAROUSEL_PADDING_BOTTOM = spacing.sm;
 const AUTO_SCROLL_INTERVAL = 5000;
 
 export interface CarouselCardSize {
   width: number;
   height: number;
+}
+
+/** Tam genişlikteki alanda kart boyu (iki yanda spacing.md) */
+export function useCarouselCardSize(): CarouselCardSize {
+  const { width } = useWindowDimensions();
+  const cardWidth = width - spacing.md * 2;
+  return { width: cardWidth, height: Math.round(cardWidth / CARD_ASPECT) };
 }
 
 interface Props<T> {
@@ -38,20 +49,12 @@ export default function HomeCarousel<T>({ items, keyExtractor, renderCard, autoS
   const { tokens, isDarkMode } = useFkTokens();
   const isFocused = useIsFocused();
   const listRef = useRef<FlatList<T>>(null);
-  const [area, setArea] = useState<CarouselCardSize | null>(null);
+  const size = useCarouselCardSize();
   const [activeIndex, setActiveIndex] = useState(0);
   const [dragging, setDragging] = useState(false);
 
   const multiple = items.length > 1;
-  const cardWidth = area ? area.width - spacing.md * 2 : 0;
-  // Ölçülen yükseklik üst boşluğu da içerir; altta noktalar (tek kartta küçük pay)
-  const cardHeight = area ? area.height - PADDING_TOP - (multiple ? DOTS_HEIGHT : spacing.sm) : 0;
-  const interval = cardWidth + CARD_GAP;
-
-  const onLayout = useCallback((e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout;
-    setArea((prev) => (prev && prev.width === width && prev.height === height ? prev : { width, height }));
-  }, []);
+  const interval = size.width + CARD_GAP;
 
   // Yenilemede kart azaldıysa başa dön
   useEffect(() => {
@@ -62,7 +65,7 @@ export default function HomeCarousel<T>({ items, keyExtractor, renderCard, autoS
   }, [items.length, activeIndex]);
 
   useEffect(() => {
-    if (!autoScroll || !multiple || dragging || !isFocused || interval <= 0) return;
+    if (!autoScroll || !multiple || dragging || !isFocused) return;
     const timer = setTimeout(() => {
       const next = (activeIndex + 1) % items.length;
       listRef.current?.scrollToOffset({ offset: next * interval, animated: true });
@@ -72,53 +75,46 @@ export default function HomeCarousel<T>({ items, keyExtractor, renderCard, autoS
 
   const onScroll = useCallback(
     (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (interval <= 0) return;
       const index = Math.round(e.nativeEvent.contentOffset.x / interval);
       if (index >= 0 && index < items.length) setActiveIndex((prev) => (prev === index ? prev : index));
     },
     [interval, items.length],
   );
 
-  const size = { width: cardWidth, height: cardHeight };
-
   return (
-    <View style={styles.container} onLayout={onLayout}>
-      {area && cardWidth > 0 && cardHeight > 0 && (
-        <>
-          <FlatList
-            ref={listRef}
-            data={items}
-            renderItem={({ item }) => renderCard(item, size)}
-            keyExtractor={keyExtractor}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            scrollEnabled={multiple}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            onScrollBeginDrag={() => setDragging(true)}
-            onScrollEndDrag={() => setDragging(false)}
-            snapToInterval={interval}
-            snapToAlignment="start"
-            decelerationRate="fast"
-            ItemSeparatorComponent={Separator}
-            contentContainerStyle={styles.listContent}
-            style={{ height: cardHeight, flexGrow: 0 }}
-          />
-          {multiple && (
-            <View style={styles.dots}>
-              {items.map((item, index) => (
-                <View
-                  key={keyExtractor(item)}
-                  style={[
-                    styles.dot,
-                    { backgroundColor: isDarkMode ? tokens.colors.borderStrong : colors.neutral[300] },
-                    index === activeIndex && styles.dotActive,
-                  ]}
-                />
-              ))}
-            </View>
-          )}
-        </>
+    <View style={[styles.container, !multiple && styles.single]}>
+      <FlatList
+        ref={listRef}
+        data={items}
+        renderItem={({ item }) => renderCard(item, size)}
+        keyExtractor={keyExtractor}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        scrollEnabled={multiple}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        onScrollBeginDrag={() => setDragging(true)}
+        onScrollEndDrag={() => setDragging(false)}
+        snapToInterval={interval}
+        snapToAlignment="start"
+        decelerationRate="fast"
+        ItemSeparatorComponent={Separator}
+        contentContainerStyle={styles.listContent}
+        style={{ height: size.height, flexGrow: 0 }}
+      />
+      {multiple && (
+        <View style={styles.dots}>
+          {items.map((item, index) => (
+            <View
+              key={keyExtractor(item)}
+              style={[
+                styles.dot,
+                { backgroundColor: isDarkMode ? tokens.colors.borderStrong : colors.neutral[300] },
+                index === activeIndex && styles.dotActive,
+              ]}
+            />
+          ))}
+        </View>
       )}
     </View>
   );
@@ -130,8 +126,10 @@ function Separator() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    paddingTop: PADDING_TOP,
+    paddingTop: CAROUSEL_PADDING_TOP,
+  },
+  single: {
+    paddingBottom: CAROUSEL_PADDING_BOTTOM,
   },
   listContent: {
     paddingHorizontal: spacing.md,
