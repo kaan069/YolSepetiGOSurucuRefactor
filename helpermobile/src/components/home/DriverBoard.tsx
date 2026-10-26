@@ -1,31 +1,15 @@
 /**
- * Ana ekranın kayan duyuru / reklam panosu (müşteri uygulamasındaki CampaignSlider kalıbı).
+ * Ana ekranın kayan duyuru / reklam panosu (HomeCarousel üzerinde, kendiliğinden kayar).
  * Görselli içerik tam görsel kart, görselsiz içerik bülten kartı olarak çizilir.
- * Kart boyu bulunduğu alana göre ölçülür (ana ekranın %35'i).
  */
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  FlatList,
-  Image,
-  LayoutChangeEvent,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { useIsFocused } from '@react-navigation/native';
+import React, { useCallback } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import type { BoardItem } from '../../api/driverBoard';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import { dateLabel } from '../../constants/backendLabels';
 import { colors, radius, shadows, spacing, text } from '../../theme/design';
-
-const CARD_GAP = spacing.sm;
-const DOTS_HEIGHT = 20;
-const BOARD_PADDING_TOP = spacing.sm;
-const AUTO_SCROLL_INTERVAL = 5000;
+import HomeCarousel, { CarouselCardSize } from './HomeCarousel';
 
 interface Props {
   items: BoardItem[];
@@ -34,53 +18,10 @@ interface Props {
 
 export default function DriverBoard({ items, onPress }: Props) {
   const { tokens, isDarkMode } = useFkTokens();
-  const isFocused = useIsFocused();
-  const listRef = useRef<FlatList<BoardItem>>(null);
-  const [size, setSize] = useState<{ width: number; height: number } | null>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [dragging, setDragging] = useState(false);
 
-  const multiple = items.length > 1;
-  const cardWidth = size ? size.width - spacing.md * 2 : 0;
-  // Ölçülen yükseklik üst boşluğu da içerir; altta noktalar (tek içerikte küçük pay)
-  const cardHeight = size ? size.height - BOARD_PADDING_TOP - (multiple ? DOTS_HEIGHT : spacing.sm) : 0;
-  const interval = cardWidth + CARD_GAP;
-
-  const onLayout = useCallback((e: LayoutChangeEvent) => {
-    const { width, height } = e.nativeEvent.layout;
-    setSize((prev) => (prev && prev.width === width && prev.height === height ? prev : { width, height }));
-  }, []);
-
-  // Yenilemede içerik azaldıysa başa dön
-  useEffect(() => {
-    if (activeIndex >= items.length) {
-      setActiveIndex(0);
-      listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    }
-  }, [items.length, activeIndex]);
-
-  // Otomatik kaydırma: sürüklerken ve ekran odakta değilken durur
-  useEffect(() => {
-    if (!multiple || dragging || !isFocused || interval <= 0) return;
-    const timer = setTimeout(() => {
-      const next = (activeIndex + 1) % items.length;
-      listRef.current?.scrollToOffset({ offset: next * interval, animated: true });
-    }, AUTO_SCROLL_INTERVAL);
-    return () => clearTimeout(timer);
-  }, [multiple, dragging, isFocused, interval, activeIndex, items.length]);
-
-  const onScroll = useCallback(
-    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-      if (interval <= 0) return;
-      const index = Math.round(e.nativeEvent.contentOffset.x / interval);
-      if (index >= 0 && index < items.length) setActiveIndex((prev) => (prev === index ? prev : index));
-    },
-    [interval, items.length],
-  );
-
-  const renderItem = useCallback(
-    ({ item }: { item: BoardItem }) => {
-      const cardStyle = [styles.card, { width: cardWidth, height: cardHeight }];
+  const renderCard = useCallback(
+    (item: BoardItem, size: CarouselCardSize) => {
+      const cardStyle = [styles.card, size];
 
       if (item.image_url) {
         return (
@@ -148,64 +89,13 @@ export default function DriverBoard({ items, onPress }: Props) {
         </TouchableOpacity>
       );
     },
-    [cardWidth, cardHeight, isDarkMode, tokens, onPress],
+    [isDarkMode, tokens, onPress],
   );
 
-  return (
-    <View style={styles.container} onLayout={onLayout}>
-      {size && cardWidth > 0 && cardHeight > 0 && (
-        <>
-          <FlatList
-            ref={listRef}
-            data={items}
-            renderItem={renderItem}
-            keyExtractor={(item) => String(item.id)}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            scrollEnabled={multiple}
-            onScroll={onScroll}
-            scrollEventThrottle={16}
-            onScrollBeginDrag={() => setDragging(true)}
-            onScrollEndDrag={() => setDragging(false)}
-            snapToInterval={interval}
-            snapToAlignment="start"
-            decelerationRate="fast"
-            ItemSeparatorComponent={Separator}
-            contentContainerStyle={styles.listContent}
-            style={{ height: cardHeight, flexGrow: 0 }}
-          />
-          {multiple && (
-            <View style={styles.dots}>
-              {items.map((item, index) => (
-                <View
-                  key={item.id}
-                  style={[
-                    styles.dot,
-                    { backgroundColor: isDarkMode ? tokens.colors.borderStrong : colors.neutral[300] },
-                    index === activeIndex && styles.dotActive,
-                  ]}
-                />
-              ))}
-            </View>
-          )}
-        </>
-      )}
-    </View>
-  );
-}
-
-function Separator() {
-  return <View style={{ width: CARD_GAP }} />;
+  return <HomeCarousel items={items} keyExtractor={(item) => String(item.id)} renderCard={renderCard} autoScroll />;
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: BOARD_PADDING_TOP,
-  },
-  listContent: {
-    paddingHorizontal: spacing.md,
-  },
   card: {
     borderRadius: radius.lg,
     overflow: 'hidden',
@@ -277,21 +167,5 @@ const styles = StyleSheet.create({
   },
   bulletinMore: {
     ...text.captionStrong,
-  },
-  dots: {
-    height: DOTS_HEIGHT,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  dotActive: {
-    width: 18,
-    backgroundColor: colors.primary[500],
   },
 });

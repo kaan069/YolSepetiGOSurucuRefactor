@@ -1,62 +1,73 @@
 // This is the main screen of the application for the driver.
 // Bu, sürücü için uygulamanın ana ekranıdır.
-import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+//
+// Düzen (yukarıdan aşağı): çevrimiçi şeridi → duyuru panosu → butonlar → iş kutusu.
+// Pano ve butonlar backend'den gelir (yoksa gizlenir); iş kutusu her zaman görünür ve
+// duyuru panosuyla aynı boydadır. Harita şimdilik kaldırıldı (kodu aşağıda yorum satırında).
+import React, { useCallback, useEffect, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { Switch, Text } from 'react-native-paper';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import MapView, { Region } from 'react-native-maps';
+// import { TouchableOpacity } from 'react-native';
+// import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+// import MapView, { Region } from 'react-native-maps';
+// import * as Location from 'expo-location';
+// import { rememberPosition } from '../services/appLocationPing';
 import messaging from '@react-native-firebase/messaging';
-import * as Location from 'expo-location';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useDriverStore } from '../store/driverStore';
 import { useAuthStore } from '../store/authStore';
 import { useResponsive } from '../hooks/useResponsive';
 import { useAppTheme } from '../hooks/useAppTheme';
+import { useFkTokens } from '../hooks/useFkTokens';
+import { useHomeJobs } from '../hooks/useHomeJobs';
 import { RootStackParamList } from '../navigation';
 import authAPI from '../api/auth';
 import { logger } from '../utils/logger';
-import { rememberPosition } from '../services/appLocationPing';
 import { ensureLocationForOnline } from '../utils/locationPermission';
 import { FkButton, FkInfoBanner } from '../components/fk';
 import DriverBoard from '../components/home/DriverBoard';
 import BoardButtons from '../components/home/BoardButtons';
+import ActiveJobsBox from '../components/home/ActiveJobsBox';
 import driverBoardAPI, { BoardClickSource } from '../api/driverBoard';
 import { useDriverBoard, useDriverBoardStore } from '../store/useDriverBoardStore';
-import { colors, radius, shadows, spacing as ds, text } from '../theme/design';
+import type { HomeJob } from '../services/homeJobs';
+import { colors, spacing as ds, text } from '../theme/design';
 
-/** Ekran payları (%): harita kalan payı alır */
-const BOARD_FLEX = 35;
+/**
+ * Bölüm payları: pano ve iş kutusu eşit, butonlar dar şerit. Küçük ekranda (ör. hizmet
+ * şehri uyarısı da açıkken) alt sınırların altına inilmez, sayfa kaydırılır.
+ */
+const BOARD_FLEX = 40;
 const BUTTONS_FLEX = 15;
+const JOBS_FLEX = 40;
+const BOARD_MIN_HEIGHT = 190;
+const BUTTONS_MIN_HEIGHT = 76;
+const JOBS_MIN_HEIGHT = 210;
 
 export default function HomeScreen() {
   // Get state and actions from global stores.
   // Global store'lardan state ve eylemleri al.
-  const { isAvailable, currentLocation, updateOnlineStatus, loadOnlineStatus, isLoadingStatus } = useDriverStore();
+  const { isAvailable, updateOnlineStatus, loadOnlineStatus, isLoadingStatus } = useDriverStore();
   const { currentUser, setCurrentUser } = useAuthStore();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { screenBg, cardBg, textPrimary, textSecondary } = useAppTheme();
-  const { spacing, tabBar, safeArea, moderateScale } = useResponsive();
-
-  // MapView referansı
-  const mapRef = useRef<MapView>(null);
-
-  // State for the map's currently viewed region.
-  // Haritanın mevcut olarak görüntülenen bölgesi için state.
-  const [region, setRegion] = useState<Region | null>(null);
+  const { tokens } = useFkTokens();
+  const { safeArea } = useResponsive();
 
   // Hizmet şehirleri (service_cities) boş mu? Boşsa banner göster.
   // AsyncStorage'daki eski user objesi service_cities içermeyebilir; backend'den taze çekmeden
   // banner'ı gizlersek yanlış pozitif/negatif olur — useEffect aşağıda taze profil çeker.
   const needsServiceCity = !currentUser?.service_cities || currentUser.service_cities.length === 0;
 
-  // Backend'den pano ve butonlar: ikisi de yoksa ekran eskisi gibi tam harita.
-  // Oranlar: harita 50 / pano 35 / butonlar 15; olmayan bölümün payı haritaya kalır.
+  // Backend'den pano ve butonlar (yoksa bölüm gizlenir)
   const board = useDriverBoard();
   const hasBoard = board.items.length > 0;
   const hasButtons = board.buttons.length > 0;
-  const isSplit = hasBoard || hasButtons;
-  const mapFlex = 100 - (hasBoard ? BOARD_FLEX : 0) - (hasButtons ? BUTTONS_FLEX : 0);
+
+  // Sürücünün üzerindeki işler (devam eden, ödeme bekleyen, randevulu)
+  const homeJobs = useHomeJobs();
+  const [refreshing, setRefreshing] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -64,10 +75,43 @@ export default function HomeScreen() {
     }, []),
   );
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([useDriverBoardStore.getState().refresh({ force: true }), homeJobs.refresh(true)]);
+    setRefreshing(false);
+  }, [homeJobs]);
+
   const openBoardItem = useCallback(
     (itemId: number, source: BoardClickSource) => {
       driverBoardAPI.trackClick(itemId, source);
       navigation.navigate('BoardItemDetail', { itemId });
+    },
+    [navigation],
+  );
+
+  // Detay ekranları Siparişler / Randevulu İşlerim ile aynı kimlikle açılır
+  const openJob = useCallback(
+    (job: HomeJob) => {
+      switch (job.service) {
+        case 'towTruck':
+          navigation.navigate('JobDetail', { jobId: job.jobId });
+          break;
+        case 'crane':
+          navigation.navigate('CraneJobDetail', { jobId: job.jobId });
+          break;
+        case 'homeToHomeMoving':
+          navigation.navigate('NakliyeJobDetail', { jobId: job.jobId, movingType: 'home' });
+          break;
+        case 'cityToCity':
+          navigation.navigate('NakliyeJobDetail', { jobId: job.jobId, movingType: 'city' });
+          break;
+        case 'roadAssistance':
+          navigation.navigate('RoadAssistanceJobDetail', { jobId: job.jobId });
+          break;
+        case 'transfer':
+          navigation.navigate('TransferJobDetail', { jobId: job.jobId });
+          break;
+      }
     },
     [navigation],
   );
@@ -95,166 +139,170 @@ export default function HomeScreen() {
     await updateOnlineStatus(value);
   };
 
-  // Konumu bul - Haritayı kullanıcının konumuna götür
-  const handleFindMyLocation = async () => {
-    try {
-      // Her zaman güncel konumu al
-      const freshLocation = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
-
-      if (freshLocation) rememberPosition(freshLocation);
-      if (freshLocation && mapRef.current) {
-        const userRegion = {
-          latitude: freshLocation.coords.latitude,
-          longitude: freshLocation.coords.longitude,
-          latitudeDelta: 0.01, // Yakın zoom
-          longitudeDelta: 0.01,
-        };
-
-        mapRef.current.animateToRegion(userRegion, 1000);
-      }
-    } catch (error) {
-      logger.error('location', 'HomeScreen.findMyLocation failure');
-
-      // Hata durumunda store'daki konumu kullan
-      if (currentLocation && mapRef.current) {
-        const userRegion = {
-          latitude: currentLocation.coords.latitude,
-          longitude: currentLocation.coords.longitude,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        };
-        mapRef.current.animateToRegion(userRegion, 1000);
-      }
-    }
-  };
-
-
-  // Auto-navigate to user location when HomeScreen mounts
-  // HomeScreen yüklendiğinde otomatik olarak kullanıcı konumuna git
-  useEffect(() => {
-    const autoNavigateToLocation = async () => {
-      try {
-        // Konum iznini kontrol et
-        const { status } = await Location.getForegroundPermissionsAsync();
-
-        if (status === 'granted') {
-          // Kısa bir gecikme ile konuma git (haritanın yüklenmesi için)
-          setTimeout(() => {
-            handleFindMyLocation();
-          }, 500);
-        }
-      } catch (error) {
-        logger.error('location', 'HomeScreen.autoNavigate failure');
-      }
-    };
-
-    autoNavigateToLocation();
-  }, []); // Sadece component mount olduğunda çalışır
-
-  // Responsive styles - her render'da güncel değerlerle
-  const dynamicStyles = {
-    locationButton: {
-      // Tam haritada tab bar'ın hemen üstünde; bölünmüş düzende harita alanının sağ altında
-      bottom: isSplit ? ds.sm : tabBar.height + spacing.sm,
-      right: spacing.md,
-      width: moderateScale(52),
-      height: moderateScale(52),
-      borderRadius: moderateScale(26),
-    },
-    overlayContainer: {
-      paddingTop: safeArea.top + ds.sm, // Status bar için
-    },
-  };
+  // ---------------------------------------------------------------------------
+  // HARİTA (şimdilik kaldırıldı). Geri almak için bu bloğu, import'ları ve aşağıdaki
+  // JSX bloğunu yorumdan çıkar; `currentLocation`'ı useDriverStore'dan, `spacing`,
+  // `tabBar`, `moderateScale`'i useResponsive'den al.
+  // ---------------------------------------------------------------------------
+  // const mapRef = useRef<MapView>(null);
+  // const [region, setRegion] = useState<Region | null>(null);
+  //
+  // // Konumu bul - Haritayı kullanıcının konumuna götür
+  // const handleFindMyLocation = async () => {
+  //   try {
+  //     const freshLocation = await Location.getCurrentPositionAsync({
+  //       accuracy: Location.Accuracy.High,
+  //     });
+  //     if (freshLocation) rememberPosition(freshLocation);
+  //     if (freshLocation && mapRef.current) {
+  //       mapRef.current.animateToRegion({
+  //         latitude: freshLocation.coords.latitude,
+  //         longitude: freshLocation.coords.longitude,
+  //         latitudeDelta: 0.01, // Yakın zoom
+  //         longitudeDelta: 0.01,
+  //       }, 1000);
+  //     }
+  //   } catch (error) {
+  //     logger.error('location', 'HomeScreen.findMyLocation failure');
+  //     // Hata durumunda store'daki konumu kullan
+  //     if (currentLocation && mapRef.current) {
+  //       mapRef.current.animateToRegion({
+  //         latitude: currentLocation.coords.latitude,
+  //         longitude: currentLocation.coords.longitude,
+  //         latitudeDelta: 0.01,
+  //         longitudeDelta: 0.01,
+  //       }, 1000);
+  //     }
+  //   }
+  // };
+  //
+  // // HomeScreen yüklendiğinde otomatik olarak kullanıcı konumuna git
+  // useEffect(() => {
+  //   Location.getForegroundPermissionsAsync()
+  //     .then(({ status }) => {
+  //       // Kısa bir gecikme ile konuma git (haritanın yüklenmesi için)
+  //       if (status === 'granted') setTimeout(() => handleFindMyLocation(), 500);
+  //     })
+  //     .catch(() => logger.error('location', 'HomeScreen.autoNavigate failure'));
+  // }, []);
+  //
+  // const locationButtonStyle = {
+  //   bottom: tabBar.height + spacing.sm, // Tab bar'ın hemen üstünde, sağ alt köşede
+  //   right: spacing.md,
+  //   width: moderateScale(52),
+  //   height: moderateScale(52),
+  //   borderRadius: moderateScale(26),
+  // };
 
   return (
     <View style={[styles.container, { backgroundColor: screenBg }]}>
-      <View style={[styles.mapArea, { flex: mapFlex }]}>
-        <MapView
-          ref={mapRef}
-          style={StyleSheet.absoluteFill}
-          region={region || undefined}
-          showsUserLocation
-          loadingEnabled
-        />
+      {/* HARİTA (şimdilik kaldırıldı)
+      <MapView
+        ref={mapRef}
+        style={StyleSheet.absoluteFill}
+        region={region || undefined}
+        showsUserLocation
+        loadingEnabled
+      />
+      <TouchableOpacity
+        style={[styles.locationButton, locationButtonStyle, { backgroundColor: cardBg }]}
+        onPress={handleFindMyLocation}
+        activeOpacity={0.8}
+        accessibilityRole="button"
+        accessibilityLabel="Konumumu bul"
+      >
+        <MaterialCommunityIcons name="crosshairs-gps" size={moderateScale(24)} color={colors.primary[500]} />
+      </TouchableOpacity>
+      */}
 
-        {/* Konumu Bul Butonu — müşteri uygulamasındaki beyaz yuvarlak harita kontrolü */}
-        <TouchableOpacity
-          style={[styles.locationButton, dynamicStyles.locationButton, { backgroundColor: cardBg }]}
-          onPress={handleFindMyLocation}
-          activeOpacity={0.8}
-          accessibilityRole="button"
-          accessibilityLabel="Konumumu bul"
+      {/* Çevrimiçi şeridi */}
+      <View
+        style={[
+          styles.statusBar,
+          { paddingTop: safeArea.top + ds.sm, backgroundColor: cardBg, borderBottomColor: tokens.colors.border },
+        ]}
+      >
+        <View
+          style={[
+            styles.statusIcon,
+            { backgroundColor: isAvailable ? colors.success[50] : colors.neutral[100] },
+          ]}
         >
-          <MaterialCommunityIcons name="crosshairs-gps" size={moderateScale(24)} color={colors.primary[500]} />
-        </TouchableOpacity>
-
-        {/* Sürücü durumu kartı ve uyarılar */}
-        <View style={[styles.overlayContainer, dynamicStyles.overlayContainer]}>
-          <View style={[styles.statusCard, { backgroundColor: cardBg }]}>
-            <View
-              style={[
-                styles.statusIcon,
-                { backgroundColor: isAvailable ? colors.success[50] : colors.neutral[100] },
-              ]}
-            >
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: isAvailable ? colors.success[500] : colors.neutral[400] },
-                ]}
-              />
-            </View>
-            <View style={styles.statusTexts}>
-              <Text style={[styles.statusTitle, { color: textPrimary }]}>
-                {isAvailable ? 'Çevrimiçi' : 'Çevrimdışı'}
-              </Text>
-              <Text style={[styles.statusSubtitle, { color: textSecondary }]}>
-                {isAvailable ? 'Yeni iş talepleri size ulaşıyor' : 'Yeni iş talebi almıyorsunuz'}
-              </Text>
-            </View>
-            <Switch
-              value={isAvailable}
-              onValueChange={handleAvailabilityChange}
-              disabled={isLoadingStatus}
-            />
-          </View>
-
-          {/* Hizmet şehri seçilmediyse uyarı —
-              backend bu durumda hiçbir talep döndürmez ve FCM göndermez */}
-          {needsServiceCity && (
-            <FkInfoBanner
-              type="warning"
-              icon="map-marker-alert-outline"
-              title="Hizmet şehri seçilmedi"
-              message="Yeni iş bildirimleri için hizmet şehirlerinizi seçin. Aksi takdirde talepler size ulaşmaz."
-              style={styles.serviceCityBanner}
-            >
-              <FkButton
-                size="sm"
-                onPress={() => navigation.navigate('ServiceCity')}
-                style={styles.serviceCityButton}
-                icon="map-marker-plus-outline"
-              >
-                Şehir Seç
-              </FkButton>
-            </FkInfoBanner>
-          )}
+          <View
+            style={[
+              styles.statusDot,
+              { backgroundColor: isAvailable ? colors.success[500] : colors.neutral[400] },
+            ]}
+          />
         </View>
+        <View style={styles.statusTexts}>
+          <Text style={[styles.statusTitle, { color: textPrimary }]}>
+            {isAvailable ? 'Çevrimiçi' : 'Çevrimdışı'}
+          </Text>
+          <Text style={[styles.statusSubtitle, { color: textSecondary }]} numberOfLines={1}>
+            {isAvailable ? 'Yeni iş talepleri size ulaşıyor' : 'Yeni iş talebi almıyorsunuz'}
+          </Text>
+        </View>
+        <Switch
+          value={isAvailable}
+          onValueChange={handleAvailabilityChange}
+          disabled={isLoadingStatus}
+        />
       </View>
 
-      {hasBoard && (
-        <View style={{ flex: BOARD_FLEX }}>
-          <DriverBoard items={board.items} onPress={(item) => openBoardItem(item.id, 'board')} />
-        </View>
-      )}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary[500]]}
+            tintColor={colors.primary[500]}
+          />
+        }
+      >
+        {/* Hizmet şehri seçilmediyse uyarı —
+            backend bu durumda hiçbir talep döndürmez ve FCM göndermez */}
+        {needsServiceCity && (
+          <FkInfoBanner
+            type="warning"
+            icon="map-marker-alert-outline"
+            title="Hizmet şehri seçilmedi"
+            message="Yeni iş bildirimleri için hizmet şehirlerinizi seçin. Aksi takdirde talepler size ulaşmaz."
+            style={styles.serviceCityBanner}
+          >
+            <FkButton
+              size="sm"
+              onPress={() => navigation.navigate('ServiceCity')}
+              style={styles.serviceCityButton}
+              icon="map-marker-plus-outline"
+            >
+              Şehir Seç
+            </FkButton>
+          </FkInfoBanner>
+        )}
 
-      {hasButtons && (
-        <View style={{ flex: BUTTONS_FLEX }}>
-          <BoardButtons buttons={board.buttons} onPress={(button) => openBoardItem(button.item_id, 'button')} />
+        {hasBoard && (
+          <View style={{ flex: BOARD_FLEX, minHeight: BOARD_MIN_HEIGHT }}>
+            <DriverBoard items={board.items} onPress={(item) => openBoardItem(item.id, 'board')} />
+          </View>
+        )}
+
+        {hasButtons && (
+          <View style={{ flex: BUTTONS_FLEX, minHeight: BUTTONS_MIN_HEIGHT }}>
+            <BoardButtons buttons={board.buttons} onPress={(button) => openBoardItem(button.item_id, 'button')} />
+          </View>
+        )}
+
+        <View style={{ flex: JOBS_FLEX, minHeight: JOBS_MIN_HEIGHT }}>
+          <ActiveJobsBox
+            jobs={homeJobs.jobs}
+            status={homeJobs.status}
+            onOpen={openJob}
+            onRetry={() => homeJobs.refresh(true)}
+          />
         </View>
-      )}
+      </ScrollView>
     </View>
   );
 }
@@ -264,42 +312,31 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  mapArea: {
-    overflow: 'hidden',
-  },
-  locationButton: {
-    position: 'absolute',
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...shadows.lg,
-  },
-  overlayContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: ds.md,
-    gap: ds.sm + 4,
-  },
-  statusCard: {
+  // locationButton: {
+  //   position: 'absolute',
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   ...shadows.lg,
+  // },
+  statusBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: radius.lg,
-    padding: ds.sm + 4,
     gap: ds.sm + 4,
-    ...shadows.md,
+    paddingHorizontal: ds.md,
+    paddingBottom: ds.sm + 4,
+    borderBottomWidth: 1,
   },
   statusIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   statusDot: {
-    width: 14,
-    height: 14,
-    borderRadius: 7,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
   statusTexts: {
     flex: 1,
@@ -311,8 +348,13 @@ const styles = StyleSheet.create({
     ...text.meta,
     marginTop: 1,
   },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: ds.sm,
+  },
   serviceCityBanner: {
-    ...shadows.sm,
+    marginHorizontal: ds.md,
+    marginTop: ds.sm + 4,
   },
   serviceCityButton: {
     alignSelf: 'flex-start',
