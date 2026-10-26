@@ -185,7 +185,7 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 12 },
   loadingWrapper: { paddingVertical: 64, alignItems: 'center' },
   card: { borderRadius: 12 },
-  codeCardContent: { alignItems: 'center', paddingVertical: 24, gap: 12 },
+  codeCardContent: { alignItems: 'center', paddingVertical: 24, gap: 12, paddingHorizontal: 16 },
   cardTitle: { fontWeight: '600' },
   codeBox: {
     paddingHorizontal: 24,
@@ -208,9 +208,10 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   linkCardContent: {
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 4,
+    paddingVertical: 14,
     gap: 12,
   },
   linkTextWrapper: { flex: 1 },

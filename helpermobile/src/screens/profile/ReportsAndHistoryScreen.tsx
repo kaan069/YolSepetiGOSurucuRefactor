@@ -506,6 +506,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   transactionContent: {
+    paddingHorizontal: 16,
     paddingVertical: 12,
   },
   transactionHeader: {

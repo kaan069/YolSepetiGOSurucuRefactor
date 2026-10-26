@@ -203,6 +203,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   cardContent: {
+    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },

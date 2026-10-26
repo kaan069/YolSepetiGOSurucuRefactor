@@ -6,7 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation';
 import AppBar from '../../components/common/AppBar';
 import { useThemeStore } from '../../store/useThemeStore';
-import { useGuideStore } from '../../store/useGuideStore';
+// import { useGuideStore } from '../../store/useGuideStore'; // Rehber bölümü kapalıyken kullanılmıyor
 import { APP_VERSION } from '../../constants/appVersion';
 import { colors } from '../../theme/design';
 import { JobSection } from '../../components/job';
@@ -38,6 +38,7 @@ export default function AppSettingsScreen({ navigation }: Props) {
             />
           </JobSection>
 
+        {/* REHBER (şimdilik kapalı, sonra açılacak): yorumdan çıkar + useGuideStore import'unu aç
         <JobSection title="Rehber" icon="map-legend" style={styles.card}>
             <List.Item
               title="Tanıtım Slaytları"
@@ -59,6 +60,7 @@ export default function AppSettingsScreen({ navigation }: Props) {
               }}
             />
           </JobSection>
+        */}
 
         <JobSection title="Hakkında" icon="information-outline" style={styles.card}>
             <List.Item

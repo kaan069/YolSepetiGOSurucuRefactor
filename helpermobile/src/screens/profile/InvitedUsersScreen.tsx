@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   loadingWrapper: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   card: { borderRadius: 12 },
 
-  emptyContent: { alignItems: 'center', paddingVertical: 32, gap: 8 },
+  emptyContent: { alignItems: 'center', paddingVertical: 32, gap: 8, paddingHorizontal: 16 },
   emptyTitle: { fontWeight: '600' },
   emptyText: { textAlign: 'center', paddingHorizontal: 16 },
 
@@ -270,9 +270,9 @@ const styles = StyleSheet.create({
   },
   breakdownCol: { flex: 1 },
 
-  statsCardContent: { gap: 4 },
+  statsCardContent: { gap: 4, padding: 16 },
 
-  userCardContent: { gap: 10 },
+  userCardContent: { gap: 10, padding: 16 },
   userHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   userNameWrapper: { flex: 1 },
   userMetaRow: { flexDirection: 'row' },

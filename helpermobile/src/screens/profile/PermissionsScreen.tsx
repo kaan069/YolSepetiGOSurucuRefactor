@@ -107,6 +107,7 @@ export default function PermissionsScreen({ navigation }: Props) {
           flexDirection: 'row',
           alignItems: 'center',
           paddingVertical: spacing.md,
+          paddingHorizontal: spacing.md,
         }}>
           <View style={{
             width: moderateScale(44),
@@ -152,7 +153,7 @@ export default function PermissionsScreen({ navigation }: Props) {
       <AppBar title="İzinler" />
       <ScrollView style={{ flex: 1, padding: spacing.md }}>
         <FkCard variant="outlined" style={{ backgroundColor: cardBg, marginBottom: spacing.lg }} padding={0}>
-          <View style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
+          <View style={{ alignItems: 'center', paddingVertical: spacing.lg, paddingHorizontal: spacing.md }}>
             <MaterialCommunityIcons
               name="shield-check-outline"
               size={moderateScale(48)}

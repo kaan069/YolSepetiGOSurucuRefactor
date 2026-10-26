@@ -47,7 +47,7 @@ export default function FeedbackScreen({ navigation }: Props) {
 
       <View style={{ flex: 1, padding: spacing.md }}>
         <FkCard variant="outlined" style={{ backgroundColor: cardBg, marginBottom: spacing.lg }} padding={0}>
-          <View style={{ alignItems: 'center', paddingVertical: spacing.lg }}>
+          <View style={{ alignItems: 'center', paddingVertical: spacing.lg, paddingHorizontal: spacing.md }}>
             <MaterialCommunityIcons name="message-text-outline" size={moderateScale(48)} color={appColors.primary[400]} style={{ marginBottom: spacing.md }} />
             <Text variant="titleMedium" style={{ fontWeight: 'bold', textAlign: 'center', marginBottom: spacing.sm }}>
               Görüşleriniz Bizim İçin Değerli
@@ -60,7 +60,7 @@ export default function FeedbackScreen({ navigation }: Props) {
 
         <TouchableOpacity onPress={openWhatsApp} style={{ marginBottom: spacing.md }}>
           <FkCard variant="outlined" style={{ backgroundColor: cardBg, borderColor: '#25D366', borderWidth: 1.5 }} padding={0}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, paddingHorizontal: spacing.md }}>
               <View style={{
                 width: moderateScale(48),
                 height: moderateScale(48),
@@ -83,7 +83,7 @@ export default function FeedbackScreen({ navigation }: Props) {
 
         <TouchableOpacity onPress={openEmail} style={{ marginBottom: spacing.md }}>
           <FkCard variant="outlined" style={{ backgroundColor: cardBg, borderColor: appColors.primary[400], borderWidth: 1.5 }} padding={0}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.md, paddingHorizontal: spacing.md }}>
               <View style={{
                 width: moderateScale(48),
                 height: moderateScale(48),

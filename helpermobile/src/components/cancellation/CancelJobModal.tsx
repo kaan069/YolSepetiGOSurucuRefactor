@@ -335,6 +335,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.danger[50],
   },
   errorContent: {
+    paddingHorizontal: 16,
     alignItems: 'center',
     paddingVertical: 24,
   },
@@ -357,6 +358,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.warning[50],
   },
   warningContent: {
+    paddingHorizontal: 16,
     alignItems: 'center',
     paddingVertical: 24,
   },
@@ -380,6 +382,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.danger[50],
   },
   alertContent: {
+    paddingHorizontal: 16,
     alignItems: 'center',
     paddingVertical: 16,
   },
