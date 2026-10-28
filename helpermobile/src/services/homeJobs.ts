@@ -1,6 +1,6 @@
 /**
- * Ana ekrandaki iş kısayolu için sürücünün üzerindeki işler:
- * devam eden, ödeme bekleyen ve yola çıkılmamış randevulu işler (bütün hizmetler).
+ * Ana ekrandaki iş kısayolu için sürücünün üzerindeki işler (bütün hizmetler):
+ * teklifi müşteri onayı bekleyen, ödeme bekleyen, devam eden ve yola çıkılmamış randevulu işler.
  *
  * Önce tek çağrıyla sayılar alınır (/requests/all-counts/, useJobCountsStore'a da yazılır);
  * yalnızca işi olan hizmetin listesi çekilir. Kimlikler ve detay yönlendirmesi Siparişler / Randevulu İşlerim ile aynıdır.
@@ -13,7 +13,11 @@ import { scheduledJobRequestId } from '../screens/orders/jobMappers';
 import { useJobCountsStore } from '../store/useJobCountsStore';
 
 export type HomeJobService = Exclude<ServiceGroup, 'nakliye'>;
-export type HomeJobKind = 'in_progress' | 'awaiting_payment' | 'scheduled';
+/** Hangi listeden geldiği */
+export type HomeJobKind = 'awaiting_approval' | 'awaiting_payment' | 'in_progress' | 'scheduled';
+/** Talebin gerçek durumu (randevulu liste ödeme bekleyen ve devam eden işleri birlikte döner) */
+export type HomeJobStatus = 'awaiting_approval' | 'awaiting_payment' | 'in_progress';
+type ListKind = Exclude<HomeJobKind, 'scheduled'>;
 
 export interface HomeJobPlace {
   lat: number;
@@ -28,6 +32,9 @@ export interface HomeJob {
   /** Detay ekranının açıldığı kimlik */
   jobId: string;
   kind: HomeJobKind;
+  status: HomeJobStatus;
+  /** Sürücünün teklifindeki kazancı (my_offer.driver_earnings); yoksa null */
+  earnings: number | null;
   customerName: string | null;
   /** Backend yalnızca iş devam ederken / tamamlanınca gönderir; gizliyken null */
   customerPhone: string | null;
@@ -47,38 +54,46 @@ export interface HomeJob {
 
 type ListFetcher = () => Promise<any[]>;
 
-const SERVICES: Record<HomeJobService, { countsKey: string; inProgress: ListFetcher; awaitingPayment: ListFetcher }> = {
+const SERVICES: Record<HomeJobService, { countsKey: string } & Record<ListKind, ListFetcher>> = {
   towTruck: {
     countsKey: 'tow-truck',
-    inProgress: requestsAPI.getInProgressTowTruckRequests,
-    awaitingPayment: requestsAPI.getAwaitingPaymentTowTruckRequests,
+    awaiting_approval: requestsAPI.getAwaitingApprovalTowTruckRequests,
+    awaiting_payment: requestsAPI.getAwaitingPaymentTowTruckRequests,
+    in_progress: requestsAPI.getInProgressTowTruckRequests,
   },
   crane: {
     countsKey: 'crane',
-    inProgress: requestsAPI.getInProgressCraneRequests,
-    awaitingPayment: requestsAPI.getAwaitingPaymentCraneRequests,
+    awaiting_approval: requestsAPI.getAwaitingApprovalCraneRequests,
+    awaiting_payment: requestsAPI.getAwaitingPaymentCraneRequests,
+    in_progress: requestsAPI.getInProgressCraneRequests,
   },
   homeToHomeMoving: {
     countsKey: 'home-moving',
-    inProgress: requestsAPI.getInProgressHomeMovingRequests,
-    awaitingPayment: requestsAPI.getAwaitingPaymentHomeMovingRequests,
+    awaiting_approval: requestsAPI.getAwaitingApprovalHomeMovingRequests,
+    awaiting_payment: requestsAPI.getAwaitingPaymentHomeMovingRequests,
+    in_progress: requestsAPI.getInProgressHomeMovingRequests,
   },
   cityToCity: {
     countsKey: 'city-moving',
-    inProgress: requestsAPI.getInProgressCityMovingRequests,
-    awaitingPayment: requestsAPI.getAwaitingPaymentCityMovingRequests,
+    awaiting_approval: requestsAPI.getAwaitingApprovalCityMovingRequests,
+    awaiting_payment: requestsAPI.getAwaitingPaymentCityMovingRequests,
+    in_progress: requestsAPI.getInProgressCityMovingRequests,
   },
   roadAssistance: {
     countsKey: 'road-assistance',
-    inProgress: requestsAPI.getInProgressRoadAssistanceRequests,
-    awaitingPayment: requestsAPI.getAwaitingPaymentRoadAssistanceRequests,
+    awaiting_approval: requestsAPI.getAwaitingApprovalRoadAssistanceRequests,
+    awaiting_payment: requestsAPI.getAwaitingPaymentRoadAssistanceRequests,
+    in_progress: requestsAPI.getInProgressRoadAssistanceRequests,
   },
   transfer: {
     countsKey: 'transfer',
-    inProgress: requestsAPI.getInProgressTransferRequests,
-    awaitingPayment: requestsAPI.getAwaitingPaymentTransferRequests,
+    awaiting_approval: requestsAPI.getAwaitingApprovalTransferRequests,
+    awaiting_payment: requestsAPI.getAwaitingPaymentTransferRequests,
+    in_progress: requestsAPI.getInProgressTransferRequests,
   },
 };
+
+const LIST_KINDS: ListKind[] = ['awaiting_approval', 'awaiting_payment', 'in_progress'];
 
 const SCHEDULED_SERVICE: Record<ScheduledJobServiceType, HomeJobService> = {
   crane: 'crane',
@@ -87,7 +102,8 @@ const SCHEDULED_SERVICE: Record<ScheduledJobServiceType, HomeJobService> = {
   transfer: 'transfer',
 };
 
-const KIND_ORDER: Record<HomeJobKind, number> = { in_progress: 0, awaiting_payment: 1, scheduled: 2 };
+// Sürücünün yapacağı iş önce: devam eden, ödeme bekleyen, randevulu; müşteri kararı bekleyen teklifler en sonda
+const KIND_ORDER: Record<HomeJobKind, number> = { in_progress: 0, awaiting_payment: 1, scheduled: 2, awaiting_approval: 3 };
 
 const text = (...values: unknown[]): string | null => {
   for (const value of values) {
@@ -102,6 +118,11 @@ function place(lat: unknown, lng: unknown, address: unknown): HomeJobPlace | nul
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || (latitude === 0 && longitude === 0)) return null;
   return { lat: latitude, lng: longitude, address: text(address) };
 }
+
+const amount = (value: unknown): number | null => {
+  const n = parseFloat(String(value ?? ''));
+  return Number.isFinite(n) ? n : null;
+};
 
 /** Hizmete göre alış / bırakış konumu (alan adları Siparişler'deki dönüştürücülerle aynı) */
 function places(service: HomeJobService, r: any): { pickup: HomeJobPlace | null; dropoff: HomeJobPlace | null } {
@@ -139,13 +160,16 @@ function places(service: HomeJobService, r: any): { pickup: HomeJobPlace | null;
 function toHomeJob(service: HomeJobService, kind: HomeJobKind, raw: any, jobId: string): HomeJob {
   const owner = raw.request_id && typeof raw.request_id === 'object' ? raw.request_id : {};
   // Randevulu liste hem ödeme bekleyen hem devam eden işleri döner
-  const status = kind === 'scheduled' ? raw.status ?? owner.status : kind;
+  const status: HomeJobStatus =
+    kind !== 'scheduled' ? kind : (raw.status ?? owner.status) === 'awaiting_payment' ? 'awaiting_payment' : 'in_progress';
   return {
     // Randevulu liste detay nesnesi döner; tekilleştirme talep kimliğiyle
     key: `${service}-${scheduledJobRequestId(raw)}`,
     service,
     jobId,
     kind,
+    status,
+    earnings: amount(raw.my_offer?.driver_earnings),
     customerName: text(
       raw.requestOwnerNameSurname,
       raw.request_owner_name_surname,
@@ -162,9 +186,8 @@ function toHomeJob(service: HomeJobService, kind: HomeJobKind, raw: any, jobId: 
   };
 }
 
-async function loadList(service: HomeJobService, kind: 'in_progress' | 'awaiting_payment'): Promise<HomeJob[]> {
-  const fetcher = kind === 'in_progress' ? SERVICES[service].inProgress : SERVICES[service].awaitingPayment;
-  const list = (await fetcher()) ?? [];
+async function loadList(service: HomeJobService, kind: ListKind): Promise<HomeJob[]> {
+  const list = (await SERVICES[service][kind]()) ?? [];
   return list.filter(Boolean).map((raw) => toHomeJob(service, kind, raw, String(raw.id)));
 }
 
@@ -196,8 +219,9 @@ export async function fetchHomeJobs(): Promise<HomeJob[]> {
   (Object.keys(SERVICES) as HomeJobService[]).forEach((service) => {
     const c = counts?.[SERVICES[service].countsKey];
     if (!c) return;
-    if (c.in_progress > 0) tasks.push(loadList(service, 'in_progress'));
-    if (c.awaiting_payment > 0) tasks.push(loadList(service, 'awaiting_payment'));
+    LIST_KINDS.forEach((kind) => {
+      if (c[kind] > 0) tasks.push(loadList(service, kind));
+    });
   });
   const scheduledTotal = Object.values(counts ?? {}).reduce((sum, c) => sum + (c?.scheduled ?? 0), 0);
   if (scheduledTotal > 0) tasks.push(loadScheduled());

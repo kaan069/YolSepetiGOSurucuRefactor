@@ -1,19 +1,22 @@
 /**
- * Ana ekranda sürücünün üzerindeki bir iş: hizmet, durum (sağ üst), müşteri adı ve numarası,
- * arama, alış / bırakış konumu butonları. Karta basınca işin detayı açılır.
- * Ödeme bekleyen işte backend müşteri bilgisini maskeler: numara '+905*****', arama ve konum
- * butonları yerine ödeme sonrası açılacağı yazılır.
+ * Ana ekranda sürücünün üzerindeki bir iş (16:9 kart). Karta basınca işin detayı açılır.
+ *
+ * Üstte duruma göre renkli bant (hizmet + durum rozeti), altında iş akışı adımları
+ * (Teklif → Onay → Ödeme → Yolda / Randevu). Gövde aşamaya göre değişir:
+ * - Onay / ödeme bekleniyor: güzergâh, tahmini kazanç ve ne beklendiği. Bu aşamalarda backend
+ *   müşteri bilgisini ve açık adresi maskeler; arama ve konum butonları gösterilmez.
+ * - Devam ediyor / randevu: müşteri adı ve numarası, "Ara", alış / bırakış konumu butonları.
  */
 import React from 'react';
 import { StyleProp, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import { FkButton, FkIconChip } from '../fk';
+import { FkButton } from '../fk';
 import { useFkTokens } from '../../hooks/useFkTokens';
 import type { HomeJob } from '../../services/homeJobs';
 import { SERVICE_ICON, SERVICE_LABEL } from '../../constants/serviceTypeUI';
 import { callPhone, openMapsAt } from '../../utils/contactActions';
 import { formatSchedule, getScheduleState } from '../../utils/schedule';
-import { colors, radius, shadows, spacing, statusColors, text } from '../../theme/design';
+import { colors, radius, shadows, spacing, text } from '../../theme/design';
 
 interface Props {
   job: HomeJob;
@@ -21,27 +24,84 @@ interface Props {
   style?: StyleProp<ViewStyle>;
 }
 
-function statusBadge(job: HomeJob): { label: string; bg: string; fg: string } {
-  if (job.kind === 'scheduled') {
-    const state = getScheduleState(job.schedule);
-    const late = state?.state === 'late';
-    return {
-      label: state ? `Randevu · ${state.label}` : 'Randevulu',
-      bg: late ? colors.danger[100] : colors.info[100],
-      fg: late ? colors.danger[700] : colors.info[700],
-    };
-  }
-  if (job.kind === 'awaiting_payment') {
-    return { label: 'Ödeme Bekleniyor', bg: statusColors.awaiting_payment.bg, fg: statusColors.awaiting_payment.text };
-  }
-  return { label: 'Devam Ediyor', bg: statusColors.in_progress.bg, fg: statusColors.in_progress.text };
+type Stage = 'approval' | 'payment' | 'appointment' | 'active';
+
+interface StageStyle {
+  label: string;
+  icon: string;
+  solid: string;
+  soft: string;
+  ink: string;
+  /** İş akışında bulunulan adım (0 Teklif, 1 Onay, 2 Ödeme, 3 Yolda / Randevu) */
+  step: number;
+}
+
+const STAGES: Record<Stage, StageStyle> = {
+  approval: {
+    label: 'Onay Bekleniyor',
+    icon: 'timer-sand',
+    solid: colors.warning[500],
+    soft: colors.warning[50],
+    ink: colors.warning[700],
+    step: 1,
+  },
+  payment: {
+    label: 'Ödeme Bekleniyor',
+    icon: 'credit-card-clock-outline',
+    solid: colors.secondary[500],
+    soft: colors.secondary[50],
+    ink: colors.secondary[700],
+    step: 2,
+  },
+  appointment: {
+    label: 'Randevu',
+    icon: 'calendar-clock',
+    solid: colors.info[500],
+    soft: colors.info[50],
+    ink: colors.info[700],
+    step: 3,
+  },
+  active: {
+    label: 'Devam Ediyor',
+    icon: 'navigation-variant',
+    solid: colors.primary[500],
+    soft: colors.primary[50],
+    ink: colors.primary[700],
+    step: 3,
+  },
+};
+
+const LATE: Pick<StageStyle, 'solid' | 'soft' | 'ink'> = {
+  solid: colors.danger[500],
+  soft: colors.danger[50],
+  ink: colors.danger[700],
+};
+
+const NOTES: Partial<Record<Stage, string>> = {
+  approval: 'Müşteri teklifini değerlendiriyor.',
+  payment: 'Teklifin kabul edildi, müşterinin ödemesi bekleniyor.',
+};
+
+function stageOf(job: HomeJob): Stage {
+  if (job.status === 'awaiting_approval') return 'approval';
+  if (job.status === 'awaiting_payment') return 'payment';
+  if (job.schedule.isScheduled && !job.schedule.departedAt) return 'appointment';
+  return 'active';
+}
+
+function formatAmount(value: number): string {
+  return `${value.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ₺`;
 }
 
 export default function JobShortcutCard({ job, onOpen, style }: Props) {
-  const { tokens } = useFkTokens();
-  const badge = statusBadge(job);
-  // Randevuda tarih, diğerlerinde alış adresi
-  const subtitle = job.kind === 'scheduled' ? formatSchedule(job.schedule) : job.pickup?.address;
+  const { tokens, isDarkMode } = useFkTokens();
+  const stage = stageOf(job);
+  const schedule = job.schedule.isScheduled ? getScheduleState(job.schedule) : null;
+  const palette = { ...STAGES[stage], ...(stage === 'appointment' && schedule?.state === 'late' ? LATE : null) };
+  const statusLabel = stage === 'appointment' && schedule ? `Randevu · ${schedule.label}` : palette.label;
+  const steps = ['Teklif', 'Onay', 'Ödeme', stage === 'appointment' ? 'Randevu' : 'Yolda'];
+  const route = [job.pickup?.address, job.dropoff?.address].filter(Boolean).join('  →  ');
+  const waiting = stage === 'approval' || stage === 'payment';
 
   return (
     <TouchableOpacity
@@ -49,91 +109,169 @@ export default function JobShortcutCard({ job, onOpen, style }: Props) {
       activeOpacity={0.9}
       onPress={() => onOpen(job)}
       accessibilityRole="button"
-      accessibilityLabel={`${SERVICE_LABEL[job.service]} işinin detayı`}
+      accessibilityLabel={`${SERVICE_LABEL[job.service]}, ${statusLabel}. İş detayını aç`}
     >
-      <View style={styles.header}>
-        <FkIconChip icon={SERVICE_ICON[job.service]} size={36} />
+      {/* Durum bandı */}
+      <View style={[styles.header, { backgroundColor: isDarkMode ? tokens.colors.surfaceMuted : palette.soft }]}>
+        <View style={[styles.serviceIcon, { backgroundColor: isDarkMode ? tokens.colors.cardBg : colors.white }]}>
+          <MaterialCommunityIcons name={SERVICE_ICON[job.service]} size={18} color={palette.solid} />
+        </View>
         <View style={styles.headerTexts}>
           <Text style={[styles.service, { color: tokens.colors.textPrimary }]} numberOfLines={1}>
             {SERVICE_LABEL[job.service]}
           </Text>
-          {!!subtitle && (
-            <Text style={[styles.subtitle, { color: tokens.colors.textSecondary }]} numberOfLines={1}>
-              {subtitle}
+          {job.schedule.isScheduled && (
+            <Text style={[styles.headerMeta, { color: tokens.colors.textSecondary }]} numberOfLines={1}>
+              {formatSchedule(job.schedule)}
             </Text>
           )}
         </View>
-        <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-          <Text style={[styles.badgeText, { color: badge.fg }]} numberOfLines={1}>
-            {badge.label}
+        <View style={[styles.statusPill, { backgroundColor: palette.solid }]}>
+          <MaterialCommunityIcons name={palette.icon} size={12} color={colors.white} />
+          <Text style={styles.statusText} numberOfLines={1}>
+            {statusLabel}
           </Text>
         </View>
       </View>
 
-      <View style={styles.customer}>
-        <View style={styles.customerTexts}>
-          <Text style={[styles.name, { color: tokens.colors.textPrimary }]} numberOfLines={1}>
-            {job.customerName || 'Müşteri'}
-          </Text>
-          <Text style={[styles.phone, { color: tokens.colors.textSecondary }]} numberOfLines={1}>
-            {job.customerPhone || job.customerPhoneMasked || 'Numara henüz paylaşılmadı'}
-          </Text>
-        </View>
-        {!!job.customerPhone && (
-          <FkButton size="sm" variant="success" icon="phone" onPress={() => callPhone(job.customerPhone)}>
-            Ara
-          </FkButton>
+      {/* İş akışı adımları */}
+      <View style={styles.steps}>
+        {steps.map((label, index) => {
+          const done = index < palette.step;
+          const current = index === palette.step;
+          const color = done || current ? palette.solid : tokens.colors.border;
+          return (
+            <React.Fragment key={label}>
+              <View style={styles.step}>
+                <View
+                  style={[
+                    styles.stepDot,
+                    { borderColor: color, backgroundColor: done ? color : tokens.colors.cardBg },
+                  ]}
+                >
+                  {done ? (
+                    <MaterialCommunityIcons name="check" size={9} color={colors.white} />
+                  ) : current ? (
+                    <View style={[styles.stepCore, { backgroundColor: color }]} />
+                  ) : null}
+                </View>
+                <Text
+                  style={[
+                    styles.stepLabel,
+                    { color: current ? palette.ink : tokens.colors.textSecondary },
+                    current && styles.stepLabelCurrent,
+                  ]}
+                  numberOfLines={1}
+                >
+                  {label}
+                </Text>
+              </View>
+              {index < steps.length - 1 && (
+                <View style={[styles.stepLine, { backgroundColor: index < palette.step ? palette.solid : tokens.colors.border }]} />
+              )}
+            </React.Fragment>
+          );
+        })}
+      </View>
+
+      {/* Gövde */}
+      <View style={styles.body}>
+        {waiting ? (
+          <>
+            {!!route && (
+              <View style={styles.row}>
+                <MaterialCommunityIcons name="map-marker-outline" size={15} color={tokens.colors.textSecondary} />
+                <Text style={[styles.route, { color: tokens.colors.textPrimary }]} numberOfLines={1}>
+                  {route}
+                </Text>
+              </View>
+            )}
+            {job.earnings != null && (
+              <View style={[styles.row, styles.earningsRow]}>
+                <Text style={[styles.earningsLabel, { color: tokens.colors.textSecondary }]}>Tahmini kazanç</Text>
+                <Text style={[styles.earnings, { color: tokens.colors.textPrimary }]}>{formatAmount(job.earnings)}</Text>
+              </View>
+            )}
+            <View style={[styles.note, { backgroundColor: isDarkMode ? tokens.colors.surfaceMuted : palette.soft }]}>
+              <MaterialCommunityIcons name={palette.icon} size={14} color={palette.ink} />
+              <Text style={[styles.noteText, { color: palette.ink }]} numberOfLines={1}>
+                {NOTES[stage]}
+              </Text>
+            </View>
+          </>
+        ) : (
+          <>
+            <View style={styles.row}>
+              <View style={styles.customerTexts}>
+                <Text style={[styles.name, { color: tokens.colors.textPrimary }]} numberOfLines={1}>
+                  {job.customerName || 'Müşteri'}
+                </Text>
+                <Text style={[styles.phone, { color: tokens.colors.textSecondary }]} numberOfLines={1}>
+                  {job.customerPhone || job.customerPhoneMasked || 'Numara henüz paylaşılmadı'}
+                </Text>
+              </View>
+              {!!job.customerPhone && (
+                <FkButton size="sm" variant="success" icon="phone" onPress={() => callPhone(job.customerPhone)}>
+                  Ara
+                </FkButton>
+              )}
+            </View>
+            {(job.pickup || job.dropoff) && (
+              <View style={styles.actions}>
+                {job.pickup && (
+                  <FkButton
+                    size="sm"
+                    variant="secondary"
+                    icon="map-marker-outline"
+                    style={styles.action}
+                    onPress={() => openMapsAt(job.pickup?.lat, job.pickup?.lng)}
+                  >
+                    {job.dropoff ? 'Alış Konumu' : 'İş Konumu'}
+                  </FkButton>
+                )}
+                {job.dropoff && (
+                  <FkButton
+                    size="sm"
+                    variant="secondary"
+                    icon="flag-checkered"
+                    style={styles.action}
+                    onPress={() => openMapsAt(job.dropoff?.lat, job.dropoff?.lng)}
+                  >
+                    Bırakış Konumu
+                  </FkButton>
+                )}
+              </View>
+            )}
+          </>
         )}
       </View>
-
-      {!job.contactsVisible ? (
-        <View style={styles.hiddenNote}>
-          <MaterialCommunityIcons name="lock-outline" size={16} color={tokens.colors.textSecondary} />
-          <Text style={[styles.hiddenText, { color: tokens.colors.textSecondary }]} numberOfLines={2}>
-            Müşteri ödemeyi yapınca tam adres ve numara açılır.
-          </Text>
-        </View>
-      ) : (job.pickup || job.dropoff) && (
-        <View style={styles.actions}>
-          {job.pickup && (
-            <FkButton
-              size="sm"
-              variant="secondary"
-              icon="map-marker-outline"
-              style={styles.action}
-              onPress={() => openMapsAt(job.pickup?.lat, job.pickup?.lng)}
-            >
-              {job.dropoff ? 'Alış Konumu' : 'İş Konumu'}
-            </FkButton>
-          )}
-          {job.dropoff && (
-            <FkButton
-              size="sm"
-              variant="secondary"
-              icon="flag-checkered"
-              style={styles.action}
-              onPress={() => openMapsAt(job.dropoff?.lat, job.dropoff?.lng)}
-            >
-              Bırakış Konumu
-            </FkButton>
-          )}
-        </View>
-      )}
     </TouchableOpacity>
   );
 }
+
+const STEP_WIDTH = 52;
+const DOT = 14;
 
 const styles = StyleSheet.create({
   card: {
     borderRadius: radius.lg,
     borderWidth: 1,
-    padding: spacing.md,
+    overflow: 'hidden',
     ...shadows.sm,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: spacing.sm + 2,
+    paddingHorizontal: spacing.sm + 6,
+    paddingVertical: spacing.sm + 1,
+  },
+  serviceIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTexts: {
     flex: 1,
@@ -141,25 +279,98 @@ const styles = StyleSheet.create({
   service: {
     ...text.cardTitle,
   },
-  subtitle: {
+  headerMeta: {
     ...text.caption,
     marginTop: 1,
   },
-  badge: {
-    alignSelf: 'flex-start',
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
+    paddingVertical: 4,
     borderRadius: radius.full,
-    maxWidth: '45%',
+    maxWidth: '55%',
   },
-  badgeText: {
+  statusText: {
     ...text.captionStrong,
+    color: colors.white,
+    flexShrink: 1,
   },
-  customer: {
+  steps: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.xs + 2,
+  },
+  step: {
+    width: STEP_WIDTH,
+    alignItems: 'center',
+  },
+  stepDot: {
+    width: DOT,
+    height: DOT,
+    borderRadius: DOT / 2,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepCore: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  stepLabel: {
+    fontSize: 11,
+    marginTop: 3,
+  },
+  stepLabelCurrent: {
+    fontWeight: '700',
+  },
+  stepLine: {
+    flex: 1,
+    height: 2,
+    marginTop: DOT / 2 - 1,
+    // Çizgi noktalara değsin (adım sütunu noktadan geniş)
+    marginHorizontal: -(STEP_WIDTH - DOT) / 2,
+  },
+  body: {
+    flex: 1,
+    paddingHorizontal: spacing.sm + 6,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm + 2,
+    gap: spacing.xs + 2,
+  },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginTop: spacing.md,
+  },
+  route: {
+    ...text.meta,
+    flex: 1,
+  },
+  earningsRow: {
+    gap: spacing.sm,
+  },
+  earningsLabel: {
+    ...text.caption,
+  },
+  earnings: {
+    ...text.bodyStrong,
+    fontSize: 16,
+  },
+  note: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs + 2,
+    marginTop: 'auto',
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: radius.sm,
+  },
+  noteText: {
+    ...text.captionStrong,
+    flex: 1,
   },
   customerTexts: {
     flex: 1,
@@ -175,20 +386,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     marginTop: 'auto',
-    paddingTop: spacing.sm,
   },
   action: {
-    flex: 1,
-  },
-  hiddenNote: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs + 2,
-    marginTop: 'auto',
-    paddingTop: spacing.sm,
-  },
-  hiddenText: {
-    ...text.caption,
     flex: 1,
   },
 });

@@ -264,6 +264,9 @@ function Tabs() {
         name="OrdersTab"
         component={OrdersScreen}
         options={{
+          // Açılışta arka planda yüklenir: iş WebSocket'i hemen bağlansın, ana ekrandaki
+          // iş kutusu teklif kabul / ödeme / iptal gibi olayları anında alsın
+          lazy: false,
           title: 'İşler',
           tabBarIcon: ({ color, size }) => (
             <BlinkingTabIcon
