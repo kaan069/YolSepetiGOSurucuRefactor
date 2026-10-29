@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, View, ViewStyle } from 'react-native';
+import { Keyboard, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 import { Text } from 'react-native-paper';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useFkTokens } from '../../hooks/useFkTokens';
@@ -57,6 +57,9 @@ export default function FkSelect<T extends string | number = string>({
   const isSelected = useCallback((v: T) => v === value, [value]);
   const handlePick = useCallback(
     (v: T) => {
+      // Aramada açılan klavye pencere kapanırken açık kalmasın: arkadaki form klavyeye göre
+      // küçülmüş kalıp zıplıyor, sonraki seçim penceresi (ör. İl → İlçe) klavyeyle açılıyordu
+      Keyboard.dismiss();
       onChange(v);
       setOpen(false);
     },

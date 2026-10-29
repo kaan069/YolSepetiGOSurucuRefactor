@@ -11,6 +11,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useFkTokens } from '../../../hooks/useFkTokens';
 import { FkSelectOption } from '../types';
 import { colors, radius } from '../../../theme/design';
+import { foldTr } from '../../../utils/turkishText';
 
 interface Props<T extends string | number> {
   options: FkSelectOption<T>[];
@@ -33,13 +34,13 @@ export default function SelectList<T extends string | number>({
   const { tokens, isDarkMode } = useFkTokens();
   const [search, setSearch] = useState('');
 
+  // Türkçe katlama: "istanbul" / "ISTANBUL" → "İstanbul", "kadikoy" → "Kadıköy".
+  // toLowerCase() "İ"yi "i̇" (i + birleşik nokta) yapar; "istanbul" araması hiç eşleşmezdi.
   const filtered = useMemo(() => {
     if (!searchable || !search.trim()) return options;
-    const q = search.toLowerCase().trim();
+    const q = foldTr(search);
     return options.filter(
-      (opt) =>
-        opt.label.toLowerCase().includes(q) ||
-        String(opt.value).toLowerCase().includes(q),
+      (opt) => foldTr(opt.label).includes(q) || foldTr(String(opt.value)).includes(q),
     );
   }, [options, search, searchable]);
 

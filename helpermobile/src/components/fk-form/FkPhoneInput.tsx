@@ -13,6 +13,7 @@ import FkFormError from '../fk-ui/FkFormError';
 import FkModal from '../fk-ui/FkModal';
 import { colors } from '../../theme/design';
 import { fieldStyles, getFieldBoxStyle, getFieldLabelColor } from './fieldStyles';
+import { foldTr } from '../../utils/turkishText';
 
 export interface FkCountry {
   code: string;
@@ -103,9 +104,10 @@ export default function FkPhoneInput({
 
   const filtered = useMemo(() => {
     if (!search) return FK_COUNTRIES;
-    const q = search.toLowerCase();
+    // Türkçe katlama: "turkiye" → "Türkiye"
+    const q = foldTr(search);
     return FK_COUNTRIES.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.dialCode.includes(search),
+      (c) => foldTr(c.name).includes(q) || c.dialCode.includes(search.trim()),
     );
   }, [search]);
 
