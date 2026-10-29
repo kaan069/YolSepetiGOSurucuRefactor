@@ -1,6 +1,7 @@
 /**
- * Ana ekrandaki iş kısayolu için sürücünün üzerindeki işler (bütün hizmetler):
- * teklifi müşteri onayı bekleyen, ödeme bekleyen, devam eden ve yola çıkılmamış randevulu işler.
+ * Ana ekrandaki iş kısayolu için sürücünün işleri (bütün hizmetler): gelen yeni talepler
+ * (Gelen İşler, yalnızca sürücünün hizmetleri), teklifi müşteri onayı bekleyen, ödeme bekleyen,
+ * devam eden ve yola çıkılmamış randevulu işler.
  *
  * Önce tek çağrıyla sayılar alınır (/requests/all-counts/, useJobCountsStore'a da yazılır);
  * yalnızca işi olan hizmetin listesi çekilir. Kimlikler ve detay yönlendirmesi Siparişler / Randevulu İşlerim ile aynıdır.
@@ -14,9 +15,9 @@ import { useJobCountsStore } from '../store/useJobCountsStore';
 
 export type HomeJobService = Exclude<ServiceGroup, 'nakliye'>;
 /** Hangi listeden geldiği */
-export type HomeJobKind = 'awaiting_approval' | 'awaiting_payment' | 'in_progress' | 'scheduled';
+export type HomeJobKind = 'pending' | 'awaiting_approval' | 'awaiting_payment' | 'in_progress' | 'scheduled';
 /** Talebin gerçek durumu (randevulu liste ödeme bekleyen ve devam eden işleri birlikte döner) */
-export type HomeJobStatus = 'awaiting_approval' | 'awaiting_payment' | 'in_progress';
+export type HomeJobStatus = 'pending' | 'awaiting_approval' | 'awaiting_payment' | 'in_progress';
 type ListKind = Exclude<HomeJobKind, 'scheduled'>;
 
 export interface HomeJobPlace {
@@ -54,56 +55,73 @@ export interface HomeJob {
 
 type ListFetcher = () => Promise<any[]>;
 
+// pending: Gelen İşler'deki uçlar (Siparişler / useOrdersData ile aynı)
 const SERVICES: Record<HomeJobService, { countsKey: string } & Record<ListKind, ListFetcher>> = {
   towTruck: {
     countsKey: 'tow-truck',
+    pending: requestsAPI.getAvailableTowTruckRequests,
     awaiting_approval: requestsAPI.getAwaitingApprovalTowTruckRequests,
     awaiting_payment: requestsAPI.getAwaitingPaymentTowTruckRequests,
     in_progress: requestsAPI.getInProgressTowTruckRequests,
   },
   crane: {
     countsKey: 'crane',
+    pending: requestsAPI.getAvailableCraneRequests,
     awaiting_approval: requestsAPI.getAwaitingApprovalCraneRequests,
     awaiting_payment: requestsAPI.getAwaitingPaymentCraneRequests,
     in_progress: requestsAPI.getInProgressCraneRequests,
   },
   homeToHomeMoving: {
     countsKey: 'home-moving',
+    pending: requestsAPI.getPendingHomeMovingRequests,
     awaiting_approval: requestsAPI.getAwaitingApprovalHomeMovingRequests,
     awaiting_payment: requestsAPI.getAwaitingPaymentHomeMovingRequests,
     in_progress: requestsAPI.getInProgressHomeMovingRequests,
   },
   cityToCity: {
     countsKey: 'city-moving',
+    pending: requestsAPI.getPendingCityMovingRequests,
     awaiting_approval: requestsAPI.getAwaitingApprovalCityMovingRequests,
     awaiting_payment: requestsAPI.getAwaitingPaymentCityMovingRequests,
     in_progress: requestsAPI.getInProgressCityMovingRequests,
   },
   roadAssistance: {
     countsKey: 'road-assistance',
+    pending: requestsAPI.getAvailableRoadAssistanceRequests,
     awaiting_approval: requestsAPI.getAwaitingApprovalRoadAssistanceRequests,
     awaiting_payment: requestsAPI.getAwaitingPaymentRoadAssistanceRequests,
     in_progress: requestsAPI.getInProgressRoadAssistanceRequests,
   },
   transfer: {
     countsKey: 'transfer',
+    pending: requestsAPI.getAvailableTransferRequests,
     awaiting_approval: requestsAPI.getAwaitingApprovalTransferRequests,
     awaiting_payment: requestsAPI.getAwaitingPaymentTransferRequests,
     in_progress: requestsAPI.getInProgressTransferRequests,
   },
 };
 
-const LIST_KINDS: ListKind[] = ['awaiting_approval', 'awaiting_payment', 'in_progress'];
+const LIST_KINDS: ListKind[] = ['pending', 'awaiting_approval', 'awaiting_payment', 'in_progress'];
+/** Ana ekranda gösterilen en fazla yeni talep (en yeniler); tamamı Gelen İşler'de */
+const MAX_PENDING = 5;
 
 const SCHEDULED_SERVICE: Record<ScheduledJobServiceType, HomeJobService> = {
+  tow: 'towTruck',
   crane: 'crane',
   home_moving: 'homeToHomeMoving',
   city_moving: 'cityToCity',
   transfer: 'transfer',
 };
 
-// Sürücünün yapacağı iş önce: devam eden, ödeme bekleyen, randevulu; müşteri kararı bekleyen teklifler en sonda
-const KIND_ORDER: Record<HomeJobKind, number> = { in_progress: 0, awaiting_payment: 1, scheduled: 2, awaiting_approval: 3 };
+// Önce sürücünün yapacağı işler: devam eden, yeni talepler (teklif bekliyor), ödeme bekleyen,
+// randevulu; müşteri kararı bekleyen teklifler en sonda
+const KIND_ORDER: Record<HomeJobKind, number> = {
+  in_progress: 0,
+  pending: 1,
+  awaiting_payment: 2,
+  scheduled: 3,
+  awaiting_approval: 4,
+};
 
 const text = (...values: unknown[]): string | null => {
   for (const value of values) {
@@ -209,8 +227,11 @@ function compareJobs(a: HomeJob, b: HomeJob): number {
 /**
  * Sayılar alınamazsa hata fırlatır (çağıran eski listeyi korur). Tek bir liste
  * alınamazsa o liste atlanır, diğerleri gösterilir.
+ *
+ * @param offeredServices sürücünün hizmetleri (user.user_type). Yeni talepler yalnızca bunlar
+ *   için çekilir: sayaçlar hizmete göre süzülmez, çekiciciye vinç talebi gösterilmesin.
  */
-export async function fetchHomeJobs(): Promise<HomeJob[]> {
+export async function fetchHomeJobs(offeredServices: string[]): Promise<HomeJob[]> {
   const counts = await requestsAPI.getAllServicesCounts();
   // Ana ekrandaki talep özeti ve İşler sekmesinin yanıp sönmesi aynı sayıları kullanır
   useJobCountsStore.getState().applyAllServicesCounts(counts ?? {});
@@ -220,7 +241,9 @@ export async function fetchHomeJobs(): Promise<HomeJob[]> {
     const c = counts?.[SERVICES[service].countsKey];
     if (!c) return;
     LIST_KINDS.forEach((kind) => {
-      if (c[kind] > 0) tasks.push(loadList(service, kind));
+      if (c[kind] <= 0) return;
+      if (kind === 'pending' && !offeredServices.includes(service)) return;
+      tasks.push(loadList(service, kind));
     });
   });
   const scheduledTotal = Object.values(counts ?? {}).reduce((sum, c) => sum + (c?.scheduled ?? 0), 0);
@@ -236,5 +259,7 @@ export async function fetchHomeJobs(): Promise<HomeJob[]> {
       if (!existing || job.kind === 'scheduled') byKey.set(job.key, job);
     });
   });
-  return Array.from(byKey.values()).sort(compareJobs);
+  const sorted = Array.from(byKey.values()).sort(compareJobs);
+  let pendingShown = 0;
+  return sorted.filter((job) => job.kind !== 'pending' || ++pendingShown <= MAX_PENDING);
 }

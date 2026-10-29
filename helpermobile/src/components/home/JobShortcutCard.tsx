@@ -3,6 +3,7 @@
  *
  * Üstte duruma göre renkli bant (hizmet + durum rozeti), altında iş akışı adımları
  * (Teklif → Onay → Ödeme → Yolda / Randevu). Gövde aşamaya göre değişir:
+ * - Yeni talep (Gelen İşler): güzergâh, ne zaman geldiği ve "İş Detayına Gir" (teklif ekranı).
  * - Onay / ödeme bekleniyor: güzergâh, tahmini kazanç ve ne beklendiği. Bu aşamalarda backend
  *   müşteri bilgisini ve açık adresi maskeler; arama ve konum butonları gösterilmez.
  * - Devam ediyor / randevu: müşteri adı ve numarası, "Ara", alış / bırakış konumu butonları.
@@ -24,7 +25,7 @@ interface Props {
   style?: StyleProp<ViewStyle>;
 }
 
-type Stage = 'approval' | 'payment' | 'appointment' | 'active';
+type Stage = 'new' | 'approval' | 'payment' | 'appointment' | 'active';
 
 interface StageStyle {
   label: string;
@@ -37,6 +38,14 @@ interface StageStyle {
 }
 
 const STAGES: Record<Stage, StageStyle> = {
+  new: {
+    label: 'Yeni Talep',
+    icon: 'bell-ring-outline',
+    solid: colors.success[600],
+    soft: colors.success[50],
+    ink: colors.success[700],
+    step: 0,
+  },
   approval: {
     label: 'Onay Bekleniyor',
     icon: 'timer-sand',
@@ -83,6 +92,7 @@ const NOTES: Partial<Record<Stage, string>> = {
 };
 
 function stageOf(job: HomeJob): Stage {
+  if (job.status === 'pending') return 'new';
   if (job.status === 'awaiting_approval') return 'approval';
   if (job.status === 'awaiting_payment') return 'payment';
   if (job.schedule.isScheduled && !job.schedule.departedAt) return 'appointment';
@@ -91,6 +101,17 @@ function stageOf(job: HomeJob): Stage {
 
 function formatAmount(value: number): string {
   return `${value.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} ₺`;
+}
+
+/** "5 dk önce geldi" */
+function arrivedAgo(createdAt: number): string | null {
+  if (!createdAt) return null;
+  const minutes = Math.max(0, Math.floor((Date.now() - createdAt) / 60000));
+  if (minutes < 1) return 'Az önce geldi';
+  if (minutes < 60) return `${minutes} dk önce geldi`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} sa önce geldi`;
+  return `${Math.floor(hours / 24)} gün önce geldi`;
 }
 
 export default function JobShortcutCard({ job, onOpen, style }: Props) {
@@ -176,7 +197,36 @@ export default function JobShortcutCard({ job, onOpen, style }: Props) {
 
       {/* Gövde */}
       <View style={styles.body}>
-        {waiting ? (
+        {stage === 'new' ? (
+          <>
+            {!!route && (
+              <View style={styles.row}>
+                <MaterialCommunityIcons name="map-marker-outline" size={15} color={tokens.colors.textSecondary} />
+                <Text style={[styles.route, { color: tokens.colors.textPrimary }]} numberOfLines={1}>
+                  {route}
+                </Text>
+              </View>
+            )}
+            {!!arrivedAgo(job.createdAt) && (
+              <View style={styles.row}>
+                <MaterialCommunityIcons name="clock-outline" size={15} color={tokens.colors.textSecondary} />
+                <Text style={[styles.route, { color: tokens.colors.textSecondary }]} numberOfLines={1}>
+                  {arrivedAgo(job.createdAt)}
+                </Text>
+              </View>
+            )}
+            <FkButton
+              size="sm"
+              icon="arrow-right"
+              iconPosition="right"
+              fullWidth
+              style={styles.cta}
+              onPress={() => onOpen(job)}
+            >
+              İş Detayına Gir
+            </FkButton>
+          </>
+        ) : waiting ? (
           <>
             {!!route && (
               <View style={styles.row}>
@@ -389,5 +439,8 @@ const styles = StyleSheet.create({
   },
   action: {
     flex: 1,
+  },
+  cta: {
+    marginTop: 'auto',
   },
 });

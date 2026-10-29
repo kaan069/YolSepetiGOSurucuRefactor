@@ -6,10 +6,10 @@ import { OrderStatus } from '../../../lib/types';
 import { useActiveJobStore } from '../../../store/useActiveJobStore';
 import { useJobCountsStore } from '../../../store/useJobCountsStore';
 import { OrdersJob } from '../types';
-import { craneRequestToJob, nakliyeRequestToJob, transferRequestToJob } from '../jobMappers';
+import { craneRequestToJob, nakliyeRequestToJob, towTruckRequestToJob, transferRequestToJob } from '../jobMappers';
 import type { ServiceType } from '../../../constants/serviceTypes';
 import { logger } from '../../../utils/logger';
-import { roadProblemListLabel, vehicleTypeLabel } from '../../../constants/backendLabels';
+import { roadProblemListLabel } from '../../../constants/backendLabels';
 
 // Service filter types - artık yol yardım ve nakliye de destekleniyor
 // nakliye = evden eve + şehirler arası (birleşik olarak gösterilir)
@@ -449,30 +449,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
 
     return requests
       .filter((request) => request && request.pickup_latitude && request.pickup_longitude)
-      .map((request): OrdersJob => {
-        const price = request.final_price || 0;
-
-        return {
-          id: request.id.toString(),
-          serviceType: 'towTruck',
-          vehicleType: `Çekici - ${vehicleTypeLabel(request.vehicle_type)}`,
-          from: {
-            lat: parseFloat(request.pickup_latitude || '0'),
-            lng: parseFloat(request.pickup_longitude || '0'),
-            address: request.pickup_address || 'Alınacak konum',
-          },
-          to: {
-            lat: parseFloat(request.dropoff_latitude || '0'),
-            lng: parseFloat(request.dropoff_longitude || '0'),
-            address: request.dropoff_address || 'Bırakılacak konum',
-          },
-          distance: request.estimated_km || 0,
-          estimatedPrice: price,
-          status: filter as OrderStatus,
-          createdAt: new Date(request.created_at),
-          description: `Mesafe: ${request.route_distance} | Süre: ${request.route_duration}`,
-        };
-      });
+      .map((request) => towTruckRequestToJob(request, filter as OrderStatus));
   }, [towTruckRequests, requestsWithAddresses.tow, filter]);
 
   // Convert nakliye requests to job format (birleşik evden eve + şehirler arası)

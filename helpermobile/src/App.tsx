@@ -27,7 +27,7 @@ import { APP_VERSION, APP_PLATFORM, compareVersions } from './constants/appVersi
 import { useActiveJobStore } from './store/useActiveJobStore';
 import { useNakliyeLocationStore } from './store/useNakliyeLocationStore';
 import { authAPI, requestsAPI } from './api';
-import { navigateByRequestStatus, isStaleNotification } from './utils/notificationNavigation';
+import { navigateByRequestStatus, isStaleNotification, SCHEDULED_REMINDER_TYPE } from './utils/notificationNavigation';
 import { isAgencyAssignmentClosedType } from './store/useAgencyAssignmentStore';
 import { useAgencyAssignmentSync } from './hooks/useAgencyAssignmentSync';
 import { useAppLocationPing } from './hooks/useAppLocationPing';
@@ -335,6 +335,9 @@ export default function App() {
                 }
                 else if (notificationType === 'job_completed' || notificationType === 'request_completed') {
                   navigationRef.current.navigate('Tabs', { screen: 'EarningsTab' });
+                }
+                else if (notificationType === SCHEDULED_REMINDER_TYPE) {
+                  navigationRef.current.navigate('ScheduledJobs');
                 }
                 else if (notificationType === 'request_cancelled' || isAgencyAssignmentClosedType(notificationType)) {
                   navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });

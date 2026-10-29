@@ -2,7 +2,7 @@
  * Randevulu İşlerim
  *
  * Teklifi kabul edilmiş (ödeme bekleyen / devam eden), henüz yola çıkılmamış randevulu işler;
- * vinç, evden eve, şehirden şehire ve transfer tek listede, randevu tarihine göre sıralı.
+ * çekici, vinç, evden eve, şehirden şehire ve transfer tek listede, randevu tarihine göre sıralı.
  * Bu işler devam eden listelerinde görünmez; sürücü yola çıkınca (detaydaki "Yola Çık")
  * buradan çıkıp hizmetin devam eden listesine geçer.
  */
@@ -53,6 +53,7 @@ export default function ScheduledJobsScreen({ navigation }: Props) {
       // Siparişler'deki Randevu butonunun sayısı listeyle tutarlı kalsın
       const count = (types: string[]) => jobs.filter((j) => types.includes(j.serviceType)).length;
       useJobCountsStore.getState().setScheduledCounts({
+        tow: count(['tow']),
         crane: count(['crane']),
         nakliye: count(['home_moving', 'city_moving']),
         transfer: count(['transfer']),
@@ -81,6 +82,9 @@ export default function ScheduledJobsScreen({ navigation }: Props) {
   const openJob = useCallback(
     ({ job, source }: ScheduledListItem) => {
       switch (source.serviceType) {
+        case 'tow':
+          navigation.navigate('JobDetail', { jobId: job.id });
+          break;
         case 'crane':
           navigation.navigate('CraneJobDetail', { jobId: job.id });
           break;

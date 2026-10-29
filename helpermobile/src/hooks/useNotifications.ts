@@ -13,7 +13,7 @@ import { useAuthStore } from "../store/authStore";
 import { useNotificationStore } from "../store/notificationStore";
 import { usePushPermissionStore } from "../store/usePushPermissionStore";
 import authAPI from "../api/auth";
-import { navigateByRequestStatus, isStaleNotification } from "../utils/notificationNavigation";
+import { navigateByRequestStatus, isStaleNotification, SCHEDULED_REMINDER_TYPE } from "../utils/notificationNavigation";
 import {
     applyAgencyAssignmentNotification,
     isAgencyAssignmentClosedType,
@@ -226,6 +226,9 @@ export function useNotifications(navigationRef?: any) {
                         if (notificationType === 'job_completed' || notificationType === 'request_completed') {
                             navigationRef.current.navigate('Tabs', { screen: 'EarningsTab' });
                         }
+                        else if (notificationType === SCHEDULED_REMINDER_TYPE) {
+                            navigationRef.current.navigate('ScheduledJobs');
+                        }
                         else if (notificationType === 'request_cancelled' || isAgencyAssignmentClosedType(notificationType)) {
                             navigationRef.current.navigate('Tabs', { screen: 'OrdersTab' });
                         }
@@ -304,6 +307,9 @@ export function useNotifications(navigationRef?: any) {
                     }
                     if (notificationType === 'job_completed' || notificationType === 'request_completed') {
                         navigationRef.current?.navigate('Tabs', { screen: 'EarningsTab' });
+                    }
+                    else if (notificationType === SCHEDULED_REMINDER_TYPE) {
+                        navigationRef.current?.navigate('ScheduledJobs');
                     }
                     else if (notificationType === 'request_cancelled' || isAgencyAssignmentClosedType(notificationType)) {
                         navigationRef.current?.navigate('Tabs', { screen: 'OrdersTab' });

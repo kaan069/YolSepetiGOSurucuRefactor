@@ -2,11 +2,37 @@
  * Backend iş nesnesi → OrderCard'ın kullandığı OrdersJob.
  * İşler listesi (useOrdersData) ve Randevulu İşlerim aynı dönüşümü kullanır.
  */
-import type { CraneRequest, MovingRequest, ScheduledJob, TransferRequest } from '../../api/types';
+import type { CraneRequest, MovingRequest, ScheduledJob, TowTruckRequestDetail, TransferRequest } from '../../api/types';
 import { OrderStatus } from '../../lib/types';
 import { getScheduleInfo } from '../../utils/schedule';
 import { OrdersJob } from './types';
-import { dateLabel, transferTypeLabel, transferVehicleLabel } from '../../constants/backendLabels';
+import { dateLabel, transferTypeLabel, transferVehicleLabel, vehicleTypeLabel } from '../../constants/backendLabels';
+
+export function towTruckRequestToJob(request: TowTruckRequestDetail, status: OrderStatus): OrdersJob {
+  const price = request.final_price || 0;
+
+  return {
+    id: request.id.toString(),
+    serviceType: 'towTruck',
+    vehicleType: `Çekici - ${vehicleTypeLabel(request.vehicle_type)}`,
+    from: {
+      lat: parseFloat(request.pickup_latitude || '0'),
+      lng: parseFloat(request.pickup_longitude || '0'),
+      address: request.pickup_address || 'Alınacak konum',
+    },
+    to: {
+      lat: parseFloat(request.dropoff_latitude || '0'),
+      lng: parseFloat(request.dropoff_longitude || '0'),
+      address: request.dropoff_address || 'Bırakılacak konum',
+    },
+    distance: request.estimated_km || 0,
+    estimatedPrice: price,
+    status,
+    createdAt: new Date(request.created_at),
+    description: `Mesafe: ${request.route_distance} | Süre: ${request.route_duration}`,
+    schedule: getScheduleInfo(request),
+  };
+}
 
 export function craneRequestToJob(request: CraneRequest, status: OrderStatus): OrdersJob {
   const price = request.final_price || 0;
@@ -143,6 +169,9 @@ export function scheduledJobToJob(source: ScheduledJob): OrdersJob | null {
   const status = scheduledJobStatus(source);
   let job: OrdersJob;
   switch (source.serviceType) {
+    case 'tow':
+      job = towTruckRequestToJob(source as unknown as TowTruckRequestDetail, status);
+      break;
     case 'crane':
       job = craneRequestToJob(source as unknown as CraneRequest, status);
       break;

@@ -74,6 +74,12 @@ function extractNotificationSentMs(source: any): number | null {
  * zamanı tespit edilemiyorsa konservatif olarak `false` döner (kullanıcı
  * deneyimini yanlışlıkla bloke etmemek için).
  */
+/**
+ * Randevulu işten bir gün önceki hatırlatma ("Yarınki İş Hatırlatması"). Bildirimde hizmet
+ * türü yok (sadece request_id), bu yüzden dokununca Randevulu İşlerim listesi açılır.
+ */
+export const SCHEDULED_REMINDER_TYPE = 'moving_reminder';
+
 export function isStaleNotification(source: any): boolean {
     const sentMs = extractNotificationSentMs(source);
     if (sentMs === null) return false;

@@ -208,6 +208,20 @@ class TowTruckAPI {
     }
   }
 
+  /**
+   * Randevulu çekicide yola çıkış: müşteriye takip SMS'i gider, departedAt dolar ve iş
+   * Randevulu İşlerim'den devam eden listesine geçer. Anlık çekicide 400 DEPART_NOT_SCHEDULED.
+   */
+  async depart(trackingToken: string): Promise<any> {
+    try {
+      const response = await axiosInstance.post(`/requests/tow-truck/${trackingToken}/depart/`);
+      return response.data;
+    } catch (error: any) {
+      logOrdersError('towTruck.depart', error);
+      throw error;
+    }
+  }
+
   async withdrawOffer(trackingToken: string): Promise<any> {
     try {
       const response = await axiosInstance.delete(`/requests/tow-truck/${trackingToken}/withdraw-offer/`);

@@ -74,6 +74,8 @@ import { FkEmptyState, FkInfoBanner } from '../../components/fk';
 import { spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
+import { JobScheduleCard } from '../../components/job';
+import { getScheduleInfo } from '../../utils/schedule';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TowTruckOffer'>;
 
@@ -386,6 +388,8 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
       >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
         <AgencyAssignmentBanner agency={agency} />
+        {/* Randevulu talep: tarih/aralık + teklif taahhüdü (vinçle aynı) */}
+        <JobScheduleCard info={getScheduleInfo(towTruckRequest)} context="offer" />
         {/* Talep Numarası */}
         <RequestHeader requestId={requestId} />
 

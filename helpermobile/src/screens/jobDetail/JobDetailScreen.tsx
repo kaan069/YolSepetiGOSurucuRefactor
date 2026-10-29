@@ -37,7 +37,8 @@ import { calculateDistance, getStatus, getRequestId } from './utils';
 import { LocationCoords } from './types';
 import { logger } from '../../utils/logger';
 import { FkEmptyState } from '../../components/fk';
-import { JobActions } from '../../components/job';
+import { JobActions, JobScheduleCard } from '../../components/job';
+import { getScheduleInfo } from '../../utils/schedule';
 import { spacing } from '../../theme/design';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'JobDetail'>;
@@ -56,15 +57,19 @@ export default function JobDetailScreen({ route, navigation }: Props) {
 
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [withdrawLoading, setWithdrawLoading] = useState(false);
+  const [departing, setDeparting] = useState(false);
 
   const status = towTruckRequest ? getStatus(towTruckRequest) : null;
   const isAwaitingApproval = status === 'awaiting_approval';
   const isAwaitingPayment = status === 'awaiting_payment';
   const isInProgress = status === 'in_progress';
   const isCompleted = status === 'completed';
+  // Randevulu çekici: ödeme sonrası yola çıkılana kadar Randevulu İşlerim'de bekler (aktif iş sayılmaz)
+  const schedule = getScheduleInfo(towTruckRequest);
+  const awaitingDeparture = isInProgress && schedule.isScheduled && !schedule.departedAt;
 
   // Müşteri eşleşmesi gerçekleşip aktif iş başladığında uyarı popup'ı
-  const bgWarning = useBackgroundAppWarning(jobId, isInProgress);
+  const bgWarning = useBackgroundAppWarning(jobId, isInProgress && !awaitingDeparture);
 
   // Fetch request from backend
   const fetchRequest = useCallback(async () => {
@@ -215,12 +220,60 @@ export default function JobDetailScreen({ route, navigation }: Props) {
       if (status === 'completed' || status === 'cancelled') {
         // İş bitti - aktif iş store'unu temizle
         clearActiveJob();
+      } else if (awaitingDeparture) {
+        // Yola çıkılmamış randevulu iş aktif iş sayılmaz (konum gönderilmez)
+        if (useActiveJobStore.getState().activeJobId === jobId) clearActiveJob();
       } else if (status === 'in_progress' && towTruckRequest.trackingToken) {
         // İş devam ediyor - aktif iş olarak set et
         setActiveJob(jobId, towTruckRequest.trackingToken, 'towTruck');
       }
     }
-  }, [status, jobId, towTruckRequest, setActiveJob, clearActiveJob]);
+  }, [status, jobId, towTruckRequest, awaitingDeparture, setActiveJob, clearActiveJob]);
+
+  // Randevulu çekicide yola çıkış: müşteriye SMS, iş devam eden listesine geçer, canlı konum başlar
+  const handleDepart = () => {
+    const trackingToken = towTruckRequest?.trackingToken;
+    if (!trackingToken) {
+      Alert.alert('Hata', 'Takip bilgisi bulunamadı. Lütfen sayfayı yenileyip tekrar deneyin.');
+      return;
+    }
+    Alert.alert(
+      'Yola Çık',
+      'Müşteriye yola çıktığınız SMS ile bildirilecek ve konumunuz paylaşılmaya başlayacak. Devam edilsin mi?',
+      [
+        { text: 'Vazgeç', style: 'cancel' },
+        {
+          text: 'Yola Çık',
+          onPress: async () => {
+            const granted = await ensureForegroundPermission();
+            if (!granted) {
+              Alert.alert('Konum İzni Gerekli', 'Müşteri ile konum paylaşımı için konum izni vermeniz gerekmektedir.');
+              return;
+            }
+            setDeparting(true);
+            try {
+              await requestsAPI.departTowTruck(trackingToken);
+              // Aktif iş efekti departedAt dolunca canlı konumu başlatır
+              setTowTruckRequest((prev) => (prev ? { ...prev, departedAt: new Date().toISOString() } : prev));
+              requestsAPI
+                .getTowTruckRequestDetail(parseInt(jobId))
+                .then((fresh) => setTowTruckRequest((prev) => ({ ...fresh, departedAt: fresh.departedAt ?? prev?.departedAt })))
+                .catch(() => {});
+              Alert.alert('Yola Çıkış Bildirildi', 'Müşteriye SMS gönderildi ve konum paylaşımı başladı. İyi yolculuklar!');
+            } catch (error: any) {
+              logger.error('orders', 'towTruck.depart failure', { status: error?.response?.status });
+              Alert.alert(
+                'Yola Çıkış Bildirilemedi',
+                error?.response?.data?.error || 'Lütfen bağlantınızı kontrol edip tekrar deneyin.',
+              );
+            } finally {
+              setDeparting(false);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   useEffect(() => {
     const getCurrentLocation = async () => {
@@ -342,6 +395,16 @@ export default function JobDetailScreen({ route, navigation }: Props) {
       <AppBar title="Çekici İş Detayı" onBackPress={handleBackPress} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <AwaitingApprovalBanner visible={isAwaitingApproval} />
+
+        {/* Randevulu çekici: tarih/aralık; devam ediyor ve yola çıkılmadıysa "Yola Çık" */}
+        {!isCompleted && (
+          <JobScheduleCard
+            info={schedule}
+            context="job"
+            onDepart={awaitingDeparture ? handleDepart : undefined}
+            departing={departing}
+          />
+        )}
 
         {/* Çekici: Müşteri Ödeme Bekleniyor Ekranı */}
         {(isAwaitingApproval || isInProgress) && (

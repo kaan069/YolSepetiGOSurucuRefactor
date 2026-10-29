@@ -107,9 +107,33 @@ export default function HomeScreen() {
     [navigation],
   );
 
-  // Detay ekranları Siparişler / Randevulu İşlerim ile aynı kimlikle açılır
+  // Detay ekranları Siparişler / Randevulu İşlerim ile aynı kimlikle açılır.
+  // Yeni talep (Gelen İşler) Siparişler'deki gibi teklif ekranında açılır.
   const openJob = useCallback(
     (job: HomeJob) => {
+      if (job.status === 'pending') {
+        switch (job.service) {
+          case 'towTruck':
+            navigation.navigate('TowTruckOffer', { orderId: job.jobId });
+            break;
+          case 'crane':
+            navigation.navigate('CraneOffer', { orderId: job.jobId });
+            break;
+          case 'homeToHomeMoving':
+            navigation.navigate('HomeMovingOffer', { orderId: job.jobId });
+            break;
+          case 'cityToCity':
+            navigation.navigate('CityMovingOffer', { orderId: job.jobId });
+            break;
+          case 'roadAssistance':
+            navigation.navigate('RoadAssistanceOffer', { orderId: job.jobId });
+            break;
+          case 'transfer':
+            navigation.navigate('TransferOffer', { orderId: job.jobId });
+            break;
+        }
+        return;
+      }
       switch (job.service) {
         case 'towTruck':
           navigation.navigate('JobDetail', { jobId: job.jobId });

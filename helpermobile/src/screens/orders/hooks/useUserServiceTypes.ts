@@ -6,7 +6,7 @@ import { logger } from '../../../utils/logger';
 const SERVICE_ORDER: ServiceFilterType[] = ['tow', 'crane', 'nakliye', 'roadAssistance', 'transfer'];
 
 /** Randevulu talep alabilen hizmetler (Randevu butonu ve ana ekrandaki randevulu iş sayısı) */
-export const SCHEDULABLE_SERVICES: ServiceFilterType[] = ['crane', 'nakliye', 'transfer'];
+export const SCHEDULABLE_SERVICES: ServiceFilterType[] = ['tow', 'crane', 'nakliye', 'transfer'];
 
 const USER_TYPE_TO_SERVICE: Record<string, ServiceFilterType> = {
   towTruck: 'tow',

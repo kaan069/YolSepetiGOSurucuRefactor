@@ -406,7 +406,7 @@ export interface TowTruckDetails {
 }
 
 // Request Types - Tow Truck Request Detail (Çekici Talebi Detay)
-export interface TowTruckRequestDetail {
+export interface TowTruckRequestDetail extends BookingFields {
     id: number;
     request_id: RequestIdInfo | number;  // Backend'den object veya number olarak gelebiliyor
     requestOwnerNameSurname?: string;    // Müşteri adı soyadı (ana response'da)
@@ -769,7 +769,7 @@ export interface JobCountsResponse {
 }
 
 /** GET /requests/scheduled/my-jobs/ öğesi: hizmetin detay nesnesi + serviceType */
-export type ScheduledJobServiceType = 'crane' | 'home_moving' | 'city_moving' | 'transfer';
+export type ScheduledJobServiceType = 'tow' | 'crane' | 'home_moving' | 'city_moving' | 'transfer';
 export type ScheduledJob = Record<string, any> & BookingFields & { serviceType: ScheduledJobServiceType };
 
 // ==================== İŞ İPTAL TİPLERİ (JOB CANCELLATION) ====================

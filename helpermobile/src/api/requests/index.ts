@@ -44,6 +44,7 @@ class RequestsAPI {
   getInProgressTowTruckRequests = () => towTruckAPI.getInProgressRequests();
   getCompletedTowTruckRequests = () => towTruckAPI.getCompletedRequests();
   getTowTruckRequestDetail = (id: number) => towTruckAPI.getRequestDetail(id);
+  departTowTruck = (trackingToken: string) => towTruckAPI.depart(trackingToken);
   calculateTowTruckPrice = towTruckAPI.calculatePrice.bind(towTruckAPI);
   acceptTowTruckRequest = towTruckAPI.acceptRequest.bind(towTruckAPI);
   submitTowTruckOffer = (

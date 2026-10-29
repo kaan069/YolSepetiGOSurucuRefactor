@@ -134,6 +134,8 @@ export default function OrdersScreen() {
   useJobsWebSocket({
     onNewJob: useCallback((serviceType: ServiceType, _data: any) => {
       Vibration.vibrate(200);
+      // Ana ekrandaki iş kutusu yeni talebi hemen göstersin
+      useJobUpdateEventStore.getState().setNewJob();
       const storeKey = wsServiceToFilter[serviceType];
       // Backend'den counts geldiyse direkt kullan
       if (_data?.counts) {

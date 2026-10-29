@@ -10,6 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { fetchHomeJobs, HomeJob } from '../services/homeJobs';
 import { useJobUpdateEventStore } from '../store/useJobUpdateEventStore';
 import { useCancellationEventStore } from '../store/useCancellationEventStore';
+import { useAuthStore } from '../store/authStore';
 import { logger } from '../utils/logger';
 
 /** Ön plana gelişte bundan sık istek atılmaz */
@@ -39,7 +40,7 @@ export function useHomeJobs() {
 
     inFlight.current = (async () => {
       try {
-        setJobs(await fetchHomeJobs());
+        setJobs(await fetchHomeJobs(useAuthStore.getState().currentUser?.user_type ?? []));
         setStatus('ready');
         lastFetchAt.current = Date.now();
       } catch (error: any) {
@@ -71,14 +72,15 @@ export function useHomeJobs() {
     return () => subscription.remove();
   }, [refresh]);
 
-  // Canlı olay: teklif kabul / ödeme / durum değişikliği ya da iptal → hemen yenile
+  // Canlı olay: yeni talep, teklif kabul / ödeme / durum değişikliği ya da iptal → hemen yenile
   const lastJobUpdateAt = useJobUpdateEventStore((s) => s.lastUpdatedAt);
+  const lastNewJobAt = useJobUpdateEventStore((s) => s.lastNewJobAt);
   const lastCancelledAt = useCancellationEventStore((s) => s.lastCancelledAt);
   useEffect(() => {
-    if (!lastJobUpdateAt && !lastCancelledAt) return;
+    if (!lastJobUpdateAt && !lastNewJobAt && !lastCancelledAt) return;
     const timer = setTimeout(() => refresh(true), EVENT_DEBOUNCE_MS);
     return () => clearTimeout(timer);
-  }, [lastJobUpdateAt, lastCancelledAt, refresh]);
+  }, [lastJobUpdateAt, lastNewJobAt, lastCancelledAt, refresh]);
 
   return { jobs, status, refresh };
 }
