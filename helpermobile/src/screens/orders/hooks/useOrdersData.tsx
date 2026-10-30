@@ -10,6 +10,7 @@ import { craneRequestToJob, nakliyeRequestToJob, towTruckRequestToJob, transferR
 import type { ServiceType } from '../../../constants/serviceTypes';
 import { logger } from '../../../utils/logger';
 import { roadProblemListLabel } from '../../../constants/backendLabels';
+import { agencyPaidLabelOf } from '../../../utils/agencyPaid';
 
 // Service filter types - artık yol yardım ve nakliye de destekleniyor
 // nakliye = evden eve + şehirler arası (birleşik olarak gösterilir)
@@ -489,6 +490,7 @@ export function useOrdersData({ serviceFilter, filter }: UseOrdersDataProps) {
         },
         distance: 0,
         estimatedPrice: typeof price === 'string' ? parseFloat(price) : price,
+        agencyPaidLabel: agencyPaidLabelOf(request),
         status: filter as OrderStatus,
         createdAt: new Date(request.created_at),
         description: request.description || request.problem_description || 'Yol yardım talebi',

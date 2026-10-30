@@ -1437,8 +1437,6 @@ PODS:
     - React-Core
   - react-native-netinfo (11.4.1):
     - React-Core
-  - react-native-nfc-manager (3.17.2):
-    - React-Core
   - react-native-pdf-thumbnail (2.0.0):
     - hermes-engine
     - RCTRequired
@@ -2066,7 +2064,6 @@ DEPENDENCIES:
   - React-microtasksnativemodule (from `../node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)
   - react-native-maps (from `../node_modules/react-native-maps`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
-  - react-native-nfc-manager (from `../node_modules/react-native-nfc-manager`)
   - react-native-pdf-thumbnail (from `../node_modules/react-native-pdf-thumbnail`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-webview (from `../node_modules/react-native-webview`)
@@ -2244,8 +2241,6 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-maps"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
-  react-native-nfc-manager:
-    :path: "../node_modules/react-native-nfc-manager"
   react-native-pdf-thumbnail:
     :path: "../node_modules/react-native-pdf-thumbnail"
   react-native-safe-area-context:
@@ -2400,7 +2395,6 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: f775db9e991c6f3b8ccbc02bfcde22770f96e23b
   react-native-maps: 9febd31278b35cd21e4fad2cf6fa708993be5dab
   react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
-  react-native-nfc-manager: c8891e460b4943b695d63f7f4effc6345bbefc83
   react-native-pdf-thumbnail: 665b83d8754cd32c93f9225a178f2705335b52fb
   react-native-safe-area-context: 37e680fc4cace3c0030ee46e8987d24f5d3bdab2
   react-native-webview: 3e303e80cadb5f17118c8c1502aa398e9287e415

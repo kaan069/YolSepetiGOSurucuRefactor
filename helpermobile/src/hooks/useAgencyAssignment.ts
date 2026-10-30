@@ -7,11 +7,14 @@
  * - Kapanma olayı (süre doldu / geri alındı) gelirse bilgi verilip ekran kapanır.
  *   Talep pazaryerine açıldıysa ekran açık kalır, sürücü normal teklif verebilir.
  * - Store'da bu talep için atama yoksa hiçbir şey yapmaz; ekran bugünkü gibi çalışır.
+ * - Acente ödemeli işte (payer != customer) teklif yoktur: ekran fiyat alanını gizler,
+ *   sabit ücretle Kabul / Reddet gösterir. Kabul 201 in_progress döner, ödeme adımı yoktur.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import agencyAssignmentsAPI from '../api/agencyAssignments';
+import type { PayerFields } from '../api/types';
 import {
   AgencyAssignmentInfo,
   getAgencyClosedText,
@@ -19,6 +22,8 @@ import {
   useAgencyAssignmentStore,
 } from '../store/useAgencyAssignmentStore';
 import { logger } from '../utils/logger';
+import { formatAgreedPrice, isAgencyPaid } from '../utils/agencyPaid';
+import { getJobDetailNavigation, OfferServiceKey } from '../utils/notificationNavigation';
 
 export interface AgencyAssignmentState {
   /** Ekrandaki atama (yoksa null — bant gösterilmez) */
@@ -29,11 +34,23 @@ export interface AgencyAssignmentState {
   decline: () => void;
   /** Teklif başarılı: atama kapanır, sonrası bugünkü akış */
   markOffered: () => void;
-  /** Teklif ucundan gelen 403 AGENCY_ASSIGNMENT_REQUIRED'ı işler; işlendiyse true */
+  /** Teklif ucundan gelen atama hatalarını (403 / 409) işler; işlendiyse true */
   handleOfferError: (error: any) => boolean;
+  /** Acente ödemeli iş: fiyat sabit, Kabul / Reddet */
+  paid: boolean;
+  /** Sabit ücret (metin, örn. "1850.00"); müşteri ödemeli işte null */
+  agreedPrice: string | null;
+  /** Kabul onayı: iş hemen başladığı için yanlış dokunuşa karşı sorulur */
+  confirmAccept: (onConfirm: () => void) => void;
+  /** Kabul sonrası devam eden iş ekranını açar (komisyon ödemesi yoktur) */
+  openAcceptedJob: (service: OfferServiceKey) => void;
 }
 
-export function useAgencyAssignment(requestId: number | null | undefined): AgencyAssignmentState {
+/** request: talep detayı; atama listesi gelmeden de ödeyen bilgisi okunabilsin diye */
+export function useAgencyAssignment(
+  requestId: number | null | undefined,
+  request?: PayerFields | null,
+): AgencyAssignmentState {
   const navigation = useNavigation();
   const id = requestId && Number.isFinite(requestId) ? requestId : null;
 
@@ -49,6 +66,8 @@ export function useAgencyAssignment(requestId: number | null | undefined): Agenc
   const leftRef = useRef(false);
 
   const assignment = fromStore ?? snapshot;
+  const paid = isAgencyPaid(assignment?.payer ?? request?.payer);
+  const agreedPrice = paid ? (assignment?.agreedPrice ?? request?.agreed_price ?? null) : null;
 
   useEffect(() => {
     if (fromStore) setSnapshot(fromStore);
@@ -111,7 +130,7 @@ export function useAgencyAssignment(requestId: number | null | undefined): Agenc
     const { assignmentId, agencyName } = assignment;
     Alert.alert(
       'Atamayı Reddet',
-      `${agencyName} tarafından size atanan bu işi reddetmek istediğinize emin misiniz?`,
+      `${agencyName} tarafından gönderilen bu işi reddetmek istediğinize emin misiniz?`,
       [
         { text: 'Vazgeç', style: 'cancel' },
         {
@@ -150,18 +169,61 @@ export function useAgencyAssignment(requestId: number | null | undefined): Agenc
 
   const handleOfferError = useCallback(
     (error: any): boolean => {
-      const data = error?.response?.data;
-      if (error?.response?.status !== 403 || data?.errorCode !== 'AGENCY_ASSIGNMENT_REQUIRED') return false;
-      logger.info('orders', 'offer rejected: agency assignment required', { requestId: id });
+      const status = error?.response?.status;
+      const code = error?.response?.data?.errorCode;
+      const text =
+        status === 409 && code === 'JOB_TAKEN'
+          ? { title: 'İş Alındı', message: 'Bu iş başka bir sürücü tarafından alındı.' }
+          : status === 409 && code === 'ASSIGNMENT_NOT_ACTIVE'
+            ? { title: 'Atama Geçersiz', message: 'Bu atama artık geçerli değil.' }
+            : status === 403 && code === 'AGENCY_ASSIGNMENT_REQUIRED'
+              ? { title: 'Atama Sona Erdi', message: 'Bu iş artık size atanmış değil.' }
+              : null;
+      if (!text) return false;
+      logger.info('orders', 'offer rejected by agency assignment', { requestId: id, code });
       if (id) clearAssignment(id);
       setSnapshot(null);
-      Alert.alert('Bu İş Artık Size Atanmış Değil', data?.error || 'Bu talep bir acente tarafından başka bir sürücüye atanmış.', [
-        { text: 'Tamam', onPress: leave },
-      ]);
+      Alert.alert(text.title, text.message, [{ text: 'Tamam', onPress: leave }]);
       return true;
     },
     [id, clearAssignment, leave],
   );
 
-  return { assignment, expired: !!assignment && expired, declining, decline, markOffered, handleOfferError };
+  const confirmAccept = useCallback(
+    (onConfirm: () => void) => {
+      const price = formatAgreedPrice(agreedPrice);
+      Alert.alert(
+        'İşi Kabul Et',
+        `${price ? `Bu işi ${price} ücretle` : 'Bu işi'} kabul ediyorsunuz. Ücreti acente öder ve iş hemen başlar.`,
+        [
+          { text: 'Vazgeç', style: 'cancel' },
+          { text: 'Kabul Et', onPress: onConfirm },
+        ],
+      );
+    },
+    [agreedPrice],
+  );
+
+  const openAcceptedJob = useCallback(
+    (service: OfferServiceKey) => {
+      if (!id) return;
+      leftRef.current = true;
+      const target = getJobDetailNavigation(service, id);
+      (navigation as any).replace(target.screen, target.params);
+    },
+    [id, navigation],
+  );
+
+  return {
+    assignment,
+    expired: !!assignment && expired,
+    declining,
+    decline,
+    markOffered,
+    handleOfferError,
+    paid,
+    agreedPrice,
+    confirmAccept,
+    openAcceptedJob,
+  };
 }

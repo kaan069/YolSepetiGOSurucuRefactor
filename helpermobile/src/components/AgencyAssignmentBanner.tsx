@@ -4,6 +4,7 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { FkButton } from './fk';
 import type { AgencyAssignmentState } from '../hooks/useAgencyAssignment';
 import { colors, radius, spacing, tint } from '../theme/design';
+import { agencyPaidLabel } from '../utils/agencyPaid';
 
 /** Son bu kadar saniyede geri sayım kırmızıya döner */
 const URGENT_SECONDS = 30;
@@ -31,41 +32,65 @@ export function useRemainingMs(expiresAt: string | undefined, active = true): nu
 interface Props {
   agency: AgencyAssignmentState;
   style?: StyleProp<ViewStyle>;
+  /** Reddet alt alanda (AgencyPaidFooter) gösteriliyorsa */
+  hideDecline?: boolean;
+}
+
+function bannerMessage(paid: boolean, expired: boolean, broadcast: boolean): string {
+  if (expired) {
+    return paid
+      ? 'Yanıt süresi doldu. Bu işi artık kabul edemezsiniz.'
+      : 'Yanıt süresi doldu. Bu iş için artık teklif veremezsiniz.';
+  }
+  if (paid) {
+    return broadcast
+      ? 'Fiyat sabittir, ücreti acente öder. İlk kabul eden işi alır.'
+      : 'Fiyat sabittir, ücreti acente öder. Kabul edince iş hemen başlar.';
+  }
+  return broadcast ? 'İşi almak için aşağıdan teklifinizi gönderin.' : 'Kabul etmek için aşağıdan teklifinizi gönderin.';
 }
 
 /**
  * Teklif ekranlarının üstündeki acente ataması bandı: acente adı, geri sayım, Reddet.
- * Atama yoksa hiçbir şey çizmez. Kabul = aşağıdan teklif göndermek.
+ * Acente ödemeli işte sabit ücreti de gösterir. Toplu davette geri sayım yoktur (süresiz).
+ * Atama ve acente ödemesi yoksa hiçbir şey çizmez.
  */
-export default function AgencyAssignmentBanner({ agency, style }: Props) {
-  const { assignment, expired, declining, decline } = agency;
-  const remaining = useRemainingMs(assignment?.expiresAt, !!assignment && !expired);
+export default function AgencyAssignmentBanner({ agency, style, hideDecline }: Props) {
+  const { assignment, expired, declining, decline, paid, agreedPrice } = agency;
+  const timed = !!assignment?.expiresAt;
+  const broadcast = assignment?.mode === 'broadcast';
+  const remaining = useRemainingMs(assignment?.expiresAt ?? undefined, timed && !expired);
 
-  if (!assignment) return null;
+  if (!assignment && !paid) return null;
 
-  const urgent = expired || remaining <= URGENT_SECONDS * 1000;
+  const urgent = timed && (expired || remaining <= URGENT_SECONDS * 1000);
   const t = tint(urgent ? 'danger' : 'primary');
+  const title = !assignment
+    ? 'Acente ödemeli iş'
+    : broadcast
+      ? `${assignment.agencyName} bu işi ekibine gönderdi`
+      : `${assignment.agencyName} bu işi size atadı`;
 
   return (
     <View style={[styles.container, { backgroundColor: t.bg, borderColor: t.border }, style]}>
       <View style={styles.header}>
         <MaterialCommunityIcons name="account-tie-outline" size={22} color={t.icon} />
         <Text style={[styles.title, { color: t.text }]} numberOfLines={2}>
-          {assignment.agencyName} bu işi size atadı
+          {title}
         </Text>
-        <View style={[styles.timer, { backgroundColor: t.solid }]}>
-          <MaterialCommunityIcons name={expired ? 'timer-off-outline' : 'timer-sand'} size={14} color={colors.white} />
-          <Text style={styles.timerText}>{expired ? 'Süre doldu' : formatRemaining(remaining)}</Text>
-        </View>
+        {timed ? (
+          <View style={[styles.timer, { backgroundColor: t.solid }]}>
+            <MaterialCommunityIcons name={expired ? 'timer-off-outline' : 'timer-sand'} size={14} color={colors.white} />
+            <Text style={styles.timerText}>{expired ? 'Süre doldu' : formatRemaining(remaining)}</Text>
+          </View>
+        ) : null}
       </View>
 
-      <Text style={[styles.message, { color: t.text }]}>
-        {expired
-          ? 'Yanıt süresi doldu. Bu iş için artık teklif veremezsiniz.'
-          : 'Kabul etmek için aşağıdan teklifinizi gönderin.'}
-      </Text>
+      {paid ? <Text style={[styles.price, { color: t.text }]}>{agencyPaidLabel(agreedPrice)}</Text> : null}
 
-      {!expired ? (
+      <Text style={[styles.message, { color: t.text }]}>{bannerMessage(paid, expired, broadcast)}</Text>
+
+      {assignment && !expired && !hideDecline ? (
         <FkButton
           variant="secondary"
           tone="danger"
@@ -114,6 +139,10 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
+  },
+  price: {
+    fontSize: 20,
+    fontWeight: '800',
   },
   message: {
     fontSize: 13,

@@ -35,6 +35,7 @@ import { FkButton, FkEmptyState, FkInfoBanner, FkLoadingOverlay, FkPill, FkStick
 import { colors, spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
+import AgencyPaidFooter from '../../components/AgencyPaidFooter';
 import { getScheduleInfo } from '../../utils/schedule';
 import { transferTypeLabel, transferVehicleLabel } from '../../constants/backendLabels';
 
@@ -55,8 +56,6 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
 
 export default function TransferOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
-  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
-  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
   const { isDarkMode, appColors, cardBg, screenBg } = useAppTheme();
@@ -65,6 +64,8 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [transferRequest, setTransferRequest] = useState<TransferRequest | null>(null);
+  // Acente ataması: geri sayım, Reddet, süre dolunca kilit; acente ödemeli işte sabit ücretle Kabul / Reddet
+  const agency = useAgencyAssignment(Number(orderId), transferRequest);
   const [loading, setLoading] = useState(false);
 
   // Arac secimi
@@ -210,6 +211,11 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
       showNotification('warning', 'Lütfen bir araç seçin');
       return;
     }
+    // Acente ödemeli iş: fiyat sabit
+    if (agency.paid) {
+      agency.confirmAccept(proceedWithAccept);
+      return;
+    }
     const priceCheck = validateOfferPrice(offerPrice, minOfferOverride);
     if (!priceCheck.valid) {
       showNotification('warning', priceCheck.error!);
@@ -230,12 +236,20 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
       const response = await requestsAPI.submitTransferOffer(
         transferRequest.trackingToken,
         {
-          proposed_price: parseFloat(offerPrice),
+          // Acente ödemeli işte alan zorunlu ama backend yok sayar; ücret agreed_price'tır
+          proposed_price: agency.paid ? Number(agency.agreedPrice) : parseFloat(offerPrice),
           vehicle_id: selectedVehicleId!,
           employee_id: selectedEmployeeId || undefined,
         }
       );
       agency.markOffered();
+
+      // Acente ödemeli iş hemen başlar: müşteri onayı ve komisyon ödemesi yok
+      if (agency.paid) {
+        showNotification('success', 'İş kabul edildi.');
+        agency.openAcceptedJob('transfer');
+        return;
+      }
 
       const totalPrice = response.driver_earnings || response.estimated_price || offerPrice;
       showNotification('success', `Teklifiniz gönderildi!\n\nTahmini Kazanç: ${totalPrice} TL`, 6000);
@@ -324,7 +338,7 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <AgencyAssignmentBanner agency={agency} />
+          <AgencyAssignmentBanner agency={agency} hideDecline={agency.paid} />
           {/* Randevulu talep: tarih/aralık + teklif taahhüdü */}
           <JobScheduleCard info={getScheduleInfo(transferRequest)} context="offer" />
           {/* Alış / varış noktası ve mesafe */}
@@ -417,26 +431,32 @@ export default function TransferOfferScreen({ route, navigation }: Props) {
             />
           )}
 
-          {/* Fiyat Teklifi */}
-          <PriceOfferSection
-            value={offerPrice}
-            onChange={setOfferPrice}
-            hint="Müşteri için uygun gördüğünüz fiyatı girin."
-          />
+          {/* Fiyat Teklifi (acente ödemeli işte fiyat sabit) */}
+          {!agency.paid && (
+            <PriceOfferSection
+              value={offerPrice}
+              onChange={setOfferPrice}
+              hint="Müşteri için uygun gördüğünüz fiyatı girin."
+            />
+          )}
         </ScrollView>
 
-        <FkStickyFooter safeArea={false}>
-          <FkButton
-            onPress={handleAccept}
-            loading={acceptingJob}
-            disabled={acceptingJob || agency.expired || !selectedVehicleId || !hasValidPrice}
-            icon="send-check-outline"
-            size="lg"
-            fullWidth
-          >
-            Teklif Gönder
-          </FkButton>
-        </FkStickyFooter>
+        {agency.paid ? (
+          <AgencyPaidFooter agency={agency} onAccept={handleAccept} loading={acceptingJob} disabled={!selectedVehicleId} />
+        ) : (
+          <FkStickyFooter safeArea={false}>
+            <FkButton
+              onPress={handleAccept}
+              loading={acceptingJob}
+              disabled={acceptingJob || agency.expired || !selectedVehicleId || !hasValidPrice}
+              icon="send-check-outline"
+              size="lg"
+              fullWidth
+            >
+              Teklif Gönder
+            </FkButton>
+          </FkStickyFooter>
+        )}
       </KeyboardAvoidingView>
 
       {acceptingJob && <FkLoadingOverlay />}

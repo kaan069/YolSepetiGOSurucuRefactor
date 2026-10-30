@@ -197,6 +197,14 @@ export default function JobShortcutCard({ job, onOpen, style }: Props) {
 
       {/* Gövde */}
       <View style={styles.body}>
+        {!!job.agencyPaidLabel && (
+          <View style={styles.row}>
+            <MaterialCommunityIcons name="cash-check" size={15} color={palette.ink} />
+            <Text style={[styles.agencyPaid, { color: tokens.colors.textPrimary }]} numberOfLines={1}>
+              {job.agencyPaidLabel}
+            </Text>
+          </View>
+        )}
         {stage === 'new' ? (
           <>
             {!!route && (
@@ -398,6 +406,11 @@ const styles = StyleSheet.create({
   route: {
     ...text.meta,
     flex: 1,
+  },
+  agencyPaid: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '700',
   },
   earningsRow: {
     gap: spacing.sm,

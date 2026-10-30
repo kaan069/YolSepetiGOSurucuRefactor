@@ -88,7 +88,7 @@ export function setupForegroundNotificationHandler() {
       useCancellationEventStore.getState().setCancelledJob(
         requestId,
         data.service_type ? String(data.service_type) : 'fcm',
-        data.reason ? String(data.reason) : null,
+        data.reason ? String(data.reason) : data.cancelled_by === 'agency' ? 'agency_cancelled' : null,
       );
     }
 

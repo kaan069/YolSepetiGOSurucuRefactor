@@ -27,13 +27,12 @@ import { FkButton, FkEmptyState, FkLoadingOverlay, FkStickyFooter } from '../../
 import { spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
+import AgencyPaidFooter from '../../components/AgencyPaidFooter';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'RoadAssistanceOffer'>;
 
 export default function RoadAssistanceOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
-  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
-  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
   const { screenBg, appColors } = useAppTheme();
@@ -50,6 +49,8 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [request, setRequest] = useState<any | null>(null);
+  // Acente ataması: geri sayım, Reddet, süre dolunca kilit; acente ödemeli işte sabit ücretle Kabul / Reddet
+  const agency = useAgencyAssignment(Number(orderId), request);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [proposedPrice, setProposedPrice] = useState('');
@@ -155,10 +156,13 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
       logger.error('orders', 'Profil kontrol hatas');
     }
 
-    const priceCheck = validateOfferPrice(proposedPrice, minOfferOverride);
-    if (!priceCheck.valid) {
-      setPriceError(priceCheck.error!);
-      return;
+    // Acente ödemeli işte fiyat sabit: alan doğrulanmaz
+    if (!agency.paid) {
+      const priceCheck = validateOfferPrice(proposedPrice, minOfferOverride);
+      if (!priceCheck.valid) {
+        setPriceError(priceCheck.error!);
+        return;
+      }
     }
 
     if (!request?.trackingToken) {
@@ -177,16 +181,32 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
       return;
     }
 
+    if (agency.paid) {
+      agency.confirmAccept(submitOffer);
+      return;
+    }
+    submitOffer();
+  };
+
+  const submitOffer = async () => {
     try {
       setSubmitting(true);
       await requestsAPI.submitRoadAssistanceOffer(
         request.trackingToken,
-        parseInt(proposedPrice),
-        parseFloat(distance.toFixed(2)),
-        selectedVehicleId,
+        // Acente ödemeli işte alan zorunlu ama backend yok sayar; ücret agreed_price'tır
+        agency.paid ? Number(agency.agreedPrice) : parseInt(proposedPrice),
+        parseFloat(distance!.toFixed(2)),
+        selectedVehicleId!,
         selectedEmployeeId || undefined
       );
       agency.markOffered();
+
+      // Acente ödemeli iş hemen başlar: müşteri onayı ve komisyon ödemesi yok
+      if (agency.paid) {
+        showNotification('success', 'İş kabul edildi.');
+        agency.openAcceptedJob('road_assistance');
+        return;
+      }
 
       showNotification('success', `Teklifiniz gönderildi!\n\nTeklif: ${formatNumber(parseInt(proposedPrice))} TL`, 5000);
 
@@ -250,7 +270,7 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <AgencyAssignmentBanner agency={agency} />
+          <AgencyAssignmentBanner agency={agency} hideDecline={agency.paid} />
           <LocationCard
             address={request.address}
             latitude={parseFloat(request.latitude || '0')}
@@ -286,26 +306,32 @@ export default function RoadAssistanceOfferScreen({ route, navigation }: Props) 
             additionalNotes={request.additional_notes}
           />
 
-          <PriceOfferCard
-            price={proposedPrice}
-            onPriceChange={handlePriceChange}
-            error={priceError}
-          />
+          {!agency.paid && (
+            <PriceOfferCard
+              price={proposedPrice}
+              onPriceChange={handlePriceChange}
+              error={priceError}
+            />
+          )}
 
         </ScrollView>
 
-        <FkStickyFooter safeArea={false}>
-          <FkButton
-            onPress={handleSubmitOffer}
-            loading={submitting}
-            disabled={submitting || agency.expired || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
-            icon="send-check-outline"
-            size="lg"
-            fullWidth
-          >
-            Teklif Gönder
-          </FkButton>
-        </FkStickyFooter>
+        {agency.paid ? (
+          <AgencyPaidFooter agency={agency} onAccept={handleSubmitOffer} loading={submitting} disabled={!selectedVehicleId || approvedCount === 0} />
+        ) : (
+          <FkStickyFooter safeArea={false}>
+            <FkButton
+              onPress={handleSubmitOffer}
+              loading={submitting}
+              disabled={submitting || agency.expired || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
+              icon="send-check-outline"
+              size="lg"
+              fullWidth
+            >
+              Teklif Gönder
+            </FkButton>
+          </FkStickyFooter>
+        )}
       </KeyboardAvoidingView>
 
       {submitting && <FkLoadingOverlay />}

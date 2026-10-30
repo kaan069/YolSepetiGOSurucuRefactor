@@ -32,6 +32,7 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 import { spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
+import AgencyPaidFooter from '../../components/AgencyPaidFooter';
 import { JobScheduleCard } from '../../components/job';
 import { getScheduleInfo } from '../../utils/schedule';
 
@@ -39,8 +40,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CraneOffer'>;
 
 export default function CraneOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
-  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
-  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const { screenBg } = useAppTheme();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
@@ -49,6 +48,8 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
   const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [distance, setDistance] = useState<number | null>(null);
   const [craneRequest, setCraneRequest] = useState<CraneRequest | null>(null);
+  // Acente ataması: geri sayım, Reddet, süre dolunca kilit; acente ödemeli işte sabit ücretle Kabul / Reddet
+  const agency = useAgencyAssignment(Number(orderId), craneRequest);
   const [loading, setLoading] = useState(false);
 
   // Vinç seçimi
@@ -188,6 +189,11 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
       showNotification('warning', 'Mesafe hesaplanamadı');
       return;
     }
+    // Acente ödemeli iş: fiyat sabit
+    if (agency.paid) {
+      agency.confirmAccept(proceedWithAccept);
+      return;
+    }
     const priceCheck = validateOfferPrice(offerPrice, minOfferOverride);
     if (!priceCheck.valid) {
       showNotification('warning', priceCheck.error!);
@@ -212,10 +218,18 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
         selectedCraneId!,
         distance!,
         estimatedDuration,
-        parseFloat(offerPrice),
+        // Acente ödemeli işte alan zorunlu ama backend yok sayar; ücret agreed_price'tır
+        agency.paid ? Number(agency.agreedPrice) : parseFloat(offerPrice),
         selectedEmployeeId || undefined
       );
       agency.markOffered();
+
+      // Acente ödemeli iş hemen başlar: müşteri onayı ve komisyon ödemesi yok
+      if (agency.paid) {
+        showNotification('success', 'İş kabul edildi.');
+        agency.openAcceptedJob('crane');
+        return;
+      }
 
       const totalPrice = response.driver_earnings || response.estimated_price || offerPrice;
       showNotification('success', `Teklifiniz gönderildi!\n\nTahmini Kazanç: ${totalPrice} TL`, 6000);
@@ -286,7 +300,7 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <AgencyAssignmentBanner agency={agency} />
+          <AgencyAssignmentBanner agency={agency} hideDecline={agency.paid} />
           {/* Randevulu talep: tarih/aralık + teklif taahhüdü */}
           <JobScheduleCard info={getScheduleInfo(craneRequest)} context="offer" />
           <MapCard
@@ -331,30 +345,36 @@ export default function CraneOfferScreen({ route, navigation }: Props) {
           <RequirementsCard
             selectedCraneId={selectedCraneId}
             distance={distance}
-            offerPrice={offerPrice}
+            offerPrice={agency.paid ? (agency.agreedPrice ?? '') : offerPrice}
           />
 
-          <PricingCard
-            offerPrice={offerPrice}
-            onOfferPriceChange={setOfferPrice}
-            distance={distance}
-            estimatedDuration={estimatedDuration || null}
-          />
+          {!agency.paid && (
+            <PricingCard
+              offerPrice={offerPrice}
+              onOfferPriceChange={setOfferPrice}
+              distance={distance}
+              estimatedDuration={estimatedDuration || null}
+            />
+          )}
 
         </ScrollView>
 
-        <FkStickyFooter safeArea={false}>
-          <FkButton
-            onPress={handleAccept}
-            loading={acceptingJob}
-            disabled={acceptingJob || agency.expired || !selectedCraneId || !distance || !hasValidPrice}
-            icon="send-check-outline"
-            size="lg"
-            fullWidth
-          >
-            Teklif Gönder
-          </FkButton>
-        </FkStickyFooter>
+        {agency.paid ? (
+          <AgencyPaidFooter agency={agency} onAccept={handleAccept} loading={acceptingJob} disabled={!selectedCraneId || !distance} />
+        ) : (
+          <FkStickyFooter safeArea={false}>
+            <FkButton
+              onPress={handleAccept}
+              loading={acceptingJob}
+              disabled={acceptingJob || agency.expired || !selectedCraneId || !distance || !hasValidPrice}
+              icon="send-check-outline"
+              size="lg"
+              fullWidth
+            >
+              Teklif Gönder
+            </FkButton>
+          </FkStickyFooter>
+        )}
       </KeyboardAvoidingView>
 
       {acceptingJob && <FkLoadingOverlay />}

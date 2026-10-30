@@ -119,7 +119,7 @@ export interface CommissionPaymentStatus {
     | 'refunded'
     | 'cancelled'
     | 'no_payment';
-  payment_method?: 'iyzico' | 'stripe' | 'manual' | 'nfc';
+  payment_method?: 'iyzico' | 'stripe' | 'manual';
   created_at?: string;
   paid_at?: string | null;
   message?: string;

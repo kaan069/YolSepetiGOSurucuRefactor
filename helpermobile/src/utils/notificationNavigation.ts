@@ -101,7 +101,7 @@ type ResolvedServiceType = 'tow' | 'crane' | 'home_moving' | 'city_moving' | 'ro
  * Teklif (offer) ekranı yönlendirmesi için kullanılan resolve tipi.
  * `ResolvedServiceType` + `transfer` ile genişletilmiştir.
  */
-type OfferServiceKey = ResolvedServiceType | 'transfer';
+export type OfferServiceKey = ResolvedServiceType | 'transfer';
 
 // ---------------------------------------------------------------------------
 // Alias resolve map'leri
@@ -307,7 +307,7 @@ async function fetchRequestDetail(
  * olarak geçiriyor. Bu yüzden burada `detail.id` (driver kaydı id'si) DEĞİL,
  * `orderId` kullanılır — yanlış id verilirse JobDetail fetch 404 alır.
  */
-function getJobDetailNavigation(
+export function getJobDetailNavigation(
     serviceType: OfferServiceKey,
     orderId: string | number
 ): { screen: string; params: Record<string, any> } {

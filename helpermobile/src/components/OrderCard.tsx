@@ -296,7 +296,14 @@ export default function OrderCard({ item, onPress }: Props) {
 
       {/* Alt satır: tahmini fiyat + CTA */}
       <View style={[styles.footer, { borderTopColor: dividerColor }]}>
-        {showPrice ? (
+        {item.agencyPaidLabel ? (
+          <View style={styles.priceBlock}>
+            <Text style={[styles.priceLabel, { color: labelColor }]}>Sabit Ücret</Text>
+            <Text style={[styles.agencyPaid, { color: isDarkMode ? colors.primary[300] : colors.primary[600] }]} numberOfLines={1}>
+              {item.agencyPaidLabel}
+            </Text>
+          </View>
+        ) : showPrice ? (
           <View style={styles.priceBlock}>
             <Text style={[styles.priceLabel, { color: labelColor }]}>Tahmini Fiyat</Text>
             <Text style={[styles.price, { color: isDarkMode ? colors.primary[300] : colors.primary[600] }]}>
@@ -453,6 +460,10 @@ const styles = StyleSheet.create({
   },
   priceLabel: {
     ...text.caption,
+  },
+  agencyPaid: {
+    fontSize: 15,
+    fontWeight: '700',
   },
   price: {
     ...text.price,

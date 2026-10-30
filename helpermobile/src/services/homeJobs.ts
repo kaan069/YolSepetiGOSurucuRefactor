@@ -12,6 +12,7 @@ import type { ServiceGroup } from '../constants/serviceTypes';
 import { getScheduleInfo, ScheduleInfo } from '../utils/schedule';
 import { scheduledJobRequestId } from '../screens/orders/jobMappers';
 import { useJobCountsStore } from '../store/useJobCountsStore';
+import { agencyPaidLabelOf } from '../utils/agencyPaid';
 
 export type HomeJobService = Exclude<ServiceGroup, 'nakliye'>;
 /** Hangi listeden geldiği */
@@ -36,6 +37,8 @@ export interface HomeJob {
   status: HomeJobStatus;
   /** Sürücünün teklifindeki kazancı (my_offer.driver_earnings); yoksa null */
   earnings: number | null;
+  /** Acente ödemeli işte "Acente öder · 1.850 TL"; müşteri ödemeli işte null */
+  agencyPaidLabel: string | null;
   customerName: string | null;
   /** Backend yalnızca iş devam ederken / tamamlanınca gönderir; gizliyken null */
   customerPhone: string | null;
@@ -188,6 +191,7 @@ function toHomeJob(service: HomeJobService, kind: HomeJobKind, raw: any, jobId: 
     kind,
     status,
     earnings: amount(raw.my_offer?.driver_earnings),
+    agencyPaidLabel: agencyPaidLabelOf(raw.payer ? raw : owner),
     customerName: text(
       raw.requestOwnerNameSurname,
       raw.request_owner_name_surname,

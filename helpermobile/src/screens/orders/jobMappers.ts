@@ -7,6 +7,7 @@ import { OrderStatus } from '../../lib/types';
 import { getScheduleInfo } from '../../utils/schedule';
 import { OrdersJob } from './types';
 import { dateLabel, transferTypeLabel, transferVehicleLabel, vehicleTypeLabel } from '../../constants/backendLabels';
+import { agencyPaidLabelOf } from '../../utils/agencyPaid';
 
 export function towTruckRequestToJob(request: TowTruckRequestDetail, status: OrderStatus): OrdersJob {
   const price = request.final_price || 0;
@@ -27,6 +28,7 @@ export function towTruckRequestToJob(request: TowTruckRequestDetail, status: Ord
     },
     distance: request.estimated_km || 0,
     estimatedPrice: price,
+    agencyPaidLabel: agencyPaidLabelOf(request),
     status,
     createdAt: new Date(request.created_at),
     description: `Mesafe: ${request.route_distance} | Süre: ${request.route_duration}`,
@@ -53,6 +55,7 @@ export function craneRequestToJob(request: CraneRequest, status: OrderStatus): O
     },
     distance: 0,
     estimatedPrice: price,
+    agencyPaidLabel: agencyPaidLabelOf(request),
     status,
     createdAt: new Date(request.created_at),
     description: `Yük: ${request.load_weight || '?'} kg | Yükseklik: ${request.lift_height || '?'}m | Kat: ${request.floor || '?'}${request.has_obstacles ? ' | Engel var' : ''}`,
@@ -99,6 +102,7 @@ export function nakliyeRequestToJob(request: MovingRequest, status: OrderStatus)
     },
     distance: request.estimated_km || request.distance_km || 0,
     estimatedPrice: typeof price === 'string' ? parseFloat(price) : price,
+    agencyPaidLabel: agencyPaidLabelOf(request),
     status,
     createdAt: new Date(request.created_at),
     description,
@@ -140,6 +144,7 @@ export function transferRequestToJob(request: TransferRequest, status: OrderStat
     },
     distance: request.estimated_km || request.distance_km || 0,
     estimatedPrice: typeof price === 'string' ? parseFloat(price) : price,
+    agencyPaidLabel: agencyPaidLabelOf(request),
     status,
     createdAt: new Date(request.created_at),
     description,

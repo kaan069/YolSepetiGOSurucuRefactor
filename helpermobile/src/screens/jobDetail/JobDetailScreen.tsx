@@ -16,6 +16,7 @@ import AppBar from '../../components/common/AppBar';
 import { CustomerPaymentWaitingCard, InsurancePricingCard } from '../../components/payment';
 import CancelJobModal from '../../components/cancellation/CancelJobModal';
 import { useCancellationEventStore } from '../../store/useCancellationEventStore';
+import { useAgencyCancelExit } from '../../hooks/useAgencyCancelExit';
 import { useJobUpdateEventStore } from '../../store/useJobUpdateEventStore';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import {
@@ -163,6 +164,7 @@ export default function JobDetailScreen({ route, navigation }: Props) {
   }, [clearActiveJob, navigation]);
 
   // WebSocket iptal event'ini dinle
+  useAgencyCancelExit(jobId);
   const { lastCancelledJobId, lastCancelledAt } = useCancellationEventStore();
   useEffect(() => {
     if (lastCancelledJobId && String(lastCancelledJobId) === jobId) {

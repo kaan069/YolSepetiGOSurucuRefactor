@@ -1,19 +1,24 @@
 import axiosInstance from './axiosConfig';
 import { logger } from '../utils/logger';
+import type { PayerFields } from './types';
 
 /**
  * Acente doğrudan ataması (sürücü tarafı).
  *
- * Acente talebi havuzundaki bir sürücüye atar; sürücü mevcut teklif ekranından
- * teklif vererek kabul eder (ayrı bir kabul ucu yok). Atama varsayılan 180 sn sürer.
+ * Acente talebi havuzundaki bir sürücüye atar ya da tüm havuza gönderir (toplu davet).
+ * Sürücü mevcut teklif ucuyla kabul eder (ayrı bir kabul ucu yok). Tekil atama varsayılan
+ * 180 sn sürer; toplu davet süresizdir (expires_at null).
+ * Acente ödemeli işte (payer != customer) fiyat sabittir: uç hemen in_progress döner.
  */
-export interface DriverAgencyAssignment {
+export interface DriverAgencyAssignment extends PayerFields {
     id: number;
     request_id: number;
     service_type: 'tow' | 'crane' | 'home_moving' | 'city_moving' | 'road_assistance' | 'transfer';
     agency_name: string;
-    /** ISO UTC */
-    expires_at: string;
+    /** single: tekil atama (süreli), broadcast: toplu davet (süresiz) */
+    mode?: 'single' | 'broadcast';
+    /** ISO UTC; toplu davette null */
+    expires_at: string | null;
     created_at: string;
     customer_location: { latitude: number; longitude: number } | null;
 }

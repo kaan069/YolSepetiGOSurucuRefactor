@@ -8,6 +8,7 @@ import { formatRemaining, useRemainingMs } from './AgencyAssignmentBanner';
 import { useFkTokens } from '../hooks/useFkTokens';
 import { radius, spacing, tint } from '../theme/design';
 import { logger } from '../utils/logger';
+import { agencyPaidLabel, formatAgreedPrice, isAgencyPaid } from '../utils/agencyPaid';
 
 interface Props {
   navigationRef: React.RefObject<any>;
@@ -21,6 +22,7 @@ const STACK_ABOVE_FONT_SCALE = 1.3;
  * Bekleyen acente ataması penceresi: "{acente} size bir iş atadı (#id) · kalan süre".
  * Push ile ya da açılış senkronuyla gelen atamada açılır; sürücü o talebin teklif
  * ekranındaysa gösterilmez (bant zaten orada). "İşi Gör" teklif ekranını açar.
+ * Toplu davet süresizdir: geri sayım gösterilmez.
  */
 
 export default function AgencyAssignmentPrompt({ navigationRef }: Props) {
@@ -40,13 +42,19 @@ export default function AgencyAssignmentPrompt({ navigationRef }: Props) {
         (a) =>
           a.requestId !== viewingRequestId &&
           !dismissed.has(a.assignmentId) &&
-          new Date(a.expiresAt).getTime() > now,
+          (!a.expiresAt || new Date(a.expiresAt).getTime() > now),
       )
-      .sort((a, b) => new Date(a.expiresAt).getTime() - new Date(b.expiresAt).getTime())[0];
+      // Süresi yaklaşan önce, süresiz toplu davetler sonda
+      .sort(
+        (a, b) =>
+          (a.expiresAt ? new Date(a.expiresAt).getTime() : Infinity) -
+          (b.expiresAt ? new Date(b.expiresAt).getTime() : Infinity),
+      )[0];
   }, [active, viewingRequestId, dismissed]);
 
-  const remaining = useRemainingMs(current?.expiresAt, !!current);
-  const visible = !!current && remaining > 0;
+  const timed = !!current?.expiresAt;
+  const remaining = useRemainingMs(current?.expiresAt ?? undefined, timed);
+  const visible = !!current && (!timed || remaining > 0);
 
   if (!current) return null;
 
@@ -61,6 +69,16 @@ export default function AgencyAssignmentPrompt({ navigationRef }: Props) {
 
   const urgent = remaining <= 30 * 1000;
   const timerTint = tint(urgent ? 'danger' : 'primary');
+  const paid = isAgencyPaid(current.payer);
+  const broadcast = current.mode === 'broadcast';
+  const price = formatAgreedPrice(current.agreedPrice);
+  const message = paid
+    ? broadcast
+      ? ` ekibine ${price ? `${price} ücretli ` : ''}bir iş gönderdi. İlk kabul eden alır.`
+      : ` size ${price ? `${price} ücretli ` : ''}bir iş gönderdi.`
+    : broadcast
+      ? ' bu iş için teklifinizi bekliyor.'
+      : ' size bir iş atadı. Kabul etmek için teklifinizi gönderin.';
 
   // Yan yana: [Sonra][İşi Gör]; alt alta: İşi Gör üstte, Sonra metin butonu
   const actionStyle = stacked ? undefined : styles.rowAction;
@@ -87,11 +105,13 @@ export default function AgencyAssignmentPrompt({ navigationRef }: Props) {
       <View style={styles.content}>
         <FkIconChip icon="account-tie-outline" size={64} shape="circle" />
 
-        <Text style={[styles.title, { color: tokens.colors.textPrimary }]}>Yeni İş Ataması</Text>
+        <Text style={[styles.title, { color: tokens.colors.textPrimary }]}>
+          {broadcast ? 'Yeni İş Teklifi' : 'Yeni İş Ataması'}
+        </Text>
 
         <Text style={[styles.message, { color: tokens.colors.textSecondary }]}>
           <Text style={[styles.agency, { color: tokens.colors.textPrimary }]}>{current.agencyName}</Text>
-          {' size bir iş atadı. Kabul etmek için teklifinizi gönderin.'}
+          {message}
         </Text>
 
         <View style={styles.pills}>
@@ -99,12 +119,22 @@ export default function AgencyAssignmentPrompt({ navigationRef }: Props) {
             <MaterialCommunityIcons name="file-document-outline" size={14} color={tokens.colors.textSecondary} />
             <Text style={[styles.pillText, { color: tokens.colors.textSecondary }]}>Talep #{current.requestId}</Text>
           </View>
-          <View style={[styles.pill, { backgroundColor: timerTint.bg, borderColor: timerTint.border }]}>
-            <MaterialCommunityIcons name="timer-sand" size={14} color={timerTint.icon} />
-            <Text style={[styles.pillText, styles.timerText, { color: timerTint.text }]}>
-              Yanıt için {formatRemaining(remaining)}
-            </Text>
-          </View>
+          {paid ? (
+            <View style={[styles.pill, { backgroundColor: tokens.colors.surfaceMuted }]}>
+              <MaterialCommunityIcons name="cash-check" size={14} color={tokens.colors.textSecondary} />
+              <Text style={[styles.pillText, { color: tokens.colors.textSecondary }]}>
+                {agencyPaidLabel(current.agreedPrice)}
+              </Text>
+            </View>
+          ) : null}
+          {timed ? (
+            <View style={[styles.pill, { backgroundColor: timerTint.bg, borderColor: timerTint.border }]}>
+              <MaterialCommunityIcons name="timer-sand" size={14} color={timerTint.icon} />
+              <Text style={[styles.pillText, styles.timerText, { color: timerTint.text }]}>
+                Yanıt için {formatRemaining(remaining)}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {stacked ? (

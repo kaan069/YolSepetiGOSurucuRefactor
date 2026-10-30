@@ -189,6 +189,7 @@ export default function useEarnings() {
         dropoffAddress: '',
         serviceType: item.service_type,
         earningType: 'job' as const,
+        paymentChannel: item.payment_channel ?? 'platform',
       }));
   }, [earningsList]);
 

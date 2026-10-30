@@ -327,6 +327,12 @@ export function useCommissionPayment({
       if (typeof errorData === 'string') {
         try { errorData = JSON.parse(errorData); } catch { /* düz metin */ }
       }
+      // Acente ödemeli işte ödeme yoktur (409, kod alanı `code`): iş ekranına dön
+      if (errorData?.code === 'PAYMENT_NOT_REQUIRED') {
+        handleClose();
+        return;
+      }
+
       // 409: talep iptal edildi / iş bu sürücüden alındı
       const cancel = toCommissionCancel(errorData?.error?.code, errorData?.error?.message);
       if (cancel) {

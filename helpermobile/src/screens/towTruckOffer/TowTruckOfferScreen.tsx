@@ -74,6 +74,7 @@ import { FkEmptyState, FkInfoBanner } from '../../components/fk';
 import { spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
+import AgencyPaidFooter from '../../components/AgencyPaidFooter';
 import { JobScheduleCard } from '../../components/job';
 import { getScheduleInfo } from '../../utils/schedule';
 
@@ -81,14 +82,14 @@ type Props = NativeStackScreenProps<RootStackParamList, 'TowTruckOffer'>;
 
 export default function TowTruckOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
-  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
-  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
   const { screenBg, appColors, cardBg, isDarkMode } = useAppTheme();
 
   // Hooks
   const { request: towTruckRequest, loading: requestLoading } = useTowTruckRequest(orderId);
+  // Acente ataması: geri sayım, Reddet, süre dolunca kilit; acente ödemeli işte sabit ücretle Kabul / Reddet
+  const agency = useAgencyAssignment(Number(orderId), towTruckRequest);
   const { location: currentLocation } = useCurrentLocation();
   const { towTrucks, selectedId: selectedTowTruckId, setSelectedId: setSelectedTowTruckId } = useTowTrucks();
 
@@ -239,8 +240,8 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
     }
 
     // Validasyonlar
-    if (!pricing || !totalDistance) {
-      Alert.alert('Hata', 'Fiyat henüz hesaplanmadı. Lütfen bekleyin.');
+    if (!totalDistance || (!agency.paid && !pricing)) {
+      Alert.alert('Hata', agency.paid ? 'Mesafe hesaplanamadı. Lütfen konum izni verin.' : 'Fiyat henüz hesaplanmadı. Lütfen bekleyin.');
       return;
     }
 
@@ -251,6 +252,12 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
 
     if (!towTruckRequest?.trackingToken) {
       Alert.alert('Hata', 'Tracking token bulunamadı.');
+      return;
+    }
+
+    // Acente ödemeli iş: fiyat sabit, teklif onayı yerine kabul onayı
+    if (agency.paid) {
+      agency.confirmAccept(submitOffer);
       return;
     }
 
@@ -287,7 +294,8 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         towTruckRequest!.trackingToken!,
         selectedTowTruckId!,
         parseFloat(totalDistance!.toFixed(2)),
-        parseFloat(proposedPrice),
+        // Acente ödemeli işte alan zorunlu ama backend yok sayar; ücret agreed_price'tır
+        agency.paid ? Number(agency.agreedPrice) : parseFloat(proposedPrice),
         towTruckRequest!.is_gear_stuck || false,
         towTruckRequest!.is_stuck || false,
         towTruckRequest!.is_vehicle_operational || true,
@@ -296,6 +304,13 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         selectedEmployeeId || undefined
       );
       agency.markOffered();
+
+      // Acente ödemeli iş hemen başlar: müşteri onayı ve komisyon ödemesi yok
+      if (agency.paid) {
+        showNotification('success', 'İş kabul edildi.');
+        agency.openAcceptedJob('tow');
+        return;
+      }
 
       logger.debug('orders', 'Teklif gnderildi');
 
@@ -387,7 +402,7 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
       <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        <AgencyAssignmentBanner agency={agency} />
+        <AgencyAssignmentBanner agency={agency} hideDecline={agency.paid} />
         {/* Randevulu talep: tarih/aralık + teklif taahhüdü (vinçle aynı) */}
         <JobScheduleCard info={getScheduleInfo(towTruckRequest)} context="offer" />
         {/* Talep Numarası */}
@@ -441,32 +456,38 @@ export default function TowTruckOfferScreen({ route, navigation }: Props) {
           attachmentTypes={towTruckRequest.attachment_types}
         />
 
-        {/* Fiyat Teklifi */}
-        <PriceOfferSection
-          value={proposedPrice}
-          onChange={setProposedPrice}
-          showCommissionNote={false}
-          placeholder="Fiyat giriniz"
-        >
-          {pricing ? (
-            <FkInfoBanner
-              type="info"
-              icon="lightbulb-outline"
-              message={`Tavsiye fiyat: ₺${Math.round(pricing.driverEarnings).toLocaleString('tr-TR')}`}
-              style={styles.suggested}
-            />
-          ) : null}
-        </PriceOfferSection>
+        {/* Fiyat Teklifi (acente ödemeli işte fiyat sabit) */}
+        {!agency.paid && (
+          <PriceOfferSection
+            value={proposedPrice}
+            onChange={setProposedPrice}
+            showCommissionNote={false}
+            placeholder="Fiyat giriniz"
+          >
+            {pricing ? (
+              <FkInfoBanner
+                type="info"
+                icon="lightbulb-outline"
+                message={`Tavsiye fiyat: ₺${Math.round(pricing.driverEarnings).toLocaleString('tr-TR')}`}
+                style={styles.suggested}
+              />
+            ) : null}
+          </PriceOfferSection>
+        )}
       </ScrollView>
 
       {/* Teklif Gönder Butonu (alt sabit alan) */}
-      <AcceptButton
-        onPress={handleAccept}
-        loading={submitting}
-        towTruckCount={towTrucks.length}
-        hasPricing={!!pricing}
-        disabled={agency.expired}
-      />
+      {agency.paid ? (
+        <AgencyPaidFooter agency={agency} onAccept={handleAccept} loading={submitting} disabled={towTrucks.length === 0} />
+      ) : (
+        <AcceptButton
+          onPress={handleAccept}
+          loading={submitting}
+          towTruckCount={towTrucks.length}
+          hasPricing={!!pricing}
+          disabled={agency.expired}
+        />
+      )}
       </KeyboardAvoidingView>
 
       {/* Loading Overlay */}

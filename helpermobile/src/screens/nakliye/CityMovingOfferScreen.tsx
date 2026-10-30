@@ -27,6 +27,7 @@ import { useAppTheme } from '../../hooks/useAppTheme';
 import { colors, spacing } from '../../theme/design';
 import { useAgencyAssignment } from '../../hooks/useAgencyAssignment';
 import AgencyAssignmentBanner from '../../components/AgencyAssignmentBanner';
+import AgencyPaidFooter from '../../components/AgencyPaidFooter';
 import { JobScheduleCard } from '../../components/job';
 import { getScheduleInfo } from '../../utils/schedule';
 
@@ -34,8 +35,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'CityMovingOffer'>;
 
 export default function CityMovingOfferScreen({ route, navigation }: Props) {
   const { orderId } = route.params;
-  // Acente doğrudan ataması: geri sayım, Reddet, süre dolunca teklif kilidi
-  const agency = useAgencyAssignment(Number(orderId));
   const { showNotification } = useNotificationStore();
   const { screenBg } = useAppTheme();
   const minOfferOverride = useDevOverrideStore((s) => s.minOfferOverride);
@@ -55,6 +54,8 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
   const { employees, fetchEmployees, loading: employeesLoading } = useEmployeeStore();
 
   const [request, setRequest] = useState<any | null>(null);
+  // Acente ataması: geri sayım, Reddet, süre dolunca kilit; acente ödemeli işte sabit ücretle Kabul / Reddet
+  const agency = useAgencyAssignment(Number(orderId), request);
   const [distanceToPickup, setDistanceToPickup] = useState<number | null>(null);
   const [totalDistance, setTotalDistance] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -148,12 +149,16 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
     }
     if (!request) return;
 
-    const priceCheck = validateOfferPrice(proposedPrice, minOfferOverride);
-    if (!priceCheck.valid) {
-      setPriceError(priceCheck.error!);
-      return;
+    // Acente ödemeli işte fiyat sabit: alan doğrulanmaz, backend agreed_price'ı kullanır
+    let price = Math.round(Number(agency.agreedPrice));
+    if (!agency.paid) {
+      const priceCheck = validateOfferPrice(proposedPrice, minOfferOverride);
+      if (!priceCheck.valid) {
+        setPriceError(priceCheck.error!);
+        return;
+      }
+      price = Math.round(priceCheck.price!);
     }
-    const price = Math.round(priceCheck.price!);
 
     // Araç kontrolü
     if (!selectedVehicleId) {
@@ -161,13 +166,28 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
       return;
     }
 
+    if (agency.paid) {
+      agency.confirmAccept(() => submitOffer(price));
+      return;
+    }
+    submitOffer(price);
+  };
+
+  const submitOffer = async (price: number) => {
     try {
       setSubmitting(true);
       const trackingToken = request.trackingToken || request.tracking_token;
       if (!trackingToken) throw new Error('Tracking token bulunamadı');
 
-      await requestsAPI.submitCityMovingOffer(trackingToken, price, totalDistance || 0, selectedVehicleId, selectedEmployeeId || undefined);
+      await requestsAPI.submitCityMovingOffer(trackingToken, price, totalDistance || 0, selectedVehicleId!, selectedEmployeeId || undefined);
       agency.markOffered();
+
+      // Acente ödemeli iş hemen başlar: müşteri onayı ve komisyon ödemesi yok
+      if (agency.paid) {
+        showNotification('success', 'İş kabul edildi.');
+        agency.openAcceptedJob('city_moving');
+        return;
+      }
 
       showNotification('success', 'Teklifiniz başarıyla gönderildi!');
 
@@ -232,7 +252,7 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          <AgencyAssignmentBanner agency={agency} />
+          <AgencyAssignmentBanner agency={agency} hideDecline={agency.paid} />
           {/* Randevulu talep: tarih/aralık + teklif taahhüdü */}
           <JobScheduleCard info={getScheduleInfo(request)} context="offer" />
           {/* Araç Seçimi */}
@@ -278,30 +298,38 @@ export default function CityMovingOfferScreen({ route, navigation }: Props) {
             distanceToPickup={distanceToPickup}
           />
 
-          <PriceOfferCard
-            price={proposedPrice}
-            onPriceChange={handlePriceChange}
-            error={priceError}
-            hint="Şehirler arası nakliye için teklif edeceğiniz fiyatı girin."
-          />
+          {!agency.paid && (
+            <>
+              <PriceOfferCard
+                price={proposedPrice}
+                onPriceChange={handlePriceChange}
+                error={priceError}
+                hint="Şehirler arası nakliye için teklif edeceğiniz fiyatı girin."
+              />
 
-          <Text style={styles.disclaimer}>
-            Teklif gönderdiğinizde, müşteri teklifinizi değerlendirecek ve kabul ederse sizinle iletişime geçilecektir.
-          </Text>
+              <Text style={styles.disclaimer}>
+                Teklif gönderdiğinizde, müşteri teklifinizi değerlendirecek ve kabul ederse sizinle iletişime geçilecektir.
+              </Text>
+            </>
+          )}
         </ScrollView>
 
-        <FkStickyFooter safeArea={false}>
-          <FkButton
-            onPress={handleSubmitOffer}
-            loading={submitting}
-            disabled={submitting || agency.expired || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
-            icon="send-check-outline"
-            size="lg"
-            fullWidth
-          >
-            Teklif Gönder
-          </FkButton>
-        </FkStickyFooter>
+        {agency.paid ? (
+          <AgencyPaidFooter agency={agency} onAccept={handleSubmitOffer} loading={submitting} disabled={!selectedVehicleId || approvedCount === 0} />
+        ) : (
+          <FkStickyFooter safeArea={false}>
+            <FkButton
+              onPress={handleSubmitOffer}
+              loading={submitting}
+              disabled={submitting || agency.expired || !proposedPrice || parseInt(proposedPrice) <= 0 || !selectedVehicleId || approvedCount === 0}
+              icon="send-check-outline"
+              size="lg"
+              fullWidth
+            >
+              Teklif Gönder
+            </FkButton>
+          </FkStickyFooter>
+        )}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

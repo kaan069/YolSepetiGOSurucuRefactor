@@ -34,6 +34,8 @@ export type CompletedJob = {
   serviceType: 'towTruck' | 'crane' | 'roadAssistance' | 'homeMoving' | 'cityMoving' | 'homeToHomeMoving' | 'cityToCity' | 'transfer';
   // Referral pay'leri için: 'job' = sürücünün kendi işi, 'referral' = davet edilen sürücünün işinden gelen pay
   earningType?: 'job' | 'referral';
+  // 'agency' = ücreti acente doğrudan öder (platform dışı ödeme)
+  paymentChannel?: 'platform' | 'agency';
 };
 
 // Earnings filtresi: hangi tip kazançlar listelenecek

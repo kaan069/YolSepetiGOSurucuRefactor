@@ -11,10 +11,16 @@ import { logger } from '../utils/logger';
 export interface AgencyAssignmentInfo {
   assignmentId: number;
   agencyName: string;
-  /** ISO UTC */
-  expiresAt: string;
+  /** ISO UTC; toplu davette null (süresiz) */
+  expiresAt: string | null;
   /** Bildirimdeki service_type (navigateByRequestStatus için) */
   serviceType?: string;
+  /** single: tekil atama, broadcast: toplu davet (ilk kabul eden alır) */
+  mode?: 'single' | 'broadcast';
+  /** Ödeyen taraf: customer dışındaysa acente ödemeli iş */
+  payer?: string | null;
+  /** Acentenin sabit ücreti (metin, örn. "1850.00") */
+  agreedPrice?: string | null;
 }
 
 export type AgencyAssignmentClosedType = 'expired' | 'cancelled';
@@ -56,6 +62,9 @@ export const useAgencyAssignmentStore = create<AgencyAssignmentState>((set) => (
             agencyName: a.agency_name,
             expiresAt: a.expires_at,
             serviceType: a.service_type,
+            mode: a.mode,
+            payer: a.payer,
+            agreedPrice: a.agreed_price,
           },
         ]),
       ),
@@ -111,13 +120,17 @@ export function applyAgencyAssignmentNotification(data: Record<string, unknown> 
 
   if (type === 'agency_assignment') {
     const assignmentId = Number(data.assignment_id);
-    const expiresAt = typeof data.expires_at === 'string' ? data.expires_at : '';
-    if (!assignmentId || !expiresAt) return;
+    if (!assignmentId) return;
+    // Toplu davette expires_at gelmez (süresiz)
+    const expiresAt = typeof data.expires_at === 'string' && data.expires_at ? data.expires_at : null;
     store.setAssignment(requestId, {
       assignmentId,
       agencyName: typeof data.agency_name === 'string' && data.agency_name ? data.agency_name : 'Acente',
       expiresAt,
       serviceType: typeof data.service_type === 'string' ? data.service_type : undefined,
+      mode: data.assignment_mode === 'broadcast' ? 'broadcast' : 'single',
+      payer: typeof data.payer === 'string' ? data.payer : null,
+      agreedPrice: typeof data.agreed_price === 'string' ? data.agreed_price : null,
     });
     return;
   }
@@ -143,6 +156,8 @@ export function getAgencyClosedText(
   switch (reason) {
     case 'reassigned':
       return { title: 'Atama Geri Alındı', message: 'Acente bu işi başka bir sürücüye atadı.' };
+    case 'other_selected':
+      return { title: 'İş Başka Sürücüye Verildi', message: 'Bu iş başka bir sürücüye verildi.' };
     case 'agency_cancelled':
       return { title: 'Atama Geri Alındı', message: 'Acente bu atamayı iptal etti.' };
     case 'driver_removed':

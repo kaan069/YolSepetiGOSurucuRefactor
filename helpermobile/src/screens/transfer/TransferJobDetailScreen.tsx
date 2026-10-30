@@ -19,6 +19,7 @@ import { CommissionPaymentModal, CommissionPaymentCard, InsurancePricingCard } f
 import { cancelFromDetail } from '../../components/payment/commission/cancelReason';
 import CancelJobModal from '../../components/cancellation/CancelJobModal';
 import { useCancellationEventStore } from '../../store/useCancellationEventStore';
+import { useAgencyCancelExit } from '../../hooks/useAgencyCancelExit';
 import { useJobUpdateEventStore } from '../../store/useJobUpdateEventStore';
 import { useAppTheme } from '../../hooks/useAppTheme';
 import PhotosSection from '../../components/PhotosSection';
@@ -151,6 +152,7 @@ export default function TransferJobDetailScreen({ route, navigation }: Props) {
   }, [jobId]);
 
   // WebSocket iptal event'ini dinle
+  useAgencyCancelExit(jobId);
   const { lastCancelledJobId, lastCancelledAt } = useCancellationEventStore();
   useEffect(() => {
     if (lastCancelledJobId && String(lastCancelledJobId) === jobId) {

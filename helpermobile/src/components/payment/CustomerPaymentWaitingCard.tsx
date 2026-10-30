@@ -2,7 +2,7 @@
  * CustomerPaymentWaitingCard
  *
  * Çekici işleri için müşterinin ödeme yapmasını bekleyen kart.
- * Müşteri teklifi kabul ettikten sonra web'den veya araçta (NFC/QR) ödeme yapacak.
+ * Müşteri teklifi kabul ettikten sonra web'den kartla ödeme yapacak.
  * Ödeme yapıldığında iş otomatik olarak "Devam Eden"e geçer.
  *
  * Props:

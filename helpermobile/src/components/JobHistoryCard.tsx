@@ -87,6 +87,11 @@ export default function JobHistoryCard({ job, onPress, serviceTypeLabel, service
       )}
 
       <View style={[styles.footer, { borderTopColor: isDarkMode ? colors.neutral[800] : colors.neutral[100] }]}>
+        {job.paymentChannel === 'agency' && (
+          <View style={[styles.distanceBadge, { backgroundColor: isDarkMode ? colors.neutral[800] : colors.neutral[100] }]}>
+            <Text style={[styles.distanceText, { color: appColors.text.secondary }]}>Acente tarafından ödenir</Text>
+          </View>
+        )}
         {job.distanceKm > 0 && (
           <View style={[styles.distanceBadge, { backgroundColor: isDarkMode ? colors.neutral[800] : colors.neutral[100] }]}>
             <Text style={[styles.distanceText, { color: appColors.text.secondary }]}>{job.distanceKm.toFixed(1)} km</Text>

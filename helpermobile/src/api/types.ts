@@ -213,8 +213,17 @@ export interface BookingFields {
     departedAt?: string | null;         // Sürücü yola çıktığında dolar
 }
 
+/**
+ * Acente ödemeli iş alanları. payer 'customer' dışındaysa sürücü teklif vermez;
+ * ücret agreed_price'tır (metin, örn. "1850.00"; müşteri ödemeli işte null).
+ */
+export interface PayerFields {
+    payer?: 'customer' | 'agency' | 'agency_package' | null;
+    agreed_price?: string | null;
+}
+
 // Request Types - Crane Request (Vinç Talebi)
-export interface CraneRequest extends DetailCancelInfo, BookingFields {
+export interface CraneRequest extends DetailCancelInfo, BookingFields, PayerFields {
     id: number;
     request_id: RequestIdInfo;  // Backend'den object olarak geliyor
     requestOwnerNameSurname?: string;    // Müşteri adı soyadı (ana response'da)
@@ -406,7 +415,7 @@ export interface TowTruckDetails {
 }
 
 // Request Types - Tow Truck Request Detail (Çekici Talebi Detay)
-export interface TowTruckRequestDetail extends BookingFields {
+export interface TowTruckRequestDetail extends BookingFields, PayerFields {
     id: number;
     request_id: RequestIdInfo | number;  // Backend'den object veya number olarak gelebiliyor
     requestOwnerNameSurname?: string;    // Müşteri adı soyadı (ana response'da)
@@ -586,6 +595,8 @@ export interface EarningsListItem {
     // Referans pay'leri için (sürücü-sürücü davet sistemi)
     earning_type?: 'job' | 'referral'; // 'job' = kendi işi, 'referral' = davet edilenin işinden gelen pay
     referral_earning_id?: number | null; // referral kaydının id'si (referral ise dolu, job ise null)
+    // 'agency' = ücreti acente doğrudan öder (platform tahsil etmez); yoksa 'platform' varsayılır
+    payment_channel?: 'platform' | 'agency';
 }
 
 export interface EarningsListResponse {
@@ -883,7 +894,7 @@ export interface EmployeeJob {
 export type TransferType = 'organization' | 'vip';
 export type VehiclePreference = 'sedan' | 'vip_car' | 'minibus' | 'midibus' | 'bus';
 
-export interface TransferRequest extends BookingFields {
+export interface TransferRequest extends BookingFields, PayerFields {
   id: number;
   request_id: RequestIdInfo;
   requestOwnerNameSurname?: string;
@@ -943,7 +954,7 @@ export interface TransferRequest extends BookingFields {
  * her iki formatta da alan gönderebiliyor. `movingType` UI katmanında
  * `useOrdersData` tarafından eklenen ayrık alandır.
  */
-export interface MovingRequest extends BookingFields {
+export interface MovingRequest extends BookingFields, PayerFields {
   id: number;
   created_at: string;
   status?: string;
@@ -996,7 +1007,7 @@ export interface MovingRequest extends BookingFields {
  * latitude / location_latitude vb.). service_type ve assistance_type'ın her ikisi
  * de backend varyasyonlarına karşılık gelir.
  */
-export interface RoadAssistanceRequest {
+export interface RoadAssistanceRequest extends PayerFields {
   id: number;
   created_at: string;
   /** Müşterinin seçtiği sorun kodları (ör. battery_jump, tire_change) — constants/backendLabels */

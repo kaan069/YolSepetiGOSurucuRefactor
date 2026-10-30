@@ -18,6 +18,7 @@ import { CommissionPaymentModal, CommissionPaymentCard, InsurancePricingCard } f
 import { cancelFromDetail } from '../components/payment/commission/cancelReason';
 import CancelJobModal from '../components/cancellation/CancelJobModal';
 import { useCancellationEventStore } from '../store/useCancellationEventStore';
+import { useAgencyCancelExit } from '../hooks/useAgencyCancelExit';
 import { useJobUpdateEventStore } from '../store/useJobUpdateEventStore';
 import { getProblemLabel, getProblemIcon, getVehicleTypeLabel } from './roadAssistance/constants';
 import { roadProblemListLabel } from '../constants/backendLabels';
@@ -112,6 +113,7 @@ export default function RoadAssistanceJobDetailScreen({ route, navigation }: Pro
   );
 
   // WebSocket iptal event'ini dinle
+  useAgencyCancelExit(jobId);
   const { lastCancelledJobId, lastCancelledAt } = useCancellationEventStore();
   useEffect(() => {
     if (lastCancelledJobId && String(lastCancelledJobId) === jobId) {

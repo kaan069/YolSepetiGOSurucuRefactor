@@ -25,6 +25,8 @@ export interface OrdersJob {
   };
   distance: number;
   estimatedPrice: number;
+  /** Acente ödemeli işte "Acente öder · 1.850 TL" */
+  agencyPaidLabel?: string | null;
   status: OrderStatus;
   createdAt: Date;
   description: string;
